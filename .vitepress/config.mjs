@@ -1,12 +1,18 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
-export default defineConfig({
+export default 
+  defineConfig({
   base:"/learning-blog/",
   head:[["link",{rel:"icon",href:"/learning-blog/spaceship.svg"}]],
   // 站点核心信息（与首页标题/定位一致）
   title: "知行代码集",
   description: "深耕Python/C++，拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
+  // ========== 新增：markdown 配置（math: true 放在这里） ==========
+  markdown: {
+    math: true // 启用VitePress内置的数学公式支持
+  },
+  // ==============================================================
   themeConfig: {
     // sidebar:false, //关闭侧边栏
     aside:'right', //侧边栏位置
@@ -15,13 +21,18 @@ export default defineConfig({
     // 顶部导航栏
     logo: '/logo.svg',
     nav: [
+
       { text: '首页', link: '/' },
       // 编程语言（下拉菜单，包含Python/C++）
-      
+      { text: '博客',  
+        items: [
+          { text: '笔记', link: '/posts/blog_setup.md' },
+        ]
+      },
       { 
         text: '编程语言', 
         items: [
-          { text: 'Python', link: '/notes/language/python/python.md' },
+          { text: 'Python', link: '/notes/language/python/' },
           { text: 'C++', link: '/notes/language/c++.md' },
           { text: '跨语言实践', link: '/notes/language/cross-lang.md' }
         ] 
@@ -34,8 +45,17 @@ export default defineConfig({
         items: [
           { text: 'PyTorch核心教程', link: '/notes/deep-learning/pytorch.md' },
           { text: '实战项目', link: '/notes/deep-learning/project.md' },
-          { text: '性能优化', link: '/notes/deep-learning/optimize.md' }
-        ] 
+          { text: '性能优化', link: '/notes/deep-learning/optimize.md' },
+          // {
+          //   items: [
+          //     { text: 'PyTorch', link: '/notes/deep-learning/pytorch.md' },
+          //     { text: 'TensorFlow', link: '/notes/deep-learning/tensorflow.md' },
+          //     { text: 'Keras', link: '/notes/deep-learning/keras.md' },
+          //     { text: 'MXNet', link: '/notes/deep-learning/mxnet.md' },
+          //   ]
+          // }
+        ]
+        
       },
       // 算法刷题
       { text: '算法与刷题', link: '/notes/algorithm/' },
@@ -44,11 +64,18 @@ export default defineConfig({
       // 工具环境
       { text: '工具与环境', link: '/notes/tools/' },
       // 收藏夹
-      { text: '收藏夹', link: '/notes/starred.md' }
+      { text: '收藏夹', link: '/notes/starred.md' },
+      // HTML示例
+    
     ],
 
     // 侧边栏
     sidebar: {
+      '/': [
+        { text: '首页', link: '/' },
+        { text: '笔记', link: '/posts/blog_setup.md' },
+      ],
+      
       // 编程语言分类侧边栏
       '/notes/language/': [
         {
@@ -57,7 +84,7 @@ export default defineConfig({
           items: [
             { text: '基础语法', link: '/notes/language/python/basic.md' },
             { text: '进阶特性', link: '/notes/language/python/advanced.md' },
-            { text: '实战案例', link: '/notes/language/python/case.md' }
+            { text: 'Pandas', link: '/notes/language/python/pandas.md' }
           ]
         },
         {
@@ -117,14 +144,18 @@ export default defineConfig({
         { text: 'PyTorch部署工具', link: '/notes/tools/ai-deploy.md' }
       ],
 
-      // 学习路线/收藏夹侧边栏（简化）
+      // 学习路线/收藏夹/HTML示例侧边栏（简化）
       '/notes/roadmap.md': [{ text: '学习路线', link: '/notes/roadmap.md' }],
-      '/notes/starred.md': [{ text: '收藏夹', link: '/notes/starred.md' }]
+      '/notes/starred.md': [{ text: '收藏夹', link: '/notes/starred.md' }],
+      '/notes/html-example.html': [{ text: '纯HTML页面', link: '/notes/html-example.html' }]
     },
 
     // 社交链接
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/violet764' }
+      { icon: 'github', link: 'https://github.com/violet764/learning-blog' },
+      { icon: {
+        svg: '<svg t="1764941384467" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1774" width="200" height="200"><path d="M1019.54782609 345.3106087c-3.20556522-142.1133913-127.15408696-169.36069565-127.15408696-169.36069566s-96.70121739-0.53426087-222.25252174-1.60278261l91.3586087-88.15304347s14.42504348-18.16486957-10.15095652-38.46678261c-24.576-20.30191304-26.17878261-11.21947826-34.72695653-5.87686957-7.47965217 5.3426087-117.00313043 112.72904348-136.23652174 131.96243479-49.68626087 0-101.50956522-0.53426087-151.73008695-0.53426087h17.63060869S315.392 43.98747826 306.84382609 38.1106087s-9.61669565-14.42504348-34.72695652 5.87686956c-24.576 20.30191304-10.15095652 38.46678261-10.15095653 38.46678261l93.49565218 90.82434783c-101.50956522 0-189.12834783 0.53426087-229.73217392 2.13704347C-5.69878261 213.34817391 4.45217391 345.3106087 4.45217391 345.3106087s1.60278261 283.15826087 0 426.34017391c14.42504348 143.18191304 124.48278261 166.15513043 124.48278261 166.15513043s43.8093913 1.06852174 76.39930435 1.06852174c3.20556522 9.08243478 5.87686957 53.96034783 56.0973913 53.96034783 49.68626087 0 56.0973913-53.96034783 56.09739131-53.96034783s365.96869565-1.60278261 396.42156522-1.60278261c1.60278261 15.49356522 9.08243478 56.63165217 59.30295652 56.09739131 49.68626087-1.06852174 53.42608696-59.30295652 53.42608695-59.30295652s17.09634783-1.60278261 67.85113044 0c118.60591304-21.90469565 125.55130435-160.81252174 125.55130435-160.81252174s-2.13704348-285.82956522-0.53426087-427.94295652z m-102.04382609 453.05321739c0 22.43895652-17.6306087 40.60382609-39.53530435 40.60382608h-721.25217391c-21.90469565 0-39.53530435-18.16486957-39.53530435-40.60382608V320.20034783c0-22.43895652 17.6306087-40.60382609 39.53530435-40.60382609h721.25217391c21.90469565 0 39.53530435 18.16486957 39.53530435 40.60382609v478.16347826z" fill="#1296db" p-id="1775"></path><path d="M409.088 418.816l-203.264 38.912 17.408 76.288 201.216-38.912zM518.656 621.056c-49.664 106.496-94.208 26.112-94.208 26.112l-33.28 21.504s65.536 89.6 128 21.504c73.728 68.096 130.048-22.016 130.048-22.016l-30.208-19.456c0-0.512-52.736 75.776-100.352-27.648zM619.008 495.104l201.728 38.912 16.896-76.288-202.752-38.912z" fill="#1296db" p-id="1776"></path></svg>'
+      }, link: 'https://space.bilibili.com/107668498' }
     ],
 
     // 页脚（与首页tagline一致）
