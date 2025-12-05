@@ -4,13 +4,11 @@ on:
   push:
     branches: [master]
 
-# 设置token访问权限（保持最小权限）
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 并发控制
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -20,33 +18,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4  # 升级到v4（v3已逐步废弃）
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3  # 升级到v3（v2兼容问题）
-        with:
-          version: 8.6.12
+      # 适配pnpm 10.24 + Node 24.5，使用淘宝源安装
+      - name: Setup pnpm (Taobao Mirror)
+        run: |
+          npm config set registry https://registry.npmmirror.com/
+          # 安装本地一致的pnpm 10.24版本
+          npm install -g pnpm@10.24.0
+          pnpm --version
 
       - name: Setup Node
-        uses: actions/setup-node@v4  # 升级到v4（适配最新runner）
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          # 匹配本地Node v24.5版本
+          node-version: 24.5
           cache: pnpm
+          # Node依赖也走淘宝源
+          registry-url: https://registry.npmmirror.com/
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5  # 升级到v5（最新稳定版）
+        uses: actions/configure-pages@v5
 
+      # 安装依赖（强制淘宝源）
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          pnpm config set registry https://registry.npmmirror.com/
+          pnpm install
 
+      # 构建+修复.nojekyll路径
       - name: Build with VitePress
         run: |
           pnpm run docs:build
-          touch /.nojekyll  # 关键：.nojekyll要放在目录下！
+          # 确保.nojekyll在dist目录下
+          touch .vitepress/dist/.nojekyll
+
+      # 上传构建产物
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3  # 升级到v3（解决废弃报错）
+        uses: actions/upload-pages-artifact@v3
         with:
           path: .vitepress/dist
 
@@ -59,4 +70,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4  # 升级到v4（最新稳定版）
+        uses: actions/deploy-pages@v4
