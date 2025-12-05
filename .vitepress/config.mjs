@@ -2,8 +2,8 @@ import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
 export default defineConfig({
-  base:"/learning-blog/",
-  head:[["link",{rel:"icon",href:"/learning-blog/spaceship.svg"}]],
+  base:"/",
+  head:[["link",{rel:"icon",href:"/spaceship.svg"}]],
   // 站点核心信息（与首页标题/定位一致）
   title: "知行代码集",
   description: "深耕Python/C++，拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
