@@ -17,6 +17,7 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       // 编程语言（下拉菜单，包含Python/C++）
+      
       { 
         text: '编程语言', 
         items: [
