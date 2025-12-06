@@ -3,9 +3,9 @@
 layout: home
 
 hero:
-  name: "知行代码集"
+  name: "星间飞行"
   text: "Python · C++ · AI "
-  tagline: 深耕代码实践，拆解AI底层逻辑
+  tagline: "星际航行，智慧笔记"
   image:
     src: /background.png
     alt: 背景图片

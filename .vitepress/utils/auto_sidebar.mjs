@@ -10,6 +10,9 @@ const WHITE_LIST = [
   "node_modules",
   ".idea",
   "assets",
+  "code",
+  "Files",
+  "images"
 ];
 
 // 判断是否是文件夹

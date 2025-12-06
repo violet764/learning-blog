@@ -1,4 +1,9 @@
-# vitepress博客搭建的记录
+# vitepress博客搭建的记录{# .text-center}
+<style>
+    .text-center {
+        text-align: center;
+    }
+</style>
 
 ## 布局模式
 可以有三种布局模式，可以写在markdown文件的头部：
