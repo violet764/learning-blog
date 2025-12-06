@@ -11,7 +11,7 @@ Pandas 在 ndarray 的基础上构建出了两种更适用于数据分析的存�
 - Series是一种一维数据结构，每一个元素都带有一个索引，与 NumPy 中的一维数组类似
 - Series 可以保存任何数据类型，比如整数、字符串、浮点数、Python 对象等，它的索引默认为整数，从 0 开始依次递增。Series 的结构图，如下所示：
 
-<img src="./Files/Series结构图.jpg"  />
+<img src="./images/Series结构图.jpg"  />
 
 
 
@@ -193,7 +193,7 @@ print(ser1 / ser2)
 
 DataFrame 是一种表格型的二维数据结构，既有行索引（index），又有列索引（columns），且默认都是从0开始递增的整数。可以把每一列看作是共同用一个索引的 Series，且不同列的数据类型可以不同。DataFrame 的结构图，如下所示：
 
-<img src="./Files/DataFrame结构图.jpg"  />
+<img src="./images/DataFrame结构图.jpg"  />
 
 
 
