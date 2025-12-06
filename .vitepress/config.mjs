@@ -89,7 +89,14 @@ export default
         {
           text: 'Python',
           collapsible: true,
-          items: set_sidebar('notes/language/python/'),
+          items: [
+            { text: '变量与数据类型', link: '/notes/language/python/基础_变量.md' },
+            { text: '语句与容器', link: '/notes/language/python/基础_语句与容器.md' },
+            { text: '函数与类', link: '/notes/language/python/基础_函数与类.md' },
+            { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
+            { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
+
+          ]
         },
         {
           text: 'C++',

@@ -51,13 +51,13 @@ Markdown 是一种轻量级标记语言，排版语法简洁，让人们更多�
 1. **保持简洁**：避免过度复杂的嵌套结构
 2. **合理使用空行**：提高可读性
 3. **添加目录**：长文档建议添加目录
-4. **代码高亮**：使用 ``` 指定语言类型
+4. **代码高亮**：使用 ```` ``` ````指定语言类型
 5. **图片优化**：使用图床或相对路径
 
 ---
 
 <div align="center">
   <p>开始探索 Markdown 的美妙世界吧！</p>
-  <p><em>"Markdown is two things: (1) a plain text formatting syntax; and (2) a software tool that converts the plain text formatting to HTML." — John Gruber</em></p>
+  <p><em>Markdown is two things:<br> (1) a plain text formatting syntax <br> (2) a software tool that converts the plain text formatting to HTML <br> — John Gruber</em></p>
 </div>
 

@@ -1,5 +1,5 @@
 # python index
 
-[python](./python.md)
+[基础语法](./python.md)
 
 [pandas](./pandas.md)

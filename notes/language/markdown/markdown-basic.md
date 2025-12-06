@@ -552,17 +552,7 @@ This is another regular paragraph.
 
 **链接跳转失效？** 优先使用相对路径，锚点链接需与标题完全匹配（区分大小写）。
 
-### 2. 高效编辑快捷键（VS Code）
-
-|操作目标|Markdown语法|VS Code快捷键|
-|---|---|---|
-|加粗文本|`**文本**`|Ctrl + B|
-|斜体文本|`*文本*`|Ctrl + I|
-|插入链接|`[文本](链接)`|Ctrl + K + L|
-|插入代码块|````代码````|Ctrl + K + F|
-|插入图片|`![描述](路径)`|Ctrl + Shift + I|
-|创建列表|`- 内容`/`1. 内容`|输入`-`/`1.` + 空格|
-### 3. 实用插件推荐（VS Code）
+### 2. 实用插件推荐（VS Code）
 
 - **Markdown All in One**：提供快捷键、目录生成、预览等一站式功能
 
@@ -589,4 +579,5 @@ This is another regular paragraph.
 ||`[文本](#锚点)`|页面内跳转|
 |图片|`<img src="路径" width="尺寸">`|控制显示大小|
 
+---
 其余Markdown语法可查看[Vitepress官方文档](https://vitepress.dev/zh/guide/markdown)和[Markdown教程](https://markdown.com.cn/basic-syntax)

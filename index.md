@@ -12,7 +12,7 @@ hero:
   actions: 
     - theme: brand
       text: 快速开始 →
-      link: /notes/intro
+      link: /notes/language/python/
     - theme: alt
       text: 收藏夹
       link: /notes/starred
@@ -21,7 +21,7 @@ features:
   - icon: 🐍
     title: 编程语言
     details: 涵盖Python语法/进阶、C++核心特性、STL实战、跨语言编程技巧，附可直接运行的代码案例
-    link: /notes/language/
+    link: /notes/language/python/
     linkText: 查看笔记
 
   - icon: 🤖
