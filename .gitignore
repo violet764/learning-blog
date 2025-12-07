@@ -5,4 +5,5 @@ dist-ssr
 cache
 .cache
 .temp
+prompt.txt
 *.local

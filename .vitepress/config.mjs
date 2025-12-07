@@ -66,12 +66,22 @@ export default
         
       },
       // 算法刷题
-      { text: '算法与刷题', link: '/notes/algorithm/' },
+      { text: '算法',
+        items:[
+          { text: '数据结构', link: '/notes/algorithm/数据结构与算法总览.md' },
+          { text: '算法基础', link: '/notes/algorithm/算法应用与优化.md' },
+          { text: '搜索', link: '/notes/algorithm/搜索算法模块.md' },
+          { text: '动态规划', link: '/notes/algorithm/动态规划模块.md' },
+          { text: '字符串', link: '/notes/algorithm/字符串模块.md' },
+        ]
+
+      },
       // 学习路线
       { text: '学习路线', link: '/notes/roadmap.md' },
       // 工具环境
       { text: '工具与环境',
         items:[
+          { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
           { text: 'Shell', link: '/notes/tools/env-config.md' },
           { text: 'Vim', link: '/notes/tools/debug.md' },
           { text: 'Git', link: '/notes/tools/ai-deploy.md' }
@@ -96,12 +106,14 @@ export default
           collapsible: true,
           items: [
             { text: '导览', link: '/notes/language/python/index.md' },
-            { text: '变量与语句', link: '/notes/language/python/基础_变量.md' },
+            { text: '变量', link: '/notes/language/python/基础_变量.md' },
             { text: '容器', link: '/notes/language/python/基础_容器.md' },
-            { text: '函数与类', link: '/notes/language/python/基础_函数与类.md' },
+            { text: '面向对象', link: '/notes/language/python/基础_函数与类.md' },
             { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
             { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
             { text: '正则表达式', link: '/notes/language/python/正则.md' },
+            { text: 'Pandas', link: '/notes/language/python/Pandas.md' },
+            { text: '数据可视化', link: '/notes/language/python/matplotlib.md' },
 
           ]
         },
@@ -159,16 +171,20 @@ export default
 
       // 算法与刷题侧边栏（对齐首页Feature）
       '/notes/algorithm/': [
-        { text: '基础算法', link: '/notes/algorithm/basic.md' },
-        { text: 'LeetCode刷题(Python/C++)', link: '/notes/algorithm/leetcode.md' },
-        { text: '刷题技巧对比', link: '/notes/algorithm/language-compare.md' }
+        { text: '导览', link: '/notes/algorithm/index.md' },
+        { text: '数据结构', link: '/notes/algorithm/数据结构与算法总览.md' },
+        { text: '算法基础', link: '/notes/algorithm/算法应用与优化.md' },
+        { text: '搜索', link: '/notes/algorithm/搜索算法模块.md' },
+        { text: '动态规划', link: '/notes/algorithm/动态规划模块.md' },
+        { text: '字符串', link: '/notes/algorithm/字符串模块.md' },
       ],
 
       // 工具与环境侧边栏（对齐首页Feature）
       '/notes/tools/': [
-        { text: '开发环境配置', link: '/notes/tools/env-config.md' },
-        { text: '调试技巧', link: '/notes/tools/debug.md' },
-        { text: 'PyTorch部署工具', link: '/notes/tools/ai-deploy.md' }
+        { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
+        { text: 'Shell', link: '/notes/tools/debug.md' },
+        { text: 'Vim', link: '/notes/tools/ai-deploy.md' },
+        { text: 'Git', link: '/notes/tools/env-config.md' }
       ],
 
       // 学习路线/收藏夹/HTML示例侧边栏（简化）
