@@ -22,7 +22,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 适配pnpm 10.24 + Node 24.5，使用淘宝源安装
       - name: Setup pnpm (Taobao Mirror)
         run: |
           npm config set registry https://registry.npmmirror.com/
@@ -33,16 +32,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # 匹配本地Node v24.5版本
           node-version: 24.5
           cache: pnpm
-          # Node依赖也走淘宝源
           registry-url: https://registry.npmmirror.com/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # 安装依赖（强制淘宝源）
+      # 安装依赖
       - name: Install dependencies
         run: |
           pnpm config set registry https://registry.npmmirror.com/

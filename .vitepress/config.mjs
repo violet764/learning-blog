@@ -70,7 +70,12 @@ export default
       // 学习路线
       { text: '学习路线', link: '/notes/roadmap.md' },
       // 工具环境
-      { text: '工具与环境', link: '/notes/tools/' },
+      { text: '工具与环境',
+        items:[
+          { text: 'Shell', link: '/notes/tools/env-config.md' },
+          { text: 'Vim', link: '/notes/tools/debug.md' },
+          { text: 'Git', link: '/notes/tools/ai-deploy.md' }
+        ] },
       // 收藏夹
       { text: '收藏夹', link: '/notes/starred.md' },
       // HTML示例
@@ -90,11 +95,13 @@ export default
           text: 'Python',
           collapsible: true,
           items: [
-            { text: '变量与数据类型', link: '/notes/language/python/基础_变量.md' },
-            { text: '语句与容器', link: '/notes/language/python/基础_语句与容器.md' },
+            { text: '导览', link: '/notes/language/python/index.md' },
+            { text: '变量与语句', link: '/notes/language/python/基础_变量.md' },
+            { text: '容器', link: '/notes/language/python/基础_容器.md' },
             { text: '函数与类', link: '/notes/language/python/基础_函数与类.md' },
-            { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
             { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
+            { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
+            { text: '正则表达式', link: '/notes/language/python/正则.md' },
 
           ]
         },
@@ -111,7 +118,7 @@ export default
           text: 'Markdown',
           collapsible: true,
           items: 
-          [
+          [ { text: '导览', link: '/notes/language/markdown/index.md' },
             { text: '基础语法', link: '/notes/language/markdown/markdown-basic.md' },
             { text: '拓展语法', link: '/notes/language/markdown/markdown-advanced.md' },
             { text: '数学公式语法', link: '/notes/language/markdown/markdown-math.md' }
