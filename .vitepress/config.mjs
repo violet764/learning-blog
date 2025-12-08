@@ -36,7 +36,7 @@ export default
         text: '编程语言', 
         items: [
           { text: 'Python', link: '/notes/language/python/' },
-          { text: 'C++', link: '/notes/language/c++.md' },
+          { text: 'C++', link: '/notes/language/' },
           { text: 'Markdown', link: '/notes/language/markdown/' }
         ] 
       },
@@ -113,9 +113,11 @@ export default
           text: 'C++',
           collapsible: true,
           items: [
-            { text: '核心语法', link: '/notes/language/c++/basic.md' },
-            { text: 'STL容器', link: '/notes/language/c++/stl.md' },
-            { text: '高性能编程', link: '/notes/language/c++/high-perf.md' }
+            { text: '导览', link: '/notes/language/c++/index.md' },
+            { text: '基础语法', link: '/notes/language/c++/basic.md' },
+            { text: '面向对象', link: '/notes/language/c++/面向对象.md' },
+            { text: '高性能编程', link: '/notes/language/c++/stl.md' },
+
           ]
         },
         {

@@ -12,9 +12,9 @@ NumPy 数组和 Python 列表的主要区别：
 
 ### 创建数组
 
-#### np.array()函数
+#### `np.array()`函数
 
-**作用**：创建一个数组对象并返回（ndarray实例对象）
+**作用**：创建一个数组对象并返回（`ndarray`实例对象）
 
 **语法**：`np.array(object, dtype=None)`
 
