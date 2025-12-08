@@ -50,20 +50,20 @@ features:
 
   - icon: 📝
     title: 刷题与算法
-    details: 基于Python/C++的经典算法题、LeetCode刷题思路、数据结构优化技巧
-    link: /notes/algorithm/
+    details: 学习经典数据结构与算法、LeetCode刷题思路、数据结构优化技巧
+    link: /notes/algorithm/数据结构与算法.md
     linkText: 刷题笔记
 
+  - icon: 🛠️
+    title: 工具与环境
+    details: 编程工具（Vim，Git，Shell)介绍、AI模型部署工具使用教程
+    link: /notes/tools/IDE_introduce.md
+    linkText: 工具指南
+    
   - icon: 📚
     title: 学习路线图
     details: Python/C++/AI/深度学习的系统学习路径，从入门到进阶的阶段目标与资源推荐
     link: /notes/roadmap/
     linkText: 规划路径
-
-  - icon: 🛠️
-    title: 工具与环境
-    details: 开发环境配置、调试技巧、依赖管理、AI模型部署工具（Docker/TensorRT）使用教程
-    link: /notes/tools/
-    linkText: 工具指南
 ---
 

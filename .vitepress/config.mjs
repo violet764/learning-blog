@@ -32,11 +32,6 @@ export default
 
       { text: '首页', link: '/' },
       // 编程语言（下拉菜单，包含Python/C++）
-      { text: '博客',  
-        items: [
-          { text: '笔记', link: '/posts/blog_setup.md' },
-        ]
-      },
       { 
         text: '编程语言', 
         items: [
@@ -54,14 +49,6 @@ export default
           { text: 'PyTorch核心教程', link: '/notes/deep-learning/pytorch.md' },
           { text: '实战项目', link: '/notes/deep-learning/project.md' },
           { text: '性能优化', link: '/notes/deep-learning/optimize.md' },
-          // {
-          //   items: [
-          //     { text: 'PyTorch', link: '/notes/deep-learning/pytorch.md' },
-          //     { text: 'TensorFlow', link: '/notes/deep-learning/tensorflow.md' },
-          //     { text: 'Keras', link: '/notes/deep-learning/keras.md' },
-          //     { text: 'MXNet', link: '/notes/deep-learning/mxnet.md' },
-          //   ]
-          // }
         ]
         
       },
@@ -70,25 +57,30 @@ export default
         items:[
         { text: '数据结构', link: '/notes/algorithm/数据结构与算法.md' },
         { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
+
+        {items:[
         { text: '搜索', link: '/notes/algorithm/搜索.md' },
         { text: '动态规划', link: '/notes/algorithm/动态规划.md' },
         { text: '字符串', link: '/notes/algorithm/字符串.md' },
-        ]
 
+        ]}
+        ]
       },
-      // 学习路线
-      { text: '学习路线', link: '/notes/roadmap.md' },
+      
       // 工具环境
       { text: '工具与环境',
         items:[
           { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
-          { text: 'Shell', link: '/notes/tools/env-config.md' },
-          { text: 'Vim', link: '/notes/tools/debug.md' },
-          { text: 'Git', link: '/notes/tools/ai-deploy.md' }
+          { text: 'Shell', link: '/notes/tools/tools_shell.md' },
+          { text: 'Vim', link: '/notes/tools/tools_vim.md' },
+          { text: 'Git', link: '/notes/tools/tools_Git.md' },
+          { text: 'Conda', link: '/notes/tools/tools_conda.md' }
+
         ] },
+      // 学习路线
+      { text: '学习路线', link: '/notes/roadmap' },
       // 收藏夹
-      { text: '收藏夹', link: '/notes/starred.md' },
-      // HTML示例
+      { text: '收藏夹', link: '/notes/starred' },
     
     ],
 
@@ -181,15 +173,23 @@ export default
       // 工具与环境侧边栏（对齐首页Feature）
       '/notes/tools/': [
         { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
-        { text: 'Shell', link: '/notes/tools/debug.md' },
-        { text: 'Vim', link: '/notes/tools/ai-deploy.md' },
-        { text: 'Git', link: '/notes/tools/env-config.md' }
+        { text: 'Shell', link: '/notes/tools/tools_shell.md' },
+        { text: 'Vim', link: '/notes/tools/tools_vim.md' },
+        { text: 'Git', link: '/notes/tools/tools_Git.md' },
+        { text: 'Conda', link: '/notes/tools/tools_conda.md' },
+
       ],
 
       // 学习路线/收藏夹/HTML示例侧边栏（简化）
-      '/notes/roadmap.md': [{ text: '学习路线', link: '/notes/roadmap.md' }],
-      '/notes/starred.md': [{ text: '收藏夹', link: '/notes/starred.md' }],
-      '/notes/html-example.html': [{ text: '纯HTML页面', link: '/notes/html-example.html' }]
+      '/notes/roadmap': [{ text: '学习路线', link: '/notes/roadmap.md' }],
+
+      '/notes/starred': [
+        { text: '经典论文', link: '/notes/starred/awesome_paper.md' },
+        { text: '优质博客', link: '/notes/starred/awesome_blog.md' },
+
+
+      ],
+
     },
 
     // 社交链接

@@ -7,3 +7,5 @@ cache
 .temp
 prompt.txt
 *.local
+.idea
+.gitignore
