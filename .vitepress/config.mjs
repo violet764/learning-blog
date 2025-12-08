@@ -68,11 +68,11 @@ export default
       // 算法刷题
       { text: '算法',
         items:[
-          { text: '数据结构', link: '/notes/algorithm/数据结构与算法总览.md' },
-          { text: '算法基础', link: '/notes/algorithm/算法应用与优化.md' },
-          { text: '搜索', link: '/notes/algorithm/搜索算法模块.md' },
-          { text: '动态规划', link: '/notes/algorithm/动态规划模块.md' },
-          { text: '字符串', link: '/notes/algorithm/字符串模块.md' },
+        { text: '数据结构', link: '/notes/algorithm/数据结构与算法.md' },
+        { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
+        { text: '搜索', link: '/notes/algorithm/搜索.md' },
+        { text: '动态规划', link: '/notes/algorithm/动态规划.md' },
+        { text: '字符串', link: '/notes/algorithm/字符串.md' },
         ]
 
       },
@@ -171,12 +171,11 @@ export default
 
       // 算法与刷题侧边栏（对齐首页Feature）
       '/notes/algorithm/': [
-        { text: '导览', link: '/notes/algorithm/index.md' },
-        { text: '数据结构', link: '/notes/algorithm/数据结构与算法总览.md' },
-        { text: '算法基础', link: '/notes/algorithm/算法应用与优化.md' },
-        { text: '搜索', link: '/notes/algorithm/搜索算法模块.md' },
-        { text: '动态规划', link: '/notes/algorithm/动态规划模块.md' },
-        { text: '字符串', link: '/notes/algorithm/字符串模块.md' },
+        { text: '数据结构', link: '/notes/algorithm/数据结构与算法.md' },
+        { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
+        { text: '搜索', link: '/notes/algorithm/搜索.md' },
+        { text: '动态规划', link: '/notes/algorithm/动态规划.md' },
+        { text: '字符串', link: '/notes/algorithm/字符串.md' },
       ],
 
       // 工具与环境侧边栏（对齐首页Feature）

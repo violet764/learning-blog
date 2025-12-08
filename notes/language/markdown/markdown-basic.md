@@ -467,7 +467,8 @@ See the section on [`code`](#code).
 [![沙漠中的岩石图片](./images/shiprock.jpg "Shiprock")](https://markdown.com.cn)
 
 ## 11.转义字符语法
-要显示原本用于格式化 Markdown 文档的字符，请在字符前面添加反斜杠字符 `\` 。
+要显示原本用于格式化 Markdown 文档的字符，请在字符前面添加反斜杠字符 `\` 。  
+因为花括号 一些符号如`{` 和 `}` 在 Markdown 中有特殊含义，会被解析器误认为是其他语法元素（如数学公式或模板语法），而不是普通的文本字符,直接使用`{}`但是内部语法不正确会导致整个文档无效
 ```markdown
 \* Without the backslash, this would be a bullet in an unordered list.
 ```
