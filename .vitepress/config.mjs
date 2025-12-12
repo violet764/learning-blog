@@ -36,7 +36,7 @@ export default
         text: '编程语言', 
         items: [
           { text: 'Python', link: '/notes/language/python/' },
-          { text: 'C++', link: '/notes/language/' },
+          { text: 'C++', link: '/notes/language/c++/' },
           { text: 'Markdown', link: '/notes/language/markdown/' }
         ] 
       },

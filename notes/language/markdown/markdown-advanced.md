@@ -301,6 +301,8 @@ This is a info message.
 This is a tip message.
 :::
 
+> This is a tip message.
+
 ::: warning
 This is a warning message.
 :::
@@ -324,6 +326,8 @@ This is a info message.
 ::: tip
 This is a tip message.
 :::
+
+> This is a tip message.
 
 ::: warning
 This is a warning message.
