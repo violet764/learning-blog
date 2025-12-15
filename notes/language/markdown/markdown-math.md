@@ -328,3 +328,4 @@ module.exports = {
 3. 相应地，需要在 HTML 中引入 MathJax 或 KaTeX 的 CSS/JS 文件。
 
 这样配置后，就可以在 VitePress 中正常渲染 LaTeX 数学公式了。
+

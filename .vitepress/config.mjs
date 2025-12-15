@@ -7,7 +7,7 @@ export default
   head:[["link",{rel:"icon",href:"/learning-blog/spaceship.svg"}]],
   // 站点核心信息（与首页标题/定位一致）
   title: "星间飞行",
-  description: "深耕Python/C++，拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
+  description: "深耕Python/C++,拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
   // ========== 新增：markdown 配置（math: true 放在这里） ==========
   markdown: {
     math: true, // 启用VitePress内置的数学公式支持
@@ -40,8 +40,17 @@ export default
           { text: 'Markdown', link: '/notes/language/markdown/' }
         ] 
       },
-      // AI模型（独立入口，对齐首页Feature）
-      { text: 'AI模型', link: '/notes/ai-model/' },
+      {
+        text:'机器学习',
+        items: [
+          { text: '机器学习', link: '/notes/machine-learnig/index.md' },
+          { text: '有监督学习', link: 'notes/machine-learnig/supervised_learning.md' },
+          { text: '无监督学习', link: 'notes/machine-learnig/unsupervised_learning.md' },
+
+        ]
+      },
+
+
       // 深度学习
       { 
         text: '深度学习', 
@@ -70,15 +79,15 @@ export default
       // 工具环境
       { text: '工具与环境',
         items:[
-          { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
+
           { text: 'Shell', link: '/notes/tools/tools_shell.md' },
           { text: 'Vim', link: '/notes/tools/tools_vim.md' },
           { text: 'Git', link: '/notes/tools/tools_Git.md' },
-          { text: 'Conda', link: '/notes/tools/tools_conda.md' }
+          { text: 'Conda', link: '/notes/tools/tools_conda.md' },
+          { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
 
         ] },
-      // 学习路线
-      { text: '学习路线', link: '/notes/roadmap' },
+
       // 收藏夹
       { text: '收藏夹', link: '/notes/starred' },
     
@@ -131,20 +140,28 @@ export default
           ]
         },
       ],
-
-      // AI模型分类侧边栏（对齐首页「AI模型与算法」Feature）
-      '/notes/ai-model/': [
+      // 机器学习分类侧边栏
+      '/notes/machine-learnig': [
+        { text: '机器学习', link: '/notes/machine-learnig/ml.md' },
         {
-          text: '基础模型',
+          text: '有监督学习',
           collapsible: true,
           items: [
-            { text: 'LLM大语言模型', link: '/notes/ai-model/llm.md' },
-            { text: 'CNN/RNN网络', link: '/notes/ai-model/cnn-rnn.md' },
-            { text: 'Transformer原理', link: '/notes/ai-model/transformer.md' }
+            { text: '分类', link: 'notes/machine-learnig/supervised_learning.md' },
+            { text: '变量', link: '/notes/language/python/基础_变量.md' },
+
           ]
         },
-        { text: '模型训练调优', link: '/notes/ai-model/train.md' },
-        { text: '模型推理部署', link: '/notes/ai-model/deploy.md' }
+        {
+          text: '无监督学习',
+          collapsible: true,
+          items: [
+            { text: '聚类', link: 'notes/machine-learnig/unsupervised_learning.md' },
+            { text: '变量', link: '/notes/language/python/基础_变量.md' },
+
+          ]
+        },
+        
       ],
 
       // 深度学习分类侧边栏
@@ -174,16 +191,15 @@ export default
 
       // 工具与环境侧边栏（对齐首页Feature）
       '/notes/tools/': [
-        { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
+
         { text: 'Shell', link: '/notes/tools/tools_shell.md' },
         { text: 'Vim', link: '/notes/tools/tools_vim.md' },
         { text: 'Git', link: '/notes/tools/tools_Git.md' },
         { text: 'Conda', link: '/notes/tools/tools_conda.md' },
+        { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
 
       ],
 
-      // 学习路线/收藏夹/HTML示例侧边栏（简化）
-      '/notes/roadmap': [{ text: '学习路线', link: '/notes/roadmap.md' }],
 
       '/notes/starred': [
         { text: '经典论文', link: '/notes/starred/awesome_paper.md' },

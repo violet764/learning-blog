@@ -15,7 +15,7 @@ hero:
       link: /notes/language/python/
     - theme: alt
       text: 收藏夹
-      link: /notes/starred
+      link: /notes/starred/awesome_blog.md
 
 features:
   - icon: 🐍
@@ -27,7 +27,7 @@ features:
   - icon: 🧠
     title: 机器学习
     details: 覆盖监督学习、无监督学习、半监督学习等经典机器学习算法，包括回归、分类、聚类等核心概念与实战应用
-    link: /notes/machine-learning/
+    link: /notes/machine-learnig/
     linkText: 学习更多
 
   - icon: 🤖
@@ -54,16 +54,5 @@ features:
     link: /notes/algorithm/数据结构与算法.md
     linkText: 刷题笔记
 
-  - icon: 🛠️
-    title: 工具与环境
-    details: 编程工具（Vim，Git，Shell)介绍、AI模型部署工具使用教程
-    link: /notes/tools/IDE_introduce.md
-    linkText: 工具指南
-    
-  - icon: 📚
-    title: 学习路线图
-    details: Python/C++/AI/深度学习的系统学习路径，从入门到进阶的阶段目标与资源推荐
-    link: /notes/roadmap/
-    linkText: 规划路径
 ---
 

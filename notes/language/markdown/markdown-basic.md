@@ -404,11 +404,18 @@ _________________
 
 ```markdown
 这是一个链接 [Markdown语法](https://markdown.com.cn)。
+<a href="https://www.baidu.com" target="_blank" rel="noopener noreferrer">访问百度</a> # 在新界面打开链接
+<a href="./images/attention is all you need.pdf" target="_blank" rel="noopener noreferrer">Attention</a>
 ```
 
 渲染效果如下：
 
-这是一个链接 [Markdown语法](https://markdown.com.cn)。
+> 这是一个链接 [Markdown语法](https://markdown.com.cn)。 
+>   
+> 这是<a href="https://www.baidu.com" target="_blank" rel="noopener noreferrer">百度</a>     
+> 
+> 这是<a href="./images/attention is all you need.pdf" target="_blank" rel="noopener noreferrer">Attention</a>  
+
 
 **给链接增加 Title**
 

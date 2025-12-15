@@ -343,3 +343,123 @@ This is a details message.
 print("Hello, World!")
 ```
 :::
+
+
+## 6.Markdown美化
+### 彩色提示区块   
+<span style="background-color: #FFE6F2; padding: 2px 4px; border-radius: 3px; color: #333;">1. 重点强调（粉色系）</span>
+
+```markdown
+<div style="background-color: #FFE6F2; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #FF85C0; margin: 10px 0;">
+  <strong style="color: #D81B60;">🍎 重点强调</strong>
+  <p style="margin: 8px 0 0 0; color: #333;">
+    核心内容：此处填写需要重点突出的文本，支持 <code style="background-color: #FFC0CB; padding: 2px 4px; border-radius: 3px;">代码高亮</code>、列表、链接等格式。
+  </p>
+</div>
+```  
+
+<div style="background-color: #FFE6F2; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #FF85C0; margin: 10px 0;">
+  <strong style="color: #D81B60;">🍎 重点强调</strong>
+  <p style="margin: 8px 0 0 0; color: #333;">
+    核心内容：此处填写需要重点突出的文本，支持 <code style="background-color: #FFC0CB; padding: 2px 4px; border-radius: 3px;">代码高亮</code>、列表、链接等格式。
+  </p>
+</div>
+
+<span style="background-color: #FFF3CD; padding: 2px 4px; border-radius: 3px; color: #333;">2. 警告提示（黄色系）</span>
+
+<div style="background-color: #FFF3CD; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #FFC107; margin: 10px 0;">
+  <strong style="color: #D39E00;">⚠️ 警告提示</strong>
+  <p style="margin: 8px 0 0 0; color: #333;">
+    注意事项：此处填写需要提醒的风险/易错点，例如「该参数不能为空，否则会导致程序报错」。
+  </p>
+</div>
+<span style="background-color: #E3F2FD; padding: 2px 4px; border-radius: 3px; color: #333;">3. 信息说明（蓝色系）</span>
+
+<div style="background-color: #E3F2FD; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #2196F3; margin: 10px 0;">
+  <strong style="color: #1976D2;">ℹ️ 信息说明</strong>
+  <p style="margin: 8px 0 0 0; color: #333;">
+    补充信息：此处填写辅助说明/背景知识，例如「该算法的时间复杂度为 O(n²)，适用于小数据集场景」。
+  </p>
+</div>
+<span style="background-color: #E8F5E9; padding: 2px 4px; border-radius: 3px; color: #333;">4. 成功提示（绿色系）</span>
+
+<div style="background-color: #E8F5E9; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #4CAF50; margin: 10px 0;">
+  <strong style="color: #2E7D32;">✅ 成功提示</strong>
+  <p style="margin: 8px 0 0 0; color: #333;">
+    完成结果：此处填写操作成功/验证通过的反馈，例如「模型训练完成，测试集准确率达 95%」。
+  </p>
+</div>
+<span style="background-color: #F5F5F5; padding: 2px 4px; border-radius: 3px; color: #333;">5. 备注记录（灰色系）</span>
+
+<div style="background-color: #F5F5F5; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #9E9E9E; margin: 10px 0;">
+  <strong style="color: #616161;">📝 备注记录</strong>
+  <p style="margin: 8px 0 0 0; color: #333;">
+    临时笔记：此处填写临时想法/待办事项，例如「待优化点：调整学习率至 0.001 重新训练」。
+  </p>
+</div>
+
+###  高亮文本
+**基础高亮**
+```markdown
+<span style="background-color: #FFEB3B; padding: 2px 4px; border-radius: 3px; color: #333;">关键内容</span>
+```
+
+普通文本中高亮 <span style="background-color: #FFEB3B; padding: 2px 4px; border-radius: 3px; color: #333;">关键内容</span>，适配任意场景。
+  
+### 卡片式内容块  
+1. 单卡片
+```markdown
+<div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+  <h4 style="margin: 0 0 10px 0; color: #2196F3;">算法名称：线性回归</h4>
+  <p style="margin: 5px 0; color: #616161;"><strong>适用场景：</strong>连续值预测（房价、销量）</p>
+  <p style="margin: 5px 0; color: #616161;"><strong>核心公式：</strong>y = wx + b</p>
+  <p style="margin: 5px 0; color: #616161;"><strong>优缺点：</strong>简单易解释，但无法拟合非线性关系</p>
+</div>
+```
+
+<div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+  <h4 style="margin: 0 0 10px 0; color: #2196F3;">算法名称：线性回归</h4>
+  <p style="margin: 5px 0; color: #616161;"><strong>适用场景：</strong>连续值预测（房价、销量）</p>
+  <p style="margin: 5px 0; color: #616161;"><strong>核心公式：</strong>y = wx + b</p>
+  <p style="margin: 5px 0; color: #616161;"><strong>优缺点：</strong>简单易解释，但无法拟合非线性关系</p>
+</div>
+
+1. 多卡片横向排列
+```markdown
+<div style="display: flex; gap: 15px; margin: 10px 0; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 250px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <h4 style="margin: 0 0 10px 0; color: #4CAF50;">监督学习</h4>
+    <p style="margin: 5px 0; color: #616161;">带标签数据训练，目标是预测结果</p>
+    <p style="margin: 5px 0; color: #616161;">代表算法：逻辑回归、随机森林</p>
+  </div>
+  <div style="flex: 1; min-width: 250px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <h4 style="margin: 0 0 10px 0; color: #FF9800;">无监督学习</h4>
+    <p style="margin: 5px 0; color: #616161;">无标签数据训练，目标是发现规律</p>
+    <p style="margin: 5px 0; color: #616161;">代表算法：K-Means、PCA</p>
+  </div>
+</div>
+```
+
+<div style="display: flex; gap: 15px; margin: 10px 0; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 250px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <h4 style="margin: 0 0 10px 0; color: #4CAF50;">监督学习</h4>
+    <p style="margin: 5px 0; color: #616161;">带标签数据训练，目标是预测结果</p>
+    <p style="margin: 5px 0; color: #616161;">代表算法：逻辑回归、随机森林</p>
+  </div>
+  <div style="flex: 1; min-width: 250px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <h4 style="margin: 0 0 10px 0; color: #FF9800;">无监督学习</h4>
+    <p style="margin: 5px 0; color: #616161;">无标签数据训练，目标是发现规律</p>
+    <p style="margin: 5px 0; color: #616161;">代表算法：K-Means、PCA</p>
+  </div>
+</div>
+
+### 分割线美化
+```markdown
+<div style="height: 2px; background: linear-gradient(to right, #FF85C0, #2196F3, #4CAF50); border-radius: 1px; margin: 20px 0;"></div>
+```
+效果：
+<div style="height: 2px; background: linear-gradient(to right, #FF85C0, #2196F3, #4CAF50); border-radius: 1px; margin: 20px 0;"></div>
+
+
+
+

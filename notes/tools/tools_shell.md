@@ -774,3 +774,5 @@ history | grep command        # 搜索历史命令
 | `tar` | `tar [选项] 归档文件 源文件/目录` | 打包/解压文件（支持压缩） | `-c`：创建归档<br>`-x`：解压归档<br>`-z`：gzip压缩<br>`-j`：bzip2压缩<br>`-f`：指定归档文件名<br>`tar -czf test.tar.gz dir/`（打包并gzip压缩）<br>`tar -xzf test.tar.gz`（解压gzip压缩包） | 最常用的打包压缩工具，兼容多种格式 |
 | `gzip` | `gzip [选项] 文件` | 压缩文件（生成.gz文件） | `-d`：解压.gz文件<br>`-k`：保留原文件<br>`gzip test.txt`（压缩为test.txt.gz）<br>`gzip -d test.txt.gz`（解压） | 仅能压缩单个文件，目录需先tar打包 |
 | `unzip` | `unzip [选项] 压缩包` | 解压.zip格式压缩包 | `-d 目录`：指定解压目录<br>`unzip test.zip -d /tmp` | 需提前安装unzip工具（yum install unzip） |
+
+
