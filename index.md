@@ -18,7 +18,7 @@ hero:
       link: /notes/starred/awesome_blog.md
 
 features:
-  - icon: 🐍
+  - icon: 🐍D:\VitePress\notes\language\python\index.md
     title: 编程语言
     details: 涵盖Python语法/进阶、C++核心特性、STL实战、跨语言编程技巧，附可直接运行的代码案例
     link: /notes/language/python/

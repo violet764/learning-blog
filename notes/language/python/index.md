@@ -1,5 +1,9 @@
 # Python 编程语言指南
 
+<div align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/120px-Python-logo-notext.svg.png" alt="Python Logo" width="120">
+</div>
+
 > Python 是一种简洁、优雅、功能强大的编程语言，适合初学者入门，同时也能满足专业开发者的各种需求。
 
 ## 📚 核心基础

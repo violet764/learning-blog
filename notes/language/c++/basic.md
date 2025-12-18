@@ -10,30 +10,137 @@
 
 > **注意**：Python是解释执行，无需编译步骤；C++需要完整的编译流程才能运行
 
-
-### 第一个C++程序
+## 第一个C++程序
 
 ```cpp
-#include <iostream>  // 类似Python的import，但处理方式不同
+#include <iostream>  
+using namespace std;
 
-// Python: print("Hello")
-// C++: 需要包含头文件和使用命名空间
-int main() {  // 程序入口，必须的函数
-    std::cout << "Hello, C++!" << std::endl;  // 输出语句
-    return 0;  // 返回状态码
+int main() {  
+    std::cout << "Hello, World!" << std::endl;  
+    return 0;  
 }
 ```
 
-**关键差异：**
-- Python：脚本直接执行，从第一行开始
-- C++：必须有 `main()` 函数作为入口
-- Python：`print()` 是内置函数
-- C++：`std::cout` 需要包含头文件
 
-### 数据类型
+## IO流
+
+|组件|核心作用|依赖头文件|
+|---|---|---|
+|`cout`|标准输出流，向控制台打印数据|`<iostream>`|
+|`cin`|标准输入流，从控制台读取数据|`<iostream>`|
+|`stringstream`|字符串流，在内存中读写字符串（解析/拼接）|`<sstream>`|
+
+**`cout`（标准输出）**
+
+- **基础功能**：将数据（整数、字符串、浮点数等）输出到控制台，支持链式调用。
+
+- **常用操作符/方法**：
+
+    - `<<`：输出运算符，可连续拼接多个输出内容；
+
+    - `endl`：输出换行符并刷新缓冲区；
+
+    - `flush`：仅强制刷新缓冲区（无换行）。
+
+- **示例**：
+
+```C++
+#include <iostream>
+using namespace std;
+int main() {
+    int age = 20;
+    double score = 98.5;
+    // 链式输出，混合文本与变量
+    cout << "年龄：" << age << "，成绩：" << score << endl;
+    return 0;
+}
+```
+
+**`cin`（标准输入）**
+
+- **基础功能**：从控制台读取用户输入的内容，存储到变量中，同样支持链式读取。
+
+- **核心注意点**：
+
+    - `>>`：输入运算符，默认以**空格/换行符**为分隔符，读取时会跳过空白字符；
+
+    - 读取字符串时，`cin >> str` 遇空格停止，需读取含空格的整行时用 `getline(cin, str)`；
+
+    - `cin` 读取后缓冲区会残留换行符，需用 `cin.ignore()` 清理后再调用 `getline`。
+
+- **示例**：
+
+```C++
+#include <iostream>
+#include <string>
+using namespace std;
+int main() {
+    int num;
+    string name, desc;
+    cout << "请输入编号和姓名（用空格分隔）: ";
+    cin >> num >> name; // 读取整数和不含空格的字符串
+    cin.ignore();       // 清理缓冲区的换行符
+    cout << "请输入描述: ";
+    getline(cin, desc); // 读取含空格的整行描述
+    cout << "编号：" << num << "，姓名：" << name << "，描述：" << desc << endl;
+    return 0;
+}
+```
+
+**`stringstream`（字符串流）**
+
+- **核心功能**：在内存中操作字符串，分为两种核心类型：
+
+    - `istringstream`：将字符串解析为不同类型的数据（替代 `atoi`/`atof`，更安全）；
+
+    - `ostringstream`：将不同类型数据拼接为字符串（替代 `sprintf`，避免缓冲区溢出）。
+
+- **核心方法**：
+
+    - `iss >> 变量`：从字符串流读取数据到变量；
+
+    - `oss << 数据`：向字符串流写入数据；
+
+    - `str()`：获取字符串流中的完整字符串。
+
+- **示例**：
+
+```C++
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+int main() {
+    // 1. 解析字符串：拆分混合类型的字符串
+    string data = "100 3.14 C++";
+    istringstream iss(data);
+    int num; double pi; string lang;
+    iss >> num >> pi >> lang; // 分别解析为int、double、string
+    
+    // 2. 拼接字符串：组合不同类型数据
+    ostringstream oss;
+    oss << "数字：" << num << "，圆周率：" << pi << "，语言：" << lang;
+    string result = oss.str(); // 获取拼接后的字符串
+    
+    cout << result << endl; // 输出：数字：100，圆周率：3.14，语言：C++
+    return 0;
+}
+```
+
+**关键总结**
+
+1. `cout`/`cin` 聚焦控制台IO，需注意输入缓冲区的清理（尤其是 `getline` 前）；
+
+2. `stringstream` 适合字符串与基础数据类型的互转，比C语言的字符数组操作更安全；
+
+3. 所有IO流操作需包含对应头文件，`using namespace std` 可简化 `std::cout`/`std::cin` 等写法。
+
+## <span style="background-color: #26e6bcff; padding: 2px 4px; border-radius: 3px; color: #333;">数据类型</span>
+
 C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型，尺寸受编译器/平台影响（以下为64位系统典型值）。
 
-#### 原生数据类型  
+### 原生数据类型  
 
 **整数类型**
 | 类型               | 典型尺寸 | 取值范围（典型）| 无符号标识 | 核心用途                     |
@@ -76,7 +183,7 @@ C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型�
 |--------|--------------------------------------------------------------------------|
 | `void` | 1. 函数返回值：`void func()` 表示无返回值；<br>2. 通用指针：`void*` 指向任意类型（需强制转换） |
 
-#### 复合/派生数据类型
+### 复合/派生数据类型
 基于基本类型扩展，实现更复杂的数据存储逻辑。
 
 **指针（`*`）**
@@ -125,7 +232,7 @@ std::string name = "Alice"; // 字符串
 ```
 
 
-#### 自定义数据类型
+### 自定义数据类型
 开发者基于业务需求封装的新类型。核心包括结构体（struct）、枚举（enum）、类（class）、联合体（union），还支持 typedef/using 重命名类型，是模块化、面向对象编程的基础。
 
 **结构体（`struct`）**  
