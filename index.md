@@ -27,7 +27,7 @@ features:
   - icon: 🧠
     title: 机器学习
     details: 覆盖监督学习、无监督学习、半监督学习等经典机器学习算法，包括回归、分类、聚类等核心概念与实战应用
-    link: /notes/machine-learnig/
+    link: /notes/machine-learnig/ml.md
     linkText: 学习更多
 
   - icon: 🤖
