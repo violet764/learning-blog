@@ -95,3 +95,118 @@ KNN回归模型评估结果：
 均方根误差(RMSE)：4.54
 决定系数(R²)：0.72
 ```
+
+---
+
+## 决策树
+
+决策树是一种模仿人类决策过程的监督学习算法，可用于分类和回归任务。它通过一系列规则构建树状结构，实现对数据的分类或预测。
+
+**核心思想**：通过递归地将数据集划分为更纯净的子集，构建一个树形结构来做出决策。
+
+
+**特征选择标准**
+
+**熵的定义**：信息熵衡量数据的不确定性：
+$$
+H(D) = -\sum_{i=1}^{n} p_i \log_2 (p_i)
+$$
+$p_i$ 是类别 $i$ 在数据集 $D$ 中的比例,$n$ 是类别的数量。
+
+**信息增益**：信息增益 = 父节点的熵 - 子节点的加权平均熵,**ID3算法**使用信息增益作为特征选择标准。
+
+$$
+Gain(D, A) = H(D) - \sum_{v=1}^{V} \frac{|D_v|}{|D|} H(D_v)
+$$
+
+其中：
+
+$D$：当前数据集，$A$：选择的特征，$V$：特征 $A$ 的取值个数，$D_v$：特征 $A$ 取值为 $v$ 的子集  
+$|D_v|$：子集 $D_v$ 的样本数，$|D|$：总样本数
+
+**信息增益率** = 信息增益 / 分裂信息，**C4.5算法**使用信息增益率防止偏向取值多的特征
+
+$$GainRatio(D,A) = \frac{Gain(D,A)}{SplitInfo(D,A)}$$
+
+
+**分裂信息（固有值）：**
+
+$$SplitInfo(D,A) = -\sum_{v=1}^V \frac{|D_v|}{|D|} \log_2\left( \frac{|D_v|}{|D|} \right)$$
+
+
+**基尼系数的定义**：基尼系数衡量数据的不纯度，**CART算法**使用基尼系数作为分裂标准
+$$
+Gini(D) = 1 - \sum_{i=1}^{n} p_i^2
+$$
+
+**基尼增益**：
+$$
+\Delta Gini = Gini(D) - \sum_{v=1}^{V} \frac{|D_v|}{|D|} Gini(D_v)
+$$
+
+
+**停止条件**  ：决策树构建过程中需要设置停止条件防止过拟合：
+
+- **最小样本数**：节点包含的样本数少于设定值
+- **最大深度**：树达到预设的最大深度
+- **纯度阈值**：节点的纯度达到设定阈值
+- **最小信息增益**：分裂带来的信息增益小于设定值  
+
+
+**决策树的剪枝**：为了减少过拟合，决策树需要进行剪枝处理：
+
+1. 预剪枝：在构建过程中提前停止树的生长。
+2. 后剪枝：先构建完整的树，然后自底向上剪去不必要的子树。
+3. 代价复杂度剪枝：
+$$
+R_\alpha(T) = R(T) + \alpha|T|
+$$
+其中 $R(T)$ 是误差率，$|T|$ 是叶节点数，$\alpha$ 是复杂度参数。
+
+
+**分类问题示例（鸢尾花数据集）**：
+
+```python
+# 导入必要的库
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+
+# 1. 加载数据
+iris = load_iris()
+X = iris.data  # 特征：花萼长度、花萼宽度、花瓣长度、花瓣宽度
+feature_names = iris.feature_names
+y = iris.target  # 目标：鸢尾花种类（0: setosa, 1: versicolor, 2: virginica）
+target_names = iris.target_names
+
+# 2. 划分训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+# 3. 创建决策树分类器,决策树回归器用DecisionTreeRegressor类
+dtree = DecisionTreeClassifier(
+    criterion='gini',      # 分裂标准：基尼系数
+    max_depth=3,          # 最大深度，防止过拟合
+    min_samples_split=5,  # 内部节点最小样本数
+    min_samples_leaf=2,   # 叶节点最小样本数
+    random_state=42
+)
+
+# 4. 训练模型
+dtree.fit(X_train, y_train)
+
+# 5. 预测
+y_pred = dtree.predict(X_test)
+
+# 6. 模型评估
+accuracy = accuracy_score(y_test, y_pred)
+print(f"决策树分类准确率: {accuracy:.4f}")
+print("\n分类报告:")
+print(classification_report(y_test, y_pred, target_names=target_names))
+```
