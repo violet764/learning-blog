@@ -43,7 +43,7 @@ export default
       {
         text:'机器学习',
         items: [
-          { text: '机器学习', link: '/notes/machine-learnig/index.md' },
+          { text: '机器学习', link: '/notes/machine-learnig/ml.md' },
           { text: '有监督学习', link: 'notes/machine-learnig/supervised_learning.md' },
           { text: '无监督学习', link: 'notes/machine-learnig/unsupervised_learning.md' },
 
@@ -143,24 +143,10 @@ export default
       // 机器学习分类侧边栏
       '/notes/machine-learnig': [
         { text: '机器学习', link: '/notes/machine-learnig/ml.md' },
-        {
-          text: '有监督学习',
-          collapsible: true,
-          items: [
-            { text: '分类', link: 'notes/machine-learnig/supervised_learning.md' },
-            { text: '变量', link: '/notes/language/python/基础_变量.md' },
-
-          ]
-        },
-        {
-          text: '无监督学习',
-          collapsible: true,
-          items: [
-            { text: '聚类', link: 'notes/machine-learnig/unsupervised_learning.md' },
-            { text: '变量', link: '/notes/language/python/基础_变量.md' },
-
-          ]
-        },
+        { text: '有监督学习', link: '/notes/machine-learnig/supervised_learning.md' },
+        { text: '无监督学习', link: '/notes/machine-learnig/unsupervised_learning.md' },
+      
+      
         
       ],
 

@@ -102,67 +102,18 @@ KNN回归模型评估结果：
 
 决策树是一种模仿人类决策过程的监督学习算法，可用于分类和回归任务。它通过一系列规则构建树状结构，实现对数据的分类或预测。
 
-**核心思想**：通过递归地将数据集划分为更纯净的子集，构建一个树形结构来做出决策。
+**决策树的工作原理:** 决策树通过递归地将数据集分割成更小的子集来构建树结构。具体步骤如下：  
+
+1. 选择最佳特征：根据某种标准（如[信息增益、基尼指数](./decision_tree.md)等）选择最佳特征进行分割。
+2. 分割数据集：根据选定的特征将数据集分成多个子集。
+3. 递归构建子树：对每个子集重复上述过程，直到满足停止条件（如所有样本属于同一类别、达到最大深度等）。
+4. 生成叶节点：当满足停止条件时，生成叶节点并赋予类别或值。  
 
 
-**特征选择标准**
-
-**熵的定义**：信息熵衡量数据的不确定性：
-$$
-H(D) = -\sum_{i=1}^{n} p_i \log_2 (p_i)
-$$
-$p_i$ 是类别 $i$ 在数据集 $D$ 中的比例,$n$ 是类别的数量。
-
-**信息增益**：信息增益 = 父节点的熵 - 子节点的加权平均熵,**ID3算法**使用信息增益作为特征选择标准。
-
-$$
-Gain(D, A) = H(D) - \sum_{v=1}^{V} \frac{|D_v|}{|D|} H(D_v)
-$$
-
-其中：
-
-$D$：当前数据集，$A$：选择的特征，$V$：特征 $A$ 的取值个数，$D_v$：特征 $A$ 取值为 $v$ 的子集  
-$|D_v|$：子集 $D_v$ 的样本数，$|D|$：总样本数
-
-**信息增益率** = 信息增益 / 分裂信息，**C4.5算法**使用信息增益率防止偏向取值多的特征
-
-$$GainRatio(D,A) = \frac{Gain(D,A)}{SplitInfo(D,A)}$$
-
-
-**分裂信息（固有值）：**
-
-$$SplitInfo(D,A) = -\sum_{v=1}^V \frac{|D_v|}{|D|} \log_2\left( \frac{|D_v|}{|D|} \right)$$
-
-
-**基尼系数的定义**：基尼系数衡量数据的不纯度，**CART算法**使用基尼系数作为分裂标准
-$$
-Gini(D) = 1 - \sum_{i=1}^{n} p_i^2
-$$
-
-**基尼增益**：
-$$
-\Delta Gini = Gini(D) - \sum_{v=1}^{V} \frac{|D_v|}{|D|} Gini(D_v)
-$$
-
-
-**停止条件**  ：决策树构建过程中需要设置停止条件防止过拟合：
-
-- **最小样本数**：节点包含的样本数少于设定值
-- **最大深度**：树达到预设的最大深度
-- **纯度阈值**：节点的纯度达到设定阈值
-- **最小信息增益**：分裂带来的信息增益小于设定值  
-
-
-**决策树的剪枝**：为了减少过拟合，决策树需要进行剪枝处理：
+**决策树的剪枝**：决策树容易过拟合，为了减少过拟合，决策树需要进行剪枝处理：
 
 1. 预剪枝：在构建过程中提前停止树的生长。
 2. 后剪枝：先构建完整的树，然后自底向上剪去不必要的子树。
-3. 代价复杂度剪枝：
-$$
-R_\alpha(T) = R(T) + \alpha|T|
-$$
-其中 $R(T)$ 是误差率，$|T|$ 是叶节点数，$\alpha$ 是复杂度参数。
-
 
 **分类问题示例（鸢尾花数据集）**：
 
@@ -209,4 +160,251 @@ accuracy = accuracy_score(y_test, y_pred)
 print(f"决策树分类准确率: {accuracy:.4f}")
 print("\n分类报告:")
 print(classification_report(y_test, y_pred, target_names=target_names))
+```
+
+---
+
+## 线性回归  
+
+线性回归是最基础且广泛应用的回归算法，用于建立连续目标变量与一个或多个特征之间的线性关系模型。
+
+**基本概念**
+
+**核心思想**：通过线性方程来描述特征与目标变量之间的关系：
+$$
+y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \cdots + \beta_nx_n + \epsilon
+$$
+
+其中：
+- $y$：目标变量（因变量）
+- $x_1, x_2, \cdots, x_n$：特征变量（自变量）
+- $\beta_0$：截距项（偏置）
+- $\beta_1, \beta_2, \cdots, \beta_n$：系数（权重）
+- $\epsilon$：误差项
+
+**模型求解方法**
+
+**1. 最小二乘法（OLS）**
+
+最小二乘法通过最小化残差平方和来求解模型参数：
+$$
+\min_{\beta} \sum_{i=1}^{m} (y_i - \hat{y}_i)^2 = \min_{\beta} \sum_{i=1}^{m} (y_i - \beta_0 - \beta_1x_{i1} - \cdots - \beta_nx_{in})^2
+$$
+
+**矩阵形式求解**：[具体求解过程](./OLS.md)
+$$
+\beta = (X^TX)^{-1}X^Ty
+$$
+
+**2. 梯度下降法** 
+
+对于大规模数据集，使用迭代优化方法：
+$$
+\beta_j := \beta_j - \alpha \frac{\partial}{\partial\beta_j}J(\beta)
+$$
+
+其中 $J(\beta)$ 是损失函数，$\alpha$ 是学习率。
+
+**线性回归的假设条件**
+
+线性回归模型的有效性依赖于以下假设：
+
+1. **线性关系**：特征与目标变量之间存在线性关系
+2. **独立性**：观测值之间相互独立
+3. **同方差性**：误差项的方差恒定
+4. **正态分布**：误差项服从正态分布
+5. **无多重共线性**：特征之间不存在高度相关性
+
+
+**简单线性回归实现：**
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# 生成示例数据
+np.random.seed(42)
+X = np.random.rand(100, 1) * 10  # 特征：0-10之间的随机数
+y = 2.5 * X.squeeze() + 1.5 + np.random.randn(100) * 2  # 线性关系加噪声
+
+# 创建线性回归模型
+lr = LinearRegression()
+
+# 训练模型
+lr.fit(X, y)
+
+# 预测
+y_pred = lr.predict(X)
+
+# 模型参数
+print(f"截距 (bias): {lr.intercept_:.4f}")
+print(f"系数 (weight): {lr.coef_[0]:.4f}")
+
+# 模型评估
+mse = mean_squared_error(y, y_pred)
+r2 = r2_score(y, y_pred)
+print(f"均方误差 (MSE): {mse:.4f}")
+print(f"决定系数 (R²): {r2:.4f}")
+
+# 可视化结果
+plt.figure(figsize=(10, 6))
+plt.scatter(X, y, alpha=0.7, label='实际数据')
+plt.plot(X, y_pred, color='red', linewidth=2, label='回归直线')
+plt.xlabel('特征 X')
+plt.ylabel('目标 y')
+plt.title('简单线性回归')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+
+---
+
+## 逻辑回归  
+
+逻辑回归虽然名字中有"回归"，但实际上是一种广泛使用的分类算法，特别适用于二分类问题。它通过逻辑函数将线性回归的输出映射到概率空间。
+
+
+**核心思想**：使用逻辑函数（Sigmoid函数）将线性组合的结果映射到(0,1)区间，表示属于某个类别的概率。
+
+
+**逻辑函数（Sigmoid函数）**：
+$$
+\sigma(z) = \frac{1}{1 + e^{-z}}
+$$
+
+其中 $z = \beta_0 + \beta_1x_1 + \beta_2x_2 + \cdots + \beta_nx_n$
+
+**预测概率**：
+$$
+P(y=1|x) = \frac{1}{1 + e^{-(\beta_0 + \beta_1x_1 + \cdots + \beta_nx_n)}}
+$$
+
+
+[逻辑回归的数学推导](./logistic.md)
+
+**多分类逻辑回归**
+
+**1. One-vs-Rest (OvR)**  
+为每个类别训练一个二分类器，选择概率最高的类别。
+
+**2. Softmax回归**
+$$
+P(y=k|x) = \frac{e^{\beta_k^T x}}{\sum_{j=1}^{K} e^{\beta_j^T x}}
+$$
+
+**模型评估指标（分类问题）**
+
+```python
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, 
+    f1_score, roc_auc_score, confusion_matrix, classification_report
+)
+
+# 常用分类评估指标
+accuracy = accuracy_score(y_true, y_pred)          # 准确率
+precision = precision_score(y_true, y_pred)       # 精确率
+recall = recall_score(y_true, y_pred)             # 召回率
+f1 = f1_score(y_true, y_pred)                      # F1分数
+roc_auc = roc_auc_score(y_true, y_pred_proba)     # AUC值
+```
+
+
+**逻辑回归实现：**
+
+```python
+from sklearn.datasets import load_iris
+
+# 加载鸢尾花数据集（三分类问题）
+iris = load_iris()
+X, y = iris.data, iris.target
+feature_names = iris.feature_names
+target_names = iris.target_names
+
+print("鸢尾花数据集信息:")
+print(f"类别数量: {len(np.unique(y))}")
+print(f"类别名称: {target_names}")
+
+# 划分训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+# 创建多分类逻辑回归模型
+multi_log_reg = LogisticRegression(
+    multi_class='multinomial',  # 多分类策略：softmax
+    solver='lbfgs',
+    C=1.0,
+    max_iter=1000,
+    random_state=42
+)
+
+# 训练模型
+multi_log_reg.fit(X_train, y_train)
+
+# 预测
+y_pred = multi_log_reg.predict(X_test)
+y_pred_proba = multi_log_reg.predict_proba(X_test)
+
+# 模型评估
+accuracy = accuracy_score(y_test, y_pred)
+print(f"\n多分类逻辑回归准确率: {accuracy:.4f}")
+print("\n详细分类报告:")
+print(classification_report(y_test, y_pred, target_names=target_names))
+
+# 混淆矩阵
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+            xticklabels=target_names, yticklabels=target_names)
+plt.title('多分类逻辑回归混淆矩阵')
+plt.xlabel('预测标签')
+plt.ylabel('真实标签')
+plt.show()
+
+# 特征重要性分析
+feature_importance = pd.DataFrame({
+    'feature': feature_names,
+    'coefficient_class0': multi_log_reg.coef_[0],
+    'coefficient_class1': multi_log_reg.coef_[1],
+    'coefficient_class2': multi_log_reg.coef_[2]
+})
+
+print("\n特征系数（每个类别的权重）:")
+print(feature_importance)
+```
+
+
+**逻辑回归的正则化**
+
+逻辑回归容易过拟合，需要正则化：
+
+**1. L1正则化（Lasso）**
+- 产生稀疏解，可用于特征选择
+- 惩罚项：$\lambda \sum |\beta_j|$
+
+**2. L2正则化（Ridge）**
+- 防止系数过大
+- 惩罚项：$\lambda \sum \beta_j^2$
+
+**3. 弹性网络（Elastic Net）**
+- L1和L2正则化的组合
+
+```python
+# 不同正则化类型的比较
+from sklearn.linear_model import LogisticRegression
+
+# L1正则化
+l1_log_reg = LogisticRegression(penalty='l1', solver='liblinear', C=1.0)
+l1_log_reg.fit(X_train, y_train)
+
+# L2正则化（默认）
+l2_log_reg = LogisticRegression(penalty='l2', C=1.0)
+l2_log_reg.fit(X_train, y_train)
+
+print("L1正则化系数:", l1_log_reg.coef_)
+print("L2正则化系数:", l2_log_reg.coef_)
 ```
