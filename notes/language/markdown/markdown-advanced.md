@@ -347,7 +347,7 @@ print("Hello, World!")
 
 ## 6.Markdown美化
 ### 彩色提示区块   
-<span style="background-color: #FFE6F2; padding: 2px 4px; border-radius: 3px; color: #333;">1. 重点强调（粉色系）</span>
+<span style="background-color: #FFE6F2; padding: 2px 4px; border-radius: 3px; color: #333;">1. 重点强调（粉色系 #FFE6F2）</span>
 
 ```markdown
 <div style="background-color: #FFE6F2; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #FF85C0; margin: 10px 0;">
@@ -365,7 +365,7 @@ print("Hello, World!")
   </p>
 </div>
 
-<span style="background-color: #FFF3CD; padding: 2px 4px; border-radius: 3px; color: #333;">2. 警告提示（黄色系）</span>
+<span style="background-color: #FFF3CD; padding: 2px 4px; border-radius: 3px; color: #333;">2. 警告提示（黄色系 #FFF3CD）</span>
 
 <div style="background-color: #FFF3CD; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #FFC107; margin: 10px 0;">
   <strong style="color: #D39E00;">⚠️ 警告提示</strong>
@@ -373,7 +373,7 @@ print("Hello, World!")
     注意事项：此处填写需要提醒的风险/易错点，例如「该参数不能为空，否则会导致程序报错」。
   </p>
 </div>
-<span style="background-color: #E3F2FD; padding: 2px 4px; border-radius: 3px; color: #333;">3. 信息说明（蓝色系）</span>
+<span style="background-color: #E3F2FD; padding: 2px 4px; border-radius: 3px; color: #333;">3. 信息说明（蓝色系 #E3F2FD）</span>
 
 <div style="background-color: #E3F2FD; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #2196F3; margin: 10px 0;">
   <strong style="color: #1976D2;">ℹ️ 信息说明</strong>
@@ -381,7 +381,7 @@ print("Hello, World!")
     补充信息：此处填写辅助说明/背景知识，例如「该算法的时间复杂度为 O(n²)，适用于小数据集场景」。
   </p>
 </div>
-<span style="background-color: #E8F5E9; padding: 2px 4px; border-radius: 3px; color: #333;">4. 成功提示（绿色系）</span>
+<span style="background-color: #E8F5E9; padding: 2px 4px; border-radius: 3px; color: #333;">4. 成功提示（绿色系 #E8F5E9）</span>
 
 <div style="background-color: #E8F5E9; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #4CAF50; margin: 10px 0;">
   <strong style="color: #2E7D32;">✅ 成功提示</strong>
@@ -389,7 +389,7 @@ print("Hello, World!")
     完成结果：此处填写操作成功/验证通过的反馈，例如「模型训练完成，测试集准确率达 95%」。
   </p>
 </div>
-<span style="background-color: #F5F5F5; padding: 2px 4px; border-radius: 3px; color: #333;">5. 备注记录（灰色系）</span>
+<span style="background-color: #F5F5F5; padding: 2px 4px; border-radius: 3px; color: #333;">5. 备注记录（灰色系 #F5F5F5）</span>
 
 <div style="background-color: #F5F5F5; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #9E9E9E; margin: 10px 0;">
   <strong style="color: #616161;">📝 备注记录</strong>
