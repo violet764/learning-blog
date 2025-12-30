@@ -124,8 +124,11 @@ export default
           items: [
             { text: '导览', link: '/notes/language/c++/index.md' },
             { text: '基础语法', link: '/notes/language/c++/basic.md' },
-            { text: '面向对象', link: '/notes/language/c++/面向对象.md' },
-            { text: '高性能编程', link: '/notes/language/c++/stl.md' },
+            { text: '函数', link: '/notes/language/c++/func.md' },
+            { text: '面向对象', link: '/notes/language/c++/oop.md' },
+            { text: '进阶语法', link: '/notes/language/c++/advanced.md' },
+            { text: 'STL容器', link: '/notes/language/c++/stl_container.md' },
+            { text: 'STL算法', link: '/notes/language/c++/algorithm.md' },
 
           ]
         },

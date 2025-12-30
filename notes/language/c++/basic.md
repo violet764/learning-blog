@@ -1,16 +1,10 @@
 # C++基础与核心语法
 
-## C++语言概述
+**C++语言概述**  
+C++ 是一种静态类型的、编译式的、通用的、大小写敏感的、不规则的编程语言，支持过程化编程、面向对象编程和泛型编程。
 
-**编译流程：**
-1. **预处理**：处理 `#include`、`#define` 等指令
-2. **编译**：将C++代码翻译成汇编代码
-3. **汇编**：将汇编代码翻译成机器代码
-4. **链接**：连接多个目标文件生成可执行文件
 
-> **注意**：Python是解释执行，无需编译步骤；C++需要完整的编译流程才能运行
-
-## 第一个C++程序
+**第一个C++程序**
 
 ```cpp
 #include <iostream>  
@@ -140,16 +134,16 @@ int main() {
 
 C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型，尺寸受编译器/平台影响（以下为64位系统典型值）。
 
-### 原生数据类型  
+### 基础数据类型 
 
 **整数类型**
 | 类型               | 典型尺寸 | 取值范围（典型）| 无符号标识 | 核心用途                     |
 |--------------------|----------|-------------------------|------------|------------------------------|
 | `char`             | 1字节    | -128 ~ 127              | `unsigned char` | 存储字符/ASCII码/小整数      |
 | `short`            | 2字节    | -32768 ~ 32767          | `unsigned short` | 小范围整数，节省内存         |
-| `int`              | 4字节    | -2¹⁵ ~ 2¹⁵-1（2字节）/ -2³¹ ~ 2³¹-1（4字节） | `unsigned int` | 最常用整数类型，性能最优     |
-| `long`             | 8字节 | -2³¹ ~ 2³¹-1（4字节）/ -2⁶³ ~ 2⁶³-1（8字节） | `unsigned long` | 大范围整数                   |
-| `long long`        | 8字节    | -2⁶³ ~ 2⁶³-1            | `unsigned long long` | 超大范围整数|
+| `int`              | 4字节    | $-2^{15}$ ~ $2^{15}-1$（2字节）/ $-2^{31}$ ~ $2^{31}-1$（4字节） | `unsigned int` | 最常用整数类型，性能最优     |
+| `long`             | 8字节 | $-2^{31}$ ~ $2^{31}-1$（4字节）/ $-2^{63}$ ~ $2^{63}-1$（8字节） | `unsigned long` | 大范围整数                   |
+| `long long`        | 8字节    | $-2^{63}$ ~ $2^{63}-1$            | `unsigned long long` | 超大范围整数|
 
 整数类型说明：
 - 无符号类型（`unsigned`）仅存储非负数，取值上限翻倍；
@@ -161,9 +155,9 @@ C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型�
 
 | 类型         | 典型尺寸 | 有效数字 | 取值范围               | 后缀 | 核心用途                     |
 |--------------|----------|----------|------------------------|------|------------------------------|
-| `float`      | 4字节    | 6~7位    | ±10⁻³⁸ ~ ±10³⁸         | `f`  | 单精度浮点，适合内存受限场景 |
-| `double`     | 8字节    | 15~16位  | ±10⁻³⁰⁸ ~ ±10³⁰⁸       | -    | 双精度浮点，默认推荐使用     |
-| `long double`| 8/16字节 | 18~19位  | ±10⁻⁴⁹³² ~ ±10⁴⁹³²     | `L`  | 扩展精度浮点，极少使用       |
+| `float`      | 4字节    | 6~7位    | ±$10^{-38}$ ~ ±$10^{38}$         | `f`  | 单精度浮点，适合内存受限场景 |
+| `double`     | 8字节    | 15~16位  | ±$10^{-308}$ ~ ±$10^{308}$       | -    | 双精度浮点，默认推荐使用     |
+| `long double`| 8/16字节 | 18~19位  | ±$10^{-4932}$ ~ ±$10^{4932}$     | `L`  | 扩展精度浮点，极少使用       |
 
 浮点类型注意事项：
 - 避免直接用 `==` 比较浮点数，需判断差值小于极小值（如 `1e-6`）；
@@ -183,7 +177,7 @@ C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型�
 |--------|--------------------------------------------------------------------------|
 | `void` | 1. 函数返回值：`void func()` 表示无返回值；<br>2. 通用指针：`void*` 指向任意类型（需强制转换） |
 
-### 复合/派生数据类型
+### 复合数据类型
 基于基本类型扩展，实现更复杂的数据存储逻辑。
 
 **指针（`*`）**
@@ -212,22 +206,36 @@ C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型�
 | C风格字符串（`char[]/char*`） | 1. 以 `'\0'` 结尾；<br>2. 需手动管理内存                                 | `char str[]="hello";`    |
 | C++风格字符串（`std::string`） | 1. 标准库封装；<br>2. 支持拼接/查找/替换等便捷操作；<br>3. 自动管理内存   | `string s="world"; s+="!";` |
 
-**容器类型（标准库）**
-| 类型               | 核心特性                                                                 | 示例                     |
-|--------------------|--------------------------------------------------------------------------|--------------------------|
-| `std::vector`      | 动态数组，自动扩容，随机访问高效                                         | `vector<int> vec={1,2,3};` |
-| `std::map`         | 键值对集合，有序存储，基于红黑树实现                                     | `map<string,int> mp={{"age",20}};` |
-| `std::set`         | 无序不重复集合，基于哈希表（`unordered_set`）或红黑树（`set`）| `set<int> s={1,2,3};`    |
-
-**C++数据类型声明：**
+**C风格字符串详细操作：**
 ```cpp
-// C++需要显式声明类型
-int number = 42;           // 整数
-double pi = 3.14159;       // 双精度浮点数
-char letter = 'A';         // 字符
-char str[6] = {'H', 'e', 'l', 'l', 'o','\0} // 末尾必须添加'\0'
-bool is_valid = true;      // 布尔值
-std::string name = "Alice"; // 字符串
+#include <cstring>
+
+char greeting[20];
+strcpy(greeting, "Hello");      // 复制字符串
+strcat(greeting, " World");     // 连接字符串
+cout << greeting << endl;       // 输出Hello World
+```
+
+**`std::string`详细操作：**
+```cpp
+#include <string>
+
+string str1 = "Hello";
+string str2 = "World";
+string greeting = str1 + " " + str2;     // 字符串拼接
+cout << "长度：" << greeting.length() << endl;     // 输出11
+cout << "是否为空：" << greeting.empty() << endl;  // 输出0（false）
+
+// 子字符串操作
+string sub = greeting.substr(0, 5);    // 提取前5个字符
+cout << "子字符串：" << sub << endl;    // 输出Hello
+
+// 查找操作
+size_t pos = greeting.find("World");
+if (pos != string::npos) {
+    cout << "World found at position: " << pos << endl;
+} // 输出World found at position: 6
+
 
 ```
 
@@ -271,7 +279,7 @@ struct Student {
 ```
 
 ::: tip
-在内存占用上存在字节对齐现象，占用的内存为最大成员大小的整数倍。
+在内存占用上存在字节对齐现象，字节对齐是一种内存布局优化，通过在数据间插入填充字节，保证数据起始地址满足对齐模数要求（默认等于数据类型大小），同时复合类型整体大小满足对齐模数整数倍，以此提升内存访问性能。
 :::  
 **枚举（`enum`）**
 
@@ -329,6 +337,316 @@ int main() {
 }
 ```
 
+## 常量与变量
+
+### 变量：可修改的数据存储
+
+**变量定义与特性：** 变量是程序中可以修改的数据存储单元，具有名称、类型和值三个基本属性。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    // 变量定义与初始化
+    int age = 25;                    // 定义并初始化
+    double salary;                   // 定义未初始化（值不确定）
+    salary = 5000.0;                 // 后续赋值
+    
+    // 不同类型变量的定义
+    char grade = 'A';                // 字符变量
+    bool is_active = true;           // 布尔变量
+    string name = "Alice";           // 字符串变量
+    
+    // 变量作用域：局部变量 vs 全局变量
+    int global_var = 100;            // 全局变量（文件作用域）
+    
+    {
+        int local_var = 200;          // 块作用域局部变量
+        cout << "局部变量: " << local_var << endl;
+        cout << "全局变量: " << global_var << endl;
+    }
+    
+    // cout << local_var << endl;     // 错误：local_var超出作用域
+    
+    // 变量修改
+    age = 26;                        // 修改变量值
+    age++;                           // 自增操作
+    age += 5;                        // 复合赋值
+    
+    cout << "年龄: " << age << endl;
+    cout << "工资: " << salary << endl;
+    
+    // 变量的内存地址
+    cout << "age的地址: " << &age << endl;
+    cout << "salary的地址: " << &salary << endl;
+    
+    return 0;
+}
+```
+
+### 常量：不可修改的数据存储
+
+**常量定义方式：** C++提供多种方式定义常量，确保数据在程序运行期间不被修改。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+// 方式1：使用#define预处理指令（C风格，不推荐在现代C++中使用）
+#define MAX_SIZE 100
+#define PI 3.14159
+
+// 方式2：使用const关键字（推荐）
+const int MIN_AGE = 18;
+const double GRAVITY = 9.8;
+
+// 方式3：使用constexpr（C++11，编译时常量）
+constexpr int ARRAY_SIZE = 50;
+constexpr double E = 2.71828;
+
+// 方式4：枚举常量
+enum Color { RED, GREEN, BLUE };
+enum class Status { OK = 0, ERROR = -1, PENDING = 1 };
+
+int main() {
+    // 常量的使用
+    cout << "最大尺寸: " << MAX_SIZE << endl;
+    cout << "最小年龄: " << MIN_AGE << endl;
+    cout << "数组大小: " << ARRAY_SIZE << endl;
+    
+    // 编译时常量可以在编译时计算
+    constexpr int square_size = ARRAY_SIZE * ARRAY_SIZE;
+    cout << "平方大小: " << square_size << endl;
+    
+    // 枚举常量使用
+    Color favorite_color = GREEN;
+    Status current_status = Status::OK;
+    
+    cout << "最喜欢的颜色: " << favorite_color << endl;
+    cout << "当前状态: " << static_cast<int>(current_status) << endl;
+    
+    // 常量的优势
+    const int buffer_size = 1024;
+    // buffer_size = 2048;  // 错误：常量不可修改
+    
+    // 数组大小必须使用常量
+    int numbers[ARRAY_SIZE];  // 正确：ARRAY_SIZE是编译时常量
+    // int dynamic_size = 100;
+    // int arr[dynamic_size];  // 错误：动态大小不能用于数组声明
+    
+    // const vs constexpr
+    int runtime_value;
+    cout << "输入一个值: ";
+    cin >> runtime_value;
+    
+    const int const_value = runtime_value;     // 运行时常量
+    // constexpr int ce_value = runtime_value;  // 错误：constexpr必须是编译时常量
+    
+    constexpr int compile_time_value = 42;     // 编译时常量
+    
+    return 0;
+}
+```
+
+### 常量指针与指针常量
+
+**四种const指针组合：** const关键字的位置决定了指针的常量性质。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 10;
+    int b = 20;
+    
+    cout << "=== 常量指针与指针常量详解 ===" << endl;
+    
+    // 1. 普通指针：可以修改指向和指向的值
+    int* ptr1 = &a;
+    cout << "1. 普通指针:" << endl;
+    cout << "初始指向a: " << *ptr1 << endl;
+    *ptr1 = 15;                    // 可以修改指向的值
+    ptr1 = &b;                     // 可以修改指向
+    cout << "修改后指向b: " << *ptr1 << endl;
+    
+    // 2. 指针常量（const在*右边）：指针本身是常量，指向不能改
+    int* const ptr2 = &a;          // ptr2是指针常量
+    cout << "\n2. 指针常量（指向不能改）:" << endl;
+    cout << "指向a: " << *ptr2 << endl;
+    *ptr2 = 25;                    // 可以修改指向的值
+    // ptr2 = &b;                  // 错误：指针常量不能改变指向
+    cout << "修改a的值后: " << *ptr2 << endl;
+    
+    // 3. 常量指针（const在*左边）：指向的值是常量，值不能改
+    const int* ptr3 = &a;          // ptr3是常量指针
+    cout << "\n3. 常量指针（值不能改）:" << endl;
+    cout << "指向a: " << *ptr3 << endl;
+    // *ptr3 = 30;                 // 错误：常量指针不能修改指向的值
+    ptr3 = &b;                     // 可以修改指向
+    cout << "指向b后: " << *ptr3 << endl;
+    
+    // 4. 指向常量的指针常量（双const）：指向和值都不能改
+    const int* const ptr4 = &a;    // ptr4是指向常量的指针常量
+    cout << "\n4. 指向常量的指针常量（指向和值都不能改）:" << endl;
+    cout << "指向a: " << *ptr4 << endl;
+    // *ptr4 = 40;                 // 错误：不能修改值
+    // ptr4 = &b;                  // 错误：不能修改指向
+    
+    // 记忆技巧：const在*左边→值不变，const在*右边→指向不变
+    
+    cout << "\n=== 字符串常量指针示例 ===" << endl;
+    
+    // 字符串常量指针
+    const char* message = "Hello, World!";
+    cout << "消息: " << message << endl;
+    // *message = 'h';             // 错误：字符串常量不可修改
+    
+    // 可以修改指向不同的字符串
+    message = "Welcome to C++";
+    cout << "新消息: " << message << endl;
+    
+    // 字符串指针常量
+    char greeting[] = "Hello";
+    char* const greeting_ptr = greeting;  // 指针常量
+    cout << "问候: " << greeting_ptr << endl;
+    greeting_ptr[0] = 'h';               // 可以修改字符串内容
+    // greeting_ptr = "Hi";              // 错误：指针常量不能改变指向
+    cout << "修改后问候: " << greeting_ptr << endl;
+    
+    cout << "\n=== 函数参数中的const指针 ===" << endl;
+    
+    // 函数声明示例
+    void print_array(const int* arr, int size);      // 常量指针参数
+    void modify_array(int* const arr, int size);     // 指针常量参数
+    
+    int numbers[] = {1, 2, 3, 4, 5};
+    
+    // 常量指针参数：保证不修改数组内容
+    print_array(numbers, 5);
+    
+    // 指针常量参数：保证不改变指针指向
+    modify_array(numbers, 5);
+    
+    return 0;
+}
+
+// 函数定义：使用常量指针参数（只读访问）
+void print_array(const int* arr, int size) {
+    cout << "数组内容: ";
+    for (int i = 0; i < size; i++) {
+        cout << arr[i] << " ";
+        // arr[i] = 0;  // 错误：常量指针参数不能修改数据
+    }
+    cout << endl;
+}
+
+// 函数定义：使用指针常量参数（保证不改变指向）
+void modify_array(int* const arr, int size) {
+    for (int i = 0; i < size; i++) {
+        arr[i] *= 2;  // 可以修改数据
+    }
+    // arr = nullptr;  // 错误：指针常量参数不能改变指向
+}
+```
+
+### `const`在函数中的应用
+
+**`const`函数参数和返回值：** 使用`const`可以提高代码的安全性和可读性。
+
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+// 1. const引用参数：避免拷贝，保证不修改参数
+void print_string(const string& str) {
+    cout << "字符串: " << str << endl;
+    // str[0] = 'X';  // 错误：const引用不能修改
+}
+
+// 2. const指针参数：保证不修改指向的数据
+int find_max(const int* arr, int size) {
+    if (size <= 0) return -1;
+    
+    int max_val = arr[0];
+    for (int i = 1; i < size; i++) {
+        if (arr[i] > max_val) {
+            max_val = arr[i];
+        }
+    }
+    return max_val;
+}
+
+// 3. const返回值：返回常量，防止修改
+const int& get_reference(const int& a, const int& b) {
+    return (a > b) ? a : b;
+}
+
+// 4. 常量成员函数（在类中）
+class Calculator {
+private:
+    mutable int call_count;  // mutable：即使在const函数中也可修改
+    
+public:
+    Calculator() : call_count(0) {}
+    
+    // const成员函数：承诺不修改对象状态
+    double calculate(double x, double y) const {
+        // call_count++;  // 错误：const成员函数不能修改成员变量
+        return x * y;
+    }
+    
+    // 使用mutable成员
+    int get_call_count() const {
+        call_count++;  // 正确：mutable成员可以在const函数中修改
+        return call_count;
+    }
+    
+    // 非const成员函数
+    void reset() {
+        call_count = 0;
+    }
+};
+
+int main() {
+    // const引用参数使用
+    string greeting = "Hello, C++";
+    print_string(greeting);
+    
+    // const指针参数使用
+    int numbers[] = {3, 1, 4, 1, 5, 9, 2, 6};
+    int max_val = find_max(numbers, 8);
+    cout << "最大值: " << max_val << endl;
+    
+    // const返回值使用
+    int x = 10, y = 20;
+    const int& larger = get_reference(x, y);
+    cout << "较大的值: " << larger << endl;
+    // larger = 30;  // 错误：const引用不能修改
+    
+    // 常量成员函数使用
+    Calculator calc;
+    const Calculator const_calc;
+    
+    cout << "计算结果: " << calc.calculate(3.14, 2.71) << endl;
+    cout << "常量对象调用: " << const_calc.calculate(1.5, 2.5) << endl;
+    // const_calc.reset();  // 错误：常量对象只能调用const成员函数
+    
+    cout << "调用次数: " << calc.get_call_count() << endl;
+    
+    return 0;
+}
+```
+
+**常量使用的最佳实践：**
+
+1. **优先使用const**：默认将变量声明为const，除非需要修改
+2. **使用const引用参数**：避免不必要的拷贝，提高性能
+3. **const成员函数**：对于不修改对象状态的成员函数声明为const
+
+通过合理使用常量，可以提高代码的安全性、可读性和性能。 
 
 
 ### 变量声明与初始化
@@ -354,12 +672,6 @@ auto num = 42;                  // 推导为int
 auto name = "Alice";            // 推导为const char*
 auto list = {1, 2, 3};          // 推导为std::initializer_list<int>
 
-// 对比Python的动态变量机制
-# Python变量使用：名称绑定到对象
-x = 10              # 创建整数对象10，x绑定到该对象
-x = "hello"         # 创建字符串对象，x重新绑定（类型动态改变）
-MAX_SIZE = 100      # 只是约定，实际可以修改（非真正常量）
-
 // C++的变量生命周期管理
 {
     int local_var = 50;  // 进入作用域时创建
@@ -378,6 +690,41 @@ std::cout << uninitialized << std::endl;  // 未定义行为：可能输出任�
 **算术运算符：类型转换与精度控制**
 
 **重要概念：** C++的算术运算遵循严格的类型转换规则。不同类型的操作数运算时，会按照"类型提升"规则转换为更宽的类型。整数除法会截断小数部分，这与Python的浮点除法行为不同。
+
+**位运算符：**
+```cpp
+unsigned int flags = 0b1010;  // 二进制表示
+flags = flags | 0b0001;       // 按位或
+flags = flags & ~0b1000;      // 按位与+取反
+```
+
+**赋值运算符：**
+```cpp
+int a = 10;
+a += 5;  // 等价于 a = a + 5
+a -= 3;  // 等价于 a = a - 3
+a *= 2;  // 等价于 a = a × 2
+a /= 4;  // 等价于 a = a ÷ 4
+```
+
+**关系与逻辑运算符：**
+```cpp
+int x = 10, y = 5;
+bool isEqual = (x == y);      // 等于：false
+bool notEqual = (x != y);     // 不等于：true
+bool greater = (x > y);       // 大于：true
+bool less = (x < y);          // 小于：false
+bool greaterEqual = (x >= y); // 大于等于：true
+bool lessEqual = (x <= y);    // 小于等于：false
+
+bool andResult = (x > 0 && y > 0);  // 逻辑与：true（两者都为真）
+bool orResult = (x > 0 || y < 0);   // 逻辑或：true（至少一个为真）
+bool notResult = !(x > 0);          // 逻辑非：false（取反）
+```
+
+**短路求值特性：**
+- `&&`运算符：如果第一个操作数为假，第二个操作数不会执行
+- `||`运算符：如果第一个操作数为真，第二个操作数不会执行
 
 ```cpp
 int a = 10, b = 3;
@@ -577,212 +924,4 @@ do {
     std::cin >> input;
 } while (input <= 0);  // 至少执行一次
 ```
-
-## 函数与作用域
-
-### 函数声明与定义
-
-**函数基本结构：**
-```cpp
-// 函数声明（通常在头文件中）
-int add(int a, int b);
-
-// 函数定义
-int add(int a, int b) {
-    return a + b;
-}
-
-```
-
-**函数声明与定义分离：**
-```cpp
-// math_utils.h（头文件）
-#ifndef MATH_UTILS_H
-#define MATH_UTILS_H
-
-int multiply(int x, int y);
-double power(double base, int exponent);
-
-#endif
-
-// math_utils.cpp（源文件）
-#include "math_utils.h"
-
-int multiply(int x, int y) {
-    return x * y;
-}
-
-double power(double base, int exponent) {
-    double result = 1.0;
-    for (int i = 0; i < exponent; i++) {
-        result *= base;
-    }
-    return result;
-}
-```
-
-### 参数传递机制
-
-**值传递（默认）：内存拷贝机制**
-
-**底层原理：** 值传递会在函数调用时创建参数的完整副本。对于基本类型（如`int`、`double`），这通常很高效；但对于大型对象（如`std::vector`、自定义类），会产生不必要的内存拷贝开销。
-
-```cpp
-// 值传递：创建参数的完整副本
-void modifyValue(int x) {  // x是a的副本，占用独立内存空间
-    x = 100;  // 只修改副本，不影响原变量
-    // 函数结束时，x的副本被销毁
-}
-
-int main() {
-    int a = 10;           // a在栈上分配内存
-    modifyValue(a);       // 调用时：将a的值拷贝给x
-    std::cout << a << std::endl;  // 输出: 10（原值未改变）
-    return 0;
-}
-
-// 大型对象的值传递（可能产生性能问题）
-void processVector(std::vector<int> vec) {  // 拷贝整个vector
-    // 处理vector...
-}  // 函数结束时，vec的副本被销毁（可能触发析构函数）
-```
-
-**引用传递：别名机制与性能优化**
-
-**底层原理：** 引用本质上是变量的别名，不占用额外内存空间。编译器在内部将引用实现为指针，但语法上更安全，避免了空指针和野指针问题。引用传递避免了不必要的拷贝，是C++中高效传递大型对象的首选方式。
-语法：
-```cpp
-返回值类型 函数名(参数列表) {
-    // 函数体：执行逻辑
-    [return 返回值;] // 非void类型必须返回对应类型值
-}
-```
-
-
-示例：
-```cpp
-// 引用传递：创建变量的别名（不拷贝数据）
-void modifyReference(int &x) {  // x是a的引用（别名）
-    x = 100;  // 通过引用直接修改原变量
-    // x和a实际上是同一块内存的两个名称
-}
-
-int main() {
-    int a = 10;
-    modifyReference(a);       // 传递a的引用，无数据拷贝
-    std::cout << a << std::endl;  // 输出: 100（原值被修改）
-    return 0;
-}
-
-// 常量引用：只读访问，避免拷贝（最佳实践）
-void readOnly(const std::vector<int> &vec) {  // 不拷贝，只读访问
-    // 可以读取vec的内容，但不能修改
-    std::cout << "Size: " << vec.size() << std::endl;
-}
-
-// 右值引用（C++11）：移动语义，避免不必要的拷贝
-void takeOwnership(std::vector<int> &&vec) {  // 接收即将销毁的对象
-    // 可以"窃取"vec的资源，避免拷贝
-}
-```
-
-**指针传递：**
-```cpp
-void modifyPointer(int *x) {
-    *x = 100;  // 通过指针修改原变量
-}
-
-int main() {
-    int a = 10;
-    modifyPointer(&a);
-    std::cout << a << std::endl;  // 输出: 100
-    return 0;
-}
-```
-
-> **注意**：Python中所有参数传递都是"对象引用传递"，与C++的引用传递概念不同
-
-### 函数重载
-
-**函数重载示例：编译时多态与类型安全**
-
-**设计原理：** 函数重载是C++实现编译时多态的重要机制。编译器根据调用时的实参类型选择最匹配的函数版本，这提供了类型安全的接口，同时保持了代码的简洁性。
-
-```cpp
-// 同名函数，不同参数列表（函数签名不同）
-int add(int a, int b) {           // 版本1：整数加法
-    return a + b;
-}
-
-double add(double a, double b) {   // 版本2：浮点数加法
-    return a + b;
-}
-
-std::string add(const std::string &a, const std::string &b) {  // 版本3：字符串连接
-    return a + b;
-}
-
-// 重载解析过程：编译器根据实参类型选择最合适的版本
-std::cout << add(5, 3) << std::endl;               // 调用版本1：int add(int, int)
-std::cout << add(2.5, 3.7) << std::endl;           // 调用版本2：double add(double, double)
-std::cout << add("Hello", " World") << std::endl;  // 调用版本3：string add(const string&, const string&)
-
-// 类型转换与重载解析
-std::cout << add(5, 3.14) << std::endl;  // 可能产生歧义：int+double
-// 编译器需要决定：将5转换为double，还是将3.14转换为int
-
-// 重载规则：返回值类型不同不能构成重载
-// int process();        // ✅
-// double process();     // ❌ 错误：仅返回值不同
-
-// 默认参数与重载的交互
-void print(int a, int b = 10);     // 版本A
-void print(int a);                 // 版本B
-
-print(5);  // 歧义：可以调用版本A（使用默认参数）或版本B
-```
-
-> **对比Python：** Python不支持函数重载，通常用默认参数或类型检查实现类似功能
-
-### 内联函数
-
-**内联函数：**
-```cpp
-// 建议编译器将函数体直接插入调用处
-inline int square(int x) {
-    return x * x;
-}
-
-// 使用内联函数（可能被优化为直接计算）
-int result = square(5);  // 可能被优化为: int result = 5 * 5;
-```
-
-**constexpr函数：**
-```cpp
-// 编译时可计算的函数
-constexpr int factorial(int n) {
-    return (n <= 1) ? 1 : n * factorial(n - 1);
-}
-
-// 编译时计算
-constexpr int fact_5 = factorial(5);  // 在编译时计算出120
-```
-
-**作用域规则：**
-```cpp
-int global_var = 100;  // 全局变量
-
-void function() {
-    int local_var = 50;  // 局部变量
-    
-    if (true) {
-        int block_var = 10;  // 块作用域变量
-        std::cout << block_var << std::endl;  // 可以访问
-    }
-    // std::cout << block_var << std::endl;  // 错误！超出作用域
-}
-```
-
-> **关键理解**：C++的作用域规则比Python更严格，变量生命周期管理更重要
-
 
