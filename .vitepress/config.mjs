@@ -55,9 +55,9 @@ export default
       { 
         text: '深度学习', 
         items: [
-          { text: 'PyTorch核心教程', link: '/notes/deep-learning/pytorch.md' },
-          { text: '实战项目', link: '/notes/deep-learning/project.md' },
-          { text: '性能优化', link: '/notes/deep-learning/optimize.md' },
+          { text: '深度学习', link: '/notes/deep-learning/basic.md' },
+          { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
+          { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
         ]
         
       },
@@ -155,18 +155,12 @@ export default
 
       // 深度学习分类侧边栏
       '/notes/deep-learning/': [
-        { text: '环境配置', link: '/notes/deep-learning/env.md' },
-        {
-          text: 'PyTorch核心',
-          collapsible: true,
-          items: [
-            { text: '张量与自动求导', link: '/notes/deep-learning/pytorch/tensor.md' },
-            { text: '网络构建与训练', link: '/notes/deep-learning/pytorch/model.md' },
-            { text: '数据加载与预处理', link: '/notes/deep-learning/pytorch/dataloader.md' }
-          ]
-        },
-        { text: '实战项目', link: '/notes/deep-learning/project.md' },
-        { text: '性能优化', link: '/notes/deep-learning/optimize.md' }
+        { text: '深度学习', link: '/notes/deep-learning/basic.md' },
+        { text: '神经网络', link: '/notes/deep-learning/nn.md' },
+        { text: '优化器', link: '/notes/deep-learning/optim.md' },
+        { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
+        { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
+        { text: '实战', link: '/notes/deep-learning/practical.md' },
       ],
 
       // 算法与刷题侧边栏（对齐首页Feature）
