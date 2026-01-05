@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
-import mathjax3 from 'markdown-it-mathjax3'
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
 export default 
   defineConfig({
