@@ -9,23 +9,6 @@ export default
   // 站点核心信息（与首页标题/定位一致）
   title: "星间飞行",
   description: "深耕Python/C++,拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
-  // ========== 性能优化配置 ==========
-  vite: {
-    build: {
-      chunkSizeWarningLimit: 1600,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vue': ['vue'],
-            'markdown': ['@vue/compiler-sfc', 'markdown-it']
-          }
-        }
-      }
-    },
-    ssr: {
-      noExternal: ['shiki']
-    }
-  },
   // ========== 新增：markdown 配置（math: true 放在这里） ==========
   markdown: {
     math: true, // 启用VitePress内置的数学公式支持
