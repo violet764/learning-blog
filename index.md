@@ -30,17 +30,18 @@ features:
     link: /notes/machine-learnig/ml.md
     linkText: 学习更多
 
+  - icon: ⚡
+    title: 深度学习
+    details: PyTorch框架使用、数据预处理、模型训练、性能优化
+    link: /notes/deep-learning/
+    linkText: 实战案例
+
   - icon: 🤖
     title: AI模型与算法
     details: 拆解主流AI模型（LLM/CNN/RNN）原理、训练调优、推理部署，从理论到工程落地
-    link: /notes/ai-model/
+    link: /notes/deep-learning/nn.md
     linkText: 深入学习
 
-  - icon: ⚡
-    title: 深度学习实战
-    details: PyTorch框架使用、数据预处理、模型训练、性能优化、实战项目复盘
-    link: /notes/deep-learning/
-    linkText: 实战案例
 
   - icon: 🎮
     title: 强化学习

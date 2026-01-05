@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
+import mathjax3 from 'markdown-it-mathjax3'
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
 export default 
   defineConfig({
@@ -8,9 +9,30 @@ export default
   // 站点核心信息（与首页标题/定位一致）
   title: "星间飞行",
   description: "深耕Python/C++,拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
+  // ========== 性能优化配置 ==========
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 1600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vue': ['vue'],
+            'markdown': ['@vue/compiler-sfc', 'markdown-it']
+          }
+        }
+      }
+    },
+    ssr: {
+      noExternal: ['shiki']
+    }
+  },
   // ========== 新增：markdown 配置（math: true 放在这里） ==========
   markdown: {
     math: true, // 启用VitePress内置的数学公式支持
+    config: (md) => {
+      md.use(mathjax3)
+    },
+    // 启用代码块行号
     lineNumbers: true,
     container: {
       tipLabel: '提示',
@@ -18,6 +40,15 @@ export default
       dangerLabel: '警告',
       infoLabel: '信息',
       detailsLabel: '详情'
+    },
+    // 支持表情符号
+    breaks: true,
+    // 链接自动转换
+    linkify: true,
+    // 外部链接自动添加 target="_blank"
+    externalLinks: {
+      target: '_blank',
+      rel: 'noopener noreferrer'
     }
   },
   // ==============================================================
@@ -61,6 +92,18 @@ export default
         ]
         
       },
+
+      // 强化学习
+      { text: '强化学习', 
+        items:[
+        { text: '导览', link: '/notes/reinforcement-learning/index.md' },
+        { text: '强化学习', link: '/notes/reinforcement-learning/reinforcement_learning.md' },
+        { text: 'Q-learning', link: '/notes/reinforcement-learning/Q-learning.md' },
+        { text: 'DQN', link: '/notes/reinforcement-learning/DQN.md' },
+        { text: 'DQN-Atari', link: '/notes/reinforcement-learning/DQN-Atari.md' },
+        ]
+      },
+
       // 算法刷题
       { text: '算法',
         items:[
@@ -124,7 +167,7 @@ export default
           items: [
             { text: '导览', link: '/notes/language/c++/index.md' },
             { text: '基础语法', link: '/notes/language/c++/basic.md' },
-            { text: '函数', link: '/notes/language/c++/func.md' },
+            { text: '函数与内存', link: '/notes/language/c++/func.md' },
             { text: '面向对象', link: '/notes/language/c++/oop.md' },
             { text: '进阶语法', link: '/notes/language/c++/advanced.md' },
             { text: 'STL容器', link: '/notes/language/c++/stl_container.md' },
@@ -155,6 +198,7 @@ export default
 
       // 深度学习分类侧边栏
       '/notes/deep-learning/': [
+        { text: '导览', link: '/notes/deep-learning/index.md' },
         { text: '深度学习', link: '/notes/deep-learning/basic.md' },
         { text: '神经网络', link: '/notes/deep-learning/nn.md' },
         { text: '优化器', link: '/notes/deep-learning/optim.md' },
@@ -212,7 +256,14 @@ export default
 
     // 增强功能（适配笔记查找/时效性）
     search: {
-      provider: 'local'
+      provider: 'local',
+      options: {
+        detailedView: true,
+        // 搜索快捷键
+        hotKeys: ['s', '/'],
+        // 排除搜索的文件
+        exclude: ['node_modules/**', 'dist/**', '.vitepress/**']
+      }
     },
     lastUpdated: {
       text: '最后更新于',
@@ -220,6 +271,11 @@ export default
         dateStyle: 'short',
         timeStyle: 'medium'
       }
+    },
+    // 文档页脚
+    docFooter: {
+      prev: '上一篇',
+      next: '下一篇'
     }
-  }
+    }
 })
