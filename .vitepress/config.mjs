@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
+
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
 export default 
   defineConfig({
@@ -28,9 +29,6 @@ export default
   // ========== 新增：markdown 配置（math: true 放在这里） ==========
   markdown: {
     math: true, // 启用VitePress内置的数学公式支持
-    config: (md) => {
-      md.use(mathjax3)
-    },
     // 启用代码块行号
     lineNumbers: true,
     container: {
