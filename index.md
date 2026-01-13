@@ -39,7 +39,7 @@ features:
   - icon: 🤖
     title: AI模型与算法
     details: 拆解主流AI模型（LLM/CNN/RNN）原理、训练调优、推理部署，从理论到工程落地
-    link: /notes/deep-learning/nn.md
+    link: /notes/ai-model/
     linkText: 深入学习
 
 

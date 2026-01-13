@@ -204,6 +204,30 @@ Markdown 不能指定图片尺寸，但可以用 HTML 设定宽高：
 <img src="./images/shiprock.jpg" width="200" height="100">
 图片将以 200x100 像素显示。
 
+### 多张图片
+在一行中显示多张图片 ：
+```markdown
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/shiprock.jpg" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/magic-garden.jpg" style="width: 100%; height: 100%;">
+  </div>
+</div>
+```  
+
+渲染效果：
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/shiprock.jpg" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/magic-garden.jpg" style="width: 100%; height: 100%;">
+  </div>
+</div>
+
+
 ### 图片标题
 Markdown 没有图片标题，可以使用如下方法：
 ```
@@ -242,7 +266,7 @@ Markdown 不能直接插入特殊符号，但可以复制粘贴，或者使用 H
 Markdown 不能直接在表格中换行或插入列表，但可以用 HTML 解决：
 
 **表格内换行**
-```
+```markdown
 | 语法      | 描述         |
 | --------- | ----------- |
 | 换行      | 第一段。<br><br>第二段。 |
@@ -266,7 +290,7 @@ Markdown 不能直接在表格中换行或插入列表，但可以用 HTML 解�
 ### 目录
 某些 Markdown 解析器支持自动目录生成（如 Markdeep），但如果不支持，可以手动创建：
 
-``` 
+``` markdown
 - [下划线](#下划线)  
 - [缩进](#缩进-tab)  
 - [居中对齐](#文字居中)  
@@ -283,13 +307,33 @@ Markdown 不能直接在表格中换行或插入列表，但可以用 HTML 解�
 ### 插入视频
 Markdown 不能直接嵌入视频，但可以使用 HTML，或变通方式（图片+链接）
 点击B站的分享图标，然后选择嵌入链接，会获得如下代码：
-```
+```markdown
 <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=114201066479129&bvid=BV1GPX1YpErE&cid=28993847393&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
 ```
 
 渲染效果：
 <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=114201066479129&bvid=BV1GPX1YpErE&cid=28993847393&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
 
+### 下载文件
+
+Markdown 不能直接下载文件，但可以使用 HTML 链接：
+
+```markdown
+点击 <a href="./code/hello.txt" download>here</a> 下载数据集压缩包
+```
+点击 <a href="./code/hello.txt" download>here</a> 下载数据
+
+美化版：
+```markdown
+点击 <a href="./code/hello.txt" download="我的数据集.txt" style="color: currentColor; text-decoration: none; font-weight: 500; cursor: pointer;">here</a> 下载数据
+```
+`color: currentColor：` `here` 的文字颜色和你文档的普通文字颜色一致，不会突兀；
+`text-decoration: none：`去掉 a 标签默认的下划线，变成纯文字；
+`font-weight:500`：文字稍微加粗一点点，和网页一致；
+`cursor: pointer：`鼠标悬浮变成小手，提示可点击；
+`download="我的数据集.txt"：`自定义下载后的文件名，用户体验更好
+
+点击 <a href="./code/hello.txt" download="我的数据集.txt" style="color: currentColor; text-decoration: none; font-weight: 500; cursor: pointer;">here</a> 下载数据
 
 ## 5.提示信息
 ```markdown

@@ -54,9 +54,9 @@ export default
       {
         text:'机器学习',
         items: [
-          { text: '机器学习', link: '/notes/machine-learnig/ml.md' },
-          { text: '有监督学习', link: 'notes/machine-learnig/supervised_learning.md' },
-          { text: '无监督学习', link: 'notes/machine-learnig/unsupervised_learning.md' },
+          { text: '机器学习', link: 'notes/machine-learning/index.md' },
+          { text: '有监督学习', link: 'notes/machine-learnig/supervised_learning' },
+          { text: '无监督学习', link: 'notes/machine-learnig/unsupervised_learning' },
 
         ]
       },
@@ -69,6 +69,7 @@ export default
           { text: '深度学习', link: '/notes/deep-learning/basic.md' },
           { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
           { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
+          { text: '实践', link: '/notes/practice/index.md' },
         ]
         
       },
@@ -107,7 +108,6 @@ export default
           { text: 'Vim', link: '/notes/tools/tools_vim.md' },
           { text: 'Git', link: '/notes/tools/tools_Git.md' },
           { text: 'Conda', link: '/notes/tools/tools_conda.md' },
-          { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
 
         ] },
 
@@ -124,23 +124,25 @@ export default
       ],
       
       // 编程语言分类侧边栏
-      '/notes/language/': [
+      '/notes/language/python/': [ //想要在一个内容中定义多个侧边栏，在[]内部填写多个块即可
         {
           text: 'Python',
           collapsible: true,
           items: [
-            { text: '导览', link: '/notes/language/python/index.md' },
-            { text: '变量', link: '/notes/language/python/基础_变量.md' },
-            { text: '容器', link: '/notes/language/python/基础_容器.md' },
-            { text: '面向对象', link: '/notes/language/python/基础_函数与类.md' },
-            { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
-            { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
-            { text: '正则表达式', link: '/notes/language/python/正则.md' },
-            { text: 'Pandas', link: '/notes/language/python/Pandas.md' },
-            { text: '数据可视化', link: '/notes/language/python/matplotlib.md' },
+          { text: '导览', link: '/notes/language/python/index.md' },
+          { text: '变量', link: '/notes/language/python/基础_变量.md' },
+          { text: '容器', link: '/notes/language/python/基础_容器.md' },
+          { text: '面向对象', link: '/notes/language/python/基础_函数与类.md' },
+          { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
+          { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
+          { text: '正则表达式', link: '/notes/language/python/正则.md' },
+          { text: 'Pandas', link: '/notes/language/python/Pandas.md' },
+          { text: '数据可视化', link: '/notes/language/python/matplotlib.md' },
 
           ]
-        },
+        }],
+      
+      '/notes/language/c++/': [
         {
           text: 'C++',
           collapsible: true,
@@ -152,9 +154,13 @@ export default
             { text: '进阶语法', link: '/notes/language/c++/advanced.md' },
             { text: 'STL容器', link: '/notes/language/c++/stl_container.md' },
             { text: 'STL算法', link: '/notes/language/c++/algorithm.md' },
+            { text: '多文件管理', link: '/notes/language/c++/project_management.md' },
 
           ]
-        },
+        }],
+
+
+        '/notes/language/markdown/': [
         {
           text: 'Markdown',
           collapsible: true,
@@ -166,6 +172,8 @@ export default
           ]
         },
       ],
+
+
       // 机器学习分类侧边栏
       '/notes/machine-learnig': [
         { text: '机器学习', link: '/notes/machine-learnig/ml.md' },
@@ -185,6 +193,11 @@ export default
         { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
         { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
         { text: '实战', link: '/notes/deep-learning/practical.md' },
+      ],
+
+      '/notes/deep-learning/practice/': [
+        { text: 'makemore', link: '/notes/practice/index.md' },
+
       ],
 
       // 算法与刷题侧边栏（对齐首页Feature）

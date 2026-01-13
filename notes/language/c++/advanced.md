@@ -2697,3 +2697,419 @@ int main() {
 5. **编译时检查**：编译器在编译时验证const正确性
 
 通过合理使用const，可以编写出更加安全、高效和可维护的模板和STL代码。
+
+## <span style="background-color: #ff9f43; padding: 2px 4px; border-radius: 3px; color: white;">C++异常处理</span>
+
+### 为什么需要异常处理？
+
+异常处理机制提供了比传统错误码更优雅的错误处理方式：
+
+```cpp
+#include <iostream>
+#include <stdexcept>
+#include <memory>
+
+// 传统错误处理方式的局限性
+int readFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        return -1; // 文件打开失败，返回错误码
+    }
+    // ... 读取文件内容 ...
+    return 0; // 成功
+}
+
+// 异常处理方式：更清晰、更安全
+void readFileWithException(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("无法打开文件: " + filename);
+    }
+    // 正常处理文件内容
+}
+```
+
+### 异常处理基本语法
+
+```cpp
+#include <iostream>
+#include <stdexcept>
+
+// 抛出异常
+void riskyOperation(int value) {
+    if (value < 0) {
+        throw std::invalid_argument("值不能为负数");
+    }
+    if (value > 100) {
+        throw std::out_of_range("值超出范围");
+    }
+    std::cout << "操作成功，值: " << value << std::endl;
+}
+
+// 捕获异常
+try {
+    riskyOperation(-5);
+} catch (const std::invalid_argument& e) {
+    std::cerr << "参数错误: " << e.what() << std::endl;
+} catch (const std::out_of_range& e) {
+    std::cerr << "范围错误: " << e.what() << std::endl;
+} catch (const std::exception& e) {
+    std::cerr << "未知错误: " << e.what() << std::endl;
+} catch (...) {
+    std::cerr << "未知异常" << std::endl;
+}
+```
+
+### 标准异常类层次结构
+
+```cpp
+#include <exception>
+#include <stdexcept>
+#include <new>        // bad_alloc
+#include <typeinfo>   // bad_cast
+
+// 标准异常类继承关系
+/*
+std::exception
+├── std::logic_error
+│   ├── std::invalid_argument
+│   ├── std::out_of_range
+│   ├── std::length_error
+│   └── std::domain_error
+├── std::runtime_error
+│   ├── std::overflow_error
+│   ├── std::underflow_error
+│   ├── std::range_error
+│   └── std::system_error
+├── std::bad_alloc
+├── std::bad_cast
+└── std::bad_typeid
+*/
+
+// 自定义异常类
+class MyException : public std::exception {
+private:
+    std::string message;
+    int errorCode;
+    
+public:
+    MyException(const std::string& msg, int code = 0) 
+        : message(msg), errorCode(code) {}
+    
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
+    
+    int getErrorCode() const {
+        return errorCode;
+    }
+};
+
+// 使用自定义异常
+try {
+    throw MyException("自定义错误", 1001);
+} catch (const MyException& e) {
+    std::cerr << "错误代码: " << e.getErrorCode() << ", 消息: " << e.what() << std::endl;
+}
+```
+
+### 异常安全保证
+
+C++提供了三种异常安全级别：
+
+```cpp
+class ResourceManager {
+private:
+    std::unique_ptr<int> resource1;
+    std::unique_ptr<double> resource2;
+    
+public:
+    // 基本保证：不泄漏资源，对象处于有效状态
+    void basicGuarantee(int value) {
+        auto temp1 = std::make_unique<int>(value);
+        auto temp2 = std::make_unique<double>(value * 1.5);
+        
+        // 可能抛出异常的操作
+        if (value < 0) {
+            throw std::invalid_argument("值不能为负数");
+        }
+        
+        // 提交操作（无异常）
+        resource1 = std::move(temp1);
+        resource2 = std::move(temp2);
+    }
+    
+    // 强保证：操作要么完全成功，要么完全失败（事务性）
+    void strongGuarantee(int value) {
+        auto old1 = std::move(resource1);
+        auto old2 = std::move(resource2);
+        
+        try {
+            auto temp1 = std::make_unique<int>(value);
+            auto temp2 = std::make_unique<double>(value * 1.5);
+            
+            if (value < 0) {
+                throw std::invalid_argument("值不能为负数");
+            }
+            
+            resource1 = std::move(temp1);
+            resource2 = std::move(temp2);
+        } catch (...) {
+            // 回滚操作
+            resource1 = std::move(old1);
+            resource2 = std::move(old2);
+            throw; // 重新抛出异常
+        }
+    }
+    
+    // 不抛出保证：函数承诺不会抛出异常
+    int noThrowGuarantee() noexcept {
+        return resource1 ? *resource1 : 0;
+    }
+};
+```
+
+### RAII与异常安全
+
+资源获取即初始化（RAII）是C++异常安全的关键：
+
+```cpp
+#include <fstream>
+#include <memory>
+#include <vector>
+
+class FileHandler {
+private:
+    std::unique_ptr<std::fstream> file;
+    
+public:
+    FileHandler(const std::string& filename) {
+        file = std::make_unique<std::fstream>(filename);
+        if (!file->is_open()) {
+            throw std::runtime_error("无法打开文件: " + filename);
+        }
+    }
+    
+    // 自动关闭文件（RAII）
+    ~FileHandler() = default;
+    
+    void write(const std::string& data) {
+        *file << data;
+        if (file->fail()) {
+            throw std::runtime_error("写入文件失败");
+        }
+    }
+};
+
+// 使用RAII确保资源安全
+void safeFileOperation() {
+    FileHandler handler("data.txt"); // 资源自动管理
+    handler.write("Hello, RAII!");
+    // 文件自动关闭，即使抛出异常
+}
+```
+
+### 异常处理最佳实践
+
+```cpp
+#include <iostream>
+#include <stdexcept>
+#include <memory>
+
+class Database {
+public:
+    void connect() {
+        // 模拟数据库连接
+        throw std::runtime_error("数据库连接失败");
+    }
+};
+
+class Application {
+private:
+    std::unique_ptr<Database> db;
+    
+public:
+    // 最佳实践1：在构造函数中抛出异常要小心
+    Application() try : db(std::make_unique<Database>()) {
+        db->connect();
+    } catch (const std::exception& e) {
+        std::cerr << "应用初始化失败: " << e.what() << std::endl;
+        throw; // 重新抛出
+    }
+    
+    // 最佳实践2：使用智能指针管理资源
+    void processData() {
+        auto data = std::make_unique<std::vector<int>>();
+        data->push_back(1);
+        data->push_back(2);
+        
+        // 即使这里抛出异常，data也会自动释放
+        if (data->size() > 10) {
+            throw std::runtime_error("数据量过大");
+        }
+    }
+    
+    // 最佳实践3：不要在析构函数中抛出异常
+    ~Application() noexcept {
+        try {
+            // 清理资源
+            if (db) {
+                // 数据库断开连接等
+            }
+        } catch (...) {
+            // 记录日志，但不抛出异常
+            std::cerr << "析构函数中发生异常，已忽略" << std::endl;
+        }
+    }
+};
+
+// 最佳实践4：异常层次化处理
+void handleComplexOperation() {
+    try {
+        Application app;
+        app.processData();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "运行时错误: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "标准异常: " << e.what() << std::endl;
+    } catch (...) {
+        std::cerr << "未知异常" << std::endl;
+    }
+}
+```
+
+## 迭代器与其应用
+
+### 迭代器类型和层次
+
+```cpp
+#include <iterator>
+#include <vector>
+#include <list>
+#include <set>
+#include <iostream>
+
+// 迭代器类别（C++20概念）
+/*
+输入迭代器 (Input Iterator)
+├── 前向迭代器 (Forward Iterator)
+    ├── 双向迭代器 (Bidirectional Iterator)
+        └── 随机访问迭代器 (Random Access Iterator)
+*/
+
+void demonstrateIterators() {
+    std::vector<int> vec = {1, 2, 3, 4, 5};
+    std::list<int> lst = {1, 2, 3, 4, 5};
+    
+    // 随机访问迭代器（vector）
+    auto vec_it = vec.begin();
+    vec_it += 3;                    // 随机访问
+    std::cout << *vec_it << std::endl; // 4
+    
+    // 双向迭代器（list）
+    auto lst_it = lst.begin();
+    ++lst_it;                       // 前向移动
+    --lst_it;                       // 反向移动
+    // lst_it += 3;                 // 错误：list不支持随机访问
+    
+    // 使用迭代器遍历
+    for (auto it = vec.begin(); it != vec.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+    
+    // 使用反向迭代器
+    for (auto rit = vec.rbegin(); rit != vec.rend(); ++rit) {
+        std::cout << *rit << " ";
+    }
+    std::cout << std::endl;
+}
+```
+
+### 自定义迭代器
+
+```cpp
+#include <iterator>
+#include <algorithm>
+#include <iostream>
+
+// 自定义范围迭代器
+class RangeIterator {
+private:
+    int current;
+    int end;
+    int step;
+    
+public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = int;
+    using difference_type = std::ptrdiff_t;
+    using pointer = int*;
+    using reference = int&;
+    
+    RangeIterator(int start, int end_val, int step_val = 1)
+        : current(start), end(end_val), step(step_val) {}
+    
+    // 前置递增
+    RangeIterator& operator++() {
+        current += step;
+        return *this;
+    }
+    
+    // 后置递增
+    RangeIterator operator++(int) {
+        RangeIterator temp = *this;
+        ++(*this);
+        return temp;
+    }
+    
+    // 解引用
+    int operator*() const {
+        return current;
+    }
+    
+    // 相等比较
+    bool operator==(const RangeIterator& other) const {
+        return current == other.current;
+    }
+    
+    bool operator!=(const RangeIterator& other) const {
+        return !(*this == other);
+    }
+};
+
+// 范围类
+class Range {
+private:
+    int start, end, step;
+    
+public:
+    Range(int s, int e, int st = 1) : start(s), end(e), step(st) {}
+    
+    RangeIterator begin() const {
+        return RangeIterator(start, end, step);
+    }
+    
+    RangeIterator end() const {
+        return RangeIterator(end, end, step);
+    }
+};
+
+// 使用自定义迭代器
+void useCustomIterator() {
+    Range r(1, 10, 2);
+    for (int num : r) {
+        std::cout << num << " "; // 输出: 1 3 5 7 9
+    }
+    std::cout << std::endl;
+    
+    // 与STL算法结合
+    std::vector<int> result;
+    std::copy(r.begin(), r.end(), std::back_inserter(result));
+    
+    for (int val : result) {
+        std::cout << val << " ";
+    }
+    std::cout << std::endl;
+}
+```

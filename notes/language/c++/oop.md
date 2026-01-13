@@ -1797,3 +1797,585 @@ int main() {
 
 通过纯虚函数、抽象类和深拷贝机制的学习，可以设计出更加安全、灵活和高效的面向对象系统，这是高质量C++编程的重要基础。
 
+## <span style="background-color: #6c5ce7; padding: 2px 4px; border-radius: 3px; color: white;">C++继承方式详解</span>
+
+### 继承的基本概念
+
+C++支持三种继承方式：public、protected和private，它们决定了基类成员在派生类中的访问权限。
+
+```cpp
+#include <iostream>
+#include <string>
+
+class Base {
+public:
+    int public_var = 10;
+    void public_func() { std::cout << "Base public function" << std::endl; }
+    
+protected:
+    int protected_var = 20;
+    void protected_func() { std::cout << "Base protected function" << std::endl; }
+    
+private:
+    int private_var = 30;
+    void private_func() { std::cout << "Base private function" << std::endl; }
+};
+
+// public继承：基类的public成员在派生类中仍为public，protected成员仍为protected
+class PublicDerived : public Base {
+public:
+    void test_access() {
+        public_var = 100;      // 可以访问
+        protected_var = 200;   // 可以访问
+        // private_var = 300;  // 错误：不能访问private成员
+        
+        public_func();        // 可以调用
+        protected_func();     // 可以调用
+        // private_func();    // 错误：不能调用private函数
+    }
+};
+
+// protected继承：基类的public和protected成员在派生类中都变为protected
+class ProtectedDerived : protected Base {
+public:
+    void test_access() {
+        public_var = 100;      // 可以访问（现在是protected）
+        protected_var = 200;   // 可以访问
+        
+        public_func();        // 可以调用（现在是protected）
+        protected_func();     // 可以调用
+    }
+};
+
+// private继承：基类的所有成员在派生类中都变为private
+class PrivateDerived : private Base {
+public:
+    void test_access() {
+        public_var = 100;      // 可以访问（现在是private）
+        protected_var = 200;   // 可以访问（现在是private）
+        
+        public_func();        // 可以调用（现在是private）
+        protected_func();     // 可以调用（现在是private）
+    }
+};
+
+int main() {
+    PublicDerived pub;
+    pub.public_var = 50;      // 可以访问
+    pub.public_func();        // 可以调用
+    // pub.protected_var = 60; // 错误：protected成员不能外部访问
+    
+    ProtectedDerived prot;
+    // prot.public_var = 50;   // 错误：public成员在protected继承后变为protected
+    
+    PrivateDerived priv;
+    // priv.public_var = 50;   // 错误：所有成员在private继承后变为private
+    
+    return 0;
+}
+```
+
+### 继承方式对成员访问权限的影响
+
+```cpp
+#include <iostream>
+
+class Base {
+public:
+    void show() { std::cout << "Base show" << std::endl; }
+};
+
+class PublicDerived : public Base {
+    // Base::show() 在派生类中仍然是public
+};
+
+class ProtectedDerived : protected Base {
+    // Base::show() 在派生类中变为protected
+public:
+    void call_show() {
+        show();  // 可以在派生类内部调用
+    }
+};
+
+class PrivateDerived : private Base {
+    // Base::show() 在派生类中变为private
+public:
+    void call_show() {
+        show();  // 可以在派生类内部调用
+    }
+};
+
+// 多层继承中的访问权限变化
+class SecondLevel : public ProtectedDerived {
+public:
+    void test() {
+        show();  // 可以访问，因为ProtectedDerived中的show()是protected
+    }
+};
+
+int main() {
+    PublicDerived pub;
+    pub.show();  // 可以调用
+    
+    ProtectedDerived prot;
+    // prot.show();  // 错误：show()现在是protected
+    prot.call_show();  // 通过公有方法间接调用
+    
+    PrivateDerived priv;
+    // priv.show();  // 错误：show()现在是private
+    priv.call_show();  // 通过公有方法间接调用
+    
+    return 0;
+}
+```
+
+### 使用using改变继承成员的访问权限
+
+```cpp
+class Base {
+public:
+    void public_func() { std::cout << "Public function" << std::endl; }
+protected:
+    void protected_func() { std::cout << "Protected function" << std::endl; }
+};
+
+class PrivateDerived : private Base {
+public:
+    // 使用using将private继承的成员提升为public
+    using Base::public_func;
+    
+    // 将protected成员提升为public
+    using Base::protected_func;
+};
+
+int main() {
+    PrivateDerived obj;
+    obj.public_func();     // 可以调用，因为使用using提升了访问权限
+    obj.protected_func();  // 可以调用，因为使用using提升了访问权限
+    
+    return 0;
+}
+```
+
+### 虚继承（解决菱形继承问题）
+
+```cpp
+#include <iostream>
+
+class Animal {
+public:
+    int age = 0;
+    Animal() { std::cout << "Animal constructor" << std::endl; }
+    virtual ~Animal() { std::cout << "Animal destructor" << std::endl; }
+};
+
+// 虚继承：解决菱形继承中的二义性问题
+class Mammal : virtual public Animal {
+public:
+    Mammal() { std::cout << "Mammal constructor" << std::endl; }
+    ~Mammal() override { std::cout << "Mammal destructor" << std::endl; }
+};
+
+class WingedAnimal : virtual public Animal {
+public:
+    WingedAnimal() { std::cout << "WingedAnimal constructor" << std::endl; }
+    ~WingedAnimal() override { std::cout << "WingedAnimal destructor" << std::endl; }
+};
+
+// 菱形继承：Bat同时继承Mammal和WingedAnimal
+class Bat : public Mammal, public WingedAnimal {
+public:
+    Bat() { std::cout << "Bat constructor" << std::endl; }
+    ~Bat() override { std::cout << "Bat destructor" << std::endl; }
+    
+    void setAge(int a) {
+        age = a;  // 没有二义性，因为使用了虚继承
+    }
+    
+    int getAge() const {
+        return age;  // 没有二义性
+    }
+};
+
+int main() {
+    Bat bat;
+    bat.setAge(5);
+    std::cout << "Bat age: " << bat.getAge() << std::endl;
+    
+    // 验证虚基类只有一个实例
+    std::cout << "Animal address via Mammal: " << static_cast<Animal*>(static_cast<Mammal*>(&bat)) << std::endl;
+    std::cout << "Animal address via WingedAnimal: " << static_cast<Animal*>(static_cast<WingedAnimal*>(&bat)) << std::endl;
+    
+    return 0;
+}
+```
+
+## <span style="background-color: #00b894; padding: 2px 4px; border-radius: 3px; color: white;">位运算符详细总结</span>
+
+### 位运算符概述
+
+位运算符直接操作整数的二进制位，在底层编程、性能优化和硬件操作中非常重要。
+
+```cpp
+#include <iostream>
+#include <bitset>
+#include <iomanip>
+
+void demonstrateBitOperations() {
+    unsigned int a = 0b11001100;  // 204
+    unsigned int b = 0b10101010;  // 170
+    
+    std::cout << "a = " << std::bitset<8>(a) << " (" << a << ")" << std::endl;
+    std::cout << "b = " << std::bitset<8>(b) << " (" << b << ")" << std::endl;
+    
+    // 按位与 (&)
+    unsigned int and_result = a & b;
+    std::cout << "a & b = " << std::bitset<8>(and_result) << " (" << and_result << ")" << std::endl;
+    
+    // 按位或 (|)
+    unsigned int or_result = a | b;
+    std::cout << "a | b = " << std::bitset<8>(or_result) << " (" << or_result << ")" << std::endl;
+    
+    // 按位异或 (^)
+    unsigned int xor_result = a ^ b;
+    std::cout << "a ^ b = " << std::bitset<8>(xor_result) << " (" << xor_result << ")" << std::endl;
+    
+    // 按位取反 (~)
+    unsigned int not_result = ~a;
+    std::cout << "~a = " << std::bitset<8>(not_result) << " (" << not_result << ")" << std::endl;
+    
+    // 左移 (<<)
+    unsigned int left_shift = a << 2;
+    std::cout << "a << 2 = " << std::bitset<8>(left_shift) << " (" << left_shift << ")" << std::endl;
+    
+    // 右移 (>>)
+    unsigned int right_shift = a >> 2;
+    std::cout << "a >> 2 = " << std::bitset<8>(right_shift) << " (" << right_shift << ")" << std::endl;
+}
+```
+
+### 位运算实用技巧
+
+```cpp
+#include <iostream>
+#include <bitset>
+
+class BitUtils {
+public:
+    // 检查特定位是否为1
+    static bool isBitSet(unsigned int num, int pos) {
+        return (num & (1 << pos)) != 0;
+    }
+    
+    // 设置特定位为1
+    static unsigned int setBit(unsigned int num, int pos) {
+        return num | (1 << pos);
+    }
+    
+    // 清除特定位（设置为0）
+    static unsigned int clearBit(unsigned int num, int pos) {
+        return num & ~(1 << pos);
+    }
+    
+    // 切换特定位（0变1，1变0）
+    static unsigned int toggleBit(unsigned int num, int pos) {
+        return num ^ (1 << pos);
+    }
+    
+    // 计算1的个数（汉明重量）
+    static int countOnes(unsigned int num) {
+        int count = 0;
+        while (num) {
+            count += num & 1;
+            num >>= 1;
+        }
+        return count;
+    }
+    
+    // 判断是否为2的幂
+    static bool isPowerOfTwo(unsigned int num) {
+        return num && !(num & (num - 1));
+    }
+    
+    // 获取最低有效位（最右边的1）
+    static unsigned int getLowestSetBit(unsigned int num) {
+        return num & -num;
+    }
+    
+    // 交换两个变量的值（不使用临时变量）
+    static void swap(int& a, int& b) {
+        a = a ^ b;
+        b = a ^ b;
+        a = a ^ b;
+    }
+};
+
+void demonstrateBitUtils() {
+    unsigned int num = 0b10110110;  // 182
+    
+    std::cout << "原始数字: " << std::bitset<8>(num) << " (" << num << ")" << std::endl;
+    
+    // 检查第3位
+    std::cout << "第3位是否为1: " << BitUtils::isBitSet(num, 3) << std::endl;
+    
+    // 设置第0位
+    unsigned int set = BitUtils::setBit(num, 0);
+    std::cout << "设置第0位后: " << std::bitset<8>(set) << " (" << set << ")" << std::endl;
+    
+    // 清除第2位
+    unsigned int cleared = BitUtils::clearBit(num, 2);
+    std::cout << "清除第2位后: " << std::bitset<8>(cleared) << " (" << cleared << ")" << std::endl;
+    
+    // 切换第4位
+    unsigned int toggled = BitUtils::toggleBit(num, 4);
+    std::cout << "切换第4位后: " << std::bitset<8>(toggled) << " (" << toggled << ")" << std::endl;
+    
+    // 计算1的个数
+    std::cout << "1的个数: " << BitUtils::countOnes(num) << std::endl;
+    
+    // 判断是否为2的幂
+    std::cout << "是否为2的幂: " << BitUtils::isPowerOfTwo(num) << std::endl;
+    std::cout << "64是否为2的幂: " << BitUtils::isPowerOfTwo(64) << std::endl;
+    
+    // 交换变量
+    int x = 10, y = 20;
+    std::cout << "交换前: x=" << x << ", y=" << y << std::endl;
+    BitUtils::swap(x, y);
+    std::cout << "交换后: x=" << x << ", y=" << y << std::endl;
+}
+```
+
+### 位字段（Bit Fields）
+
+```cpp
+#include <iostream>
+#include <iomanip>
+
+// 使用位字段节省内存
+struct StatusRegister {
+    unsigned int error : 4;        // 4位错误代码
+    unsigned int ready : 1;        // 1位就绪标志
+    unsigned int busy : 1;         // 1位忙标志
+    unsigned int reserved : 26;    // 26位保留位
+};
+
+void demonstrateBitFields() {
+    StatusRegister status;
+    status.error = 0b1010;   // 错误代码10
+    status.ready = 1;        // 就绪
+    status.busy = 0;         // 不忙
+    status.reserved = 0;
+    
+    std::cout << "Status register size: " << sizeof(StatusRegister) << " bytes" << std::endl;
+    std::cout << "Error code: " << status.error << std::endl;
+    std::cout << "Ready: " << status.ready << std::endl;
+    std::cout << "Busy: " << status.busy << std::endl;
+    
+    // 网络协议头示例
+    struct IPHeader {
+        unsigned int version : 4;      // IP版本
+        unsigned int ihl : 4;          // 头部长度
+        unsigned int dscp : 6;         // 区分服务代码点
+        unsigned int ecn : 2;          // 显式拥塞通知
+        unsigned int total_length : 16;// 总长度
+    };
+    
+    IPHeader header;
+    header.version = 4;      // IPv4
+    header.ihl = 5;          // 20字节头部
+    header.dscp = 0;         // 默认服务
+    header.ecn = 0;          // 无拥塞通知
+    header.total_length = 1500; // 数据包长度
+    
+    std::cout << "IP header size: " << sizeof(IPHeader) << " bytes" << std::endl;
+}
+```
+
+### 位运算在权限系统中的应用
+
+```cpp
+#include <iostream>
+#include <bitset>
+
+// 权限标志枚举
+enum Permission {
+    READ = 1 << 0,    // 0001
+    WRITE = 1 << 1,   // 0010
+    EXECUTE = 1 << 2, // 0100
+    DELETE = 1 << 3   // 1000
+};
+
+class PermissionManager {
+private:
+    unsigned int permissions;
+    
+public:
+    PermissionManager() : permissions(0) {}
+    
+    // 添加权限
+    void addPermission(Permission perm) {
+        permissions |= perm;
+    }
+    
+    // 移除权限
+    void removePermission(Permission perm) {
+        permissions &= ~perm;
+    }
+    
+    // 检查权限
+    bool hasPermission(Permission perm) const {
+        return (permissions & perm) != 0;
+    }
+    
+    // 切换权限
+    void togglePermission(Permission perm) {
+        permissions ^= perm;
+    }
+    
+    // 获取所有权限
+    unsigned int getAllPermissions() const {
+        return permissions;
+    }
+    
+    // 显示权限
+    void displayPermissions() const {
+        std::cout << "权限位: " << std::bitset<4>(permissions) << std::endl;
+        std::cout << "READ: " << hasPermission(READ) << std::endl;
+        std::cout << "WRITE: " << hasPermission(WRITE) << std::endl;
+        std::cout << "EXECUTE: " << hasPermission(EXECUTE) << std::endl;
+        std::cout << "DELETE: " << hasPermission(DELETE) << std::endl;
+    }
+};
+
+void demonstratePermissionSystem() {
+    PermissionManager manager;
+    
+    // 初始权限
+    manager.displayPermissions();
+    
+    // 添加权限
+    manager.addPermission(READ);
+    manager.addPermission(WRITE);
+    std::cout << "\n添加READ和WRITE权限后:" << std::endl;
+    manager.displayPermissions();
+    
+    // 切换EXECUTE权限
+    manager.togglePermission(EXECUTE);
+    std::cout << "\n切换EXECUTE权限后:" << std::endl;
+    manager.displayPermissions();
+    
+    // 移除WRITE权限
+    manager.removePermission(WRITE);
+    std::cout << "\n移除WRITE权限后:" << std::endl;
+    manager.displayPermissions();
+    
+    // 检查特定权限
+    std::cout << "\n权限检查:" << std::endl;
+    std::cout << "是否有READ权限: " << manager.hasPermission(READ) << std::endl;
+    std::cout << "是否有WRITE权限: " << manager.hasPermission(WRITE) << std::endl;
+}
+```
+
+### 位运算性能优化示例
+
+```cpp
+#include <iostream>
+#include <chrono>
+
+class BitOptimization {
+public:
+    // 传统方式判断奇偶
+    static bool isEvenTraditional(int num) {
+        return num % 2 == 0;
+    }
+    
+    // 位运算判断奇偶（更快）
+    static bool isEvenBitwise(int num) {
+        return (num & 1) == 0;
+    }
+    
+    // 传统方式乘以2
+    static int multiplyByTwoTraditional(int num) {
+        return num * 2;
+    }
+    
+    // 位运算乘以2（左移）
+    static int multiplyByTwoBitwise(int num) {
+        return num << 1;
+    }
+    
+    // 传统方式除以2
+    static int divideByTwoTraditional(int num) {
+        return num / 2;
+    }
+    
+    // 位运算除以2（右移）
+    static int divideByTwoBitwise(int num) {
+        return num >> 1;
+    }
+    
+    // 性能测试
+    static void benchmark() {
+        const int iterations = 100000000;
+        
+        // 奇偶判断性能比较
+        auto start1 = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < iterations; ++i) {
+            volatile bool result = isEvenTraditional(i);
+        }
+        auto end1 = std::chrono::high_resolution_clock::now();
+        
+        auto start2 = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < iterations; ++i) {
+            volatile bool result = isEvenBitwise(i);
+        }
+        auto end2 = std::chrono::high_resolution_clock::now();
+        
+        auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1);
+        auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2);
+        
+        std::cout << "传统奇偶判断时间: " << duration1.count() << "ms" << std::endl;
+        std::cout << "位运算奇偶判断时间: " << duration2.count() << "ms" << std::endl;
+        std::cout << "性能提升: " << (duration1.count() - duration2.count()) << "ms" << std::endl;
+    }
+};
+
+int main() {
+    // 演示位运算优化
+    std::cout << "=== 位运算性能优化演示 ===" << std::endl;
+    
+    int num = 42;
+    std::cout << "原始数字: " << num << std::endl;
+    std::cout << "传统方式判断奇偶: " << BitOptimization::isEvenTraditional(num) << std::endl;
+    std::cout << "位运算判断奇偶: " << BitOptimization::isEvenBitwise(num) << std::endl;
+    std::cout << "传统方式乘以2: " << BitOptimization::multiplyByTwoTraditional(num) << std::endl;
+    std::cout << "位运算乘以2: " << BitOptimization::multiplyByTwoBitwise(num) << std::endl;
+    std::cout << "传统方式除以2: " << BitOptimization::divideByTwoTraditional(num) << std::endl;
+    std::cout << "位运算除以2: " << BitOptimization::divideByTwoBitwise(num) << std::endl;
+    
+    // 性能测试
+    std::cout << "\n=== 性能测试 ===" << std::endl;
+    BitOptimization::benchmark();
+    
+    return 0;
+}
+```
+
+## 总结
+
+继承方式和位运算是C++中非常重要的概念：
+
+### 继承方式要点：
+- **public继承**：实现"is-a"关系，保持基类接口
+- **protected继承**：实现"implemented-in-terms-of"关系
+- **private继承**：实现"implemented-using"关系
+- **虚继承**：解决菱形继承问题，确保基类只有一个实例
+
+### 位运算要点：
+- **高效性**：位运算通常比算术运算更快
+- **内存优化**：位字段可以显著节省内存
+- **实用技巧**：权限管理、标志位操作、性能优化
+- **底层编程**：硬件操作、网络协议、加密算法等
+
+通过合理使用继承方式和位运算，可以编写出更加高效、灵活和内存友好的C++代码。
+
