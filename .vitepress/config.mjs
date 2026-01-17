@@ -54,10 +54,12 @@ export default
       {
         text:'机器学习',
         items: [
-          { text: '机器学习', link: 'notes/machine-learning/index.md' },
-          { text: '有监督学习', link: 'notes/machine-learnig/supervised_learning' },
-          { text: '无监督学习', link: 'notes/machine-learnig/unsupervised_learning' },
-
+          { text: '总览', link: '/notes/machine-learning/index.md' },
+          { text: '数学基础', link: '/notes/machine-learning/math-foundation/linear-algebra.md' },
+          { text: '有监督学习', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
+          { text: '无监督学习', link: '/notes/machine-learning/unsupervised-learning/framework/unsupervised-learning.md' },
+          { text: '特征工程', link: '/notes/machine-learning/feature-engineering/index.md' },
+          { text: '模型评估', link: '/notes/machine-learning/model-evaluation/cross-validation.md' }
         ]
       },
 
@@ -70,18 +72,20 @@ export default
           { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
           { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
           { text: '实践', link: '/notes/practice/index.md' },
-        ]
-        
+        {items:[
+          { text: 'PyTorch', link: '/notes/deep-learning/pytorch/index.md' },
+        ]},
+        {items:[
+          { text: 'AI模型', link: '/notes/ai-model/index.md' },
+        ]}
+      ]
       },
 
       // 强化学习
       { text: '强化学习', 
         items:[
         { text: '导览', link: '/notes/reinforcement-learning/index.md' },
-        { text: '强化学习', link: '/notes/reinforcement-learning/reinforcement_learning.md' },
-        { text: 'Q-learning', link: '/notes/reinforcement-learning/Q-learning.md' },
-        { text: 'DQN', link: '/notes/reinforcement-learning/DQN.md' },
-        { text: 'DQN-Atari', link: '/notes/reinforcement-learning/DQN-Atari.md' },
+        { text: '强化学习', link: '/notes/reinforcement-learning/rl-basics.md' },
         ]
       },
 
@@ -175,15 +179,111 @@ export default
 
 
       // 机器学习分类侧边栏
-      '/notes/machine-learnig': [
-        { text: '机器学习', link: '/notes/machine-learnig/ml.md' },
-        { text: '有监督学习', link: '/notes/machine-learnig/supervised_learning.md' },
-        { text: '无监督学习', link: '/notes/machine-learnig/unsupervised_learning.md' },
+      '/notes/machine-learning/': [
+        {
+          text: '数学基础',
+          collapsible: true,
+          items: [
+            { text: '线性代数', link: '/notes/machine-learning/math-foundation/linear-algebra.md' },
+            { text: '概率统计', link: '/notes/machine-learning/math-foundation/probability-statistics.md' },
+            { text: '优化理论', link: '/notes/machine-learning/math-foundation/optimization-theory.md' }
+          ]
+        },
+        { text: '特征工程',
+          collapsible: true,
+          items: [
+            { text: '特征选择', link: '/notes/machine-learning/feature-engineering/feature-selection.md' },
+            { text: '特征变换', link: '/notes/machine-learning/feature-engineering/feature-transformation.md' },
+            { text: '数据预处理', link: '/notes/machine-learning/feature-engineering/preprocessing.md' }
+          ]
+        },
       
-      
-        
+        {
+          text: '模型评估',
+          collapsible: true,
+          items: [
+            { text: '交叉验证', link: '/notes/machine-learning/model-evaluation/cross-validation.md' },
+            { text: '学习理论', link: '/notes/machine-learning/model-evaluation/learning-theory.md' },
+            { text: '统计验证', link: '/notes/machine-learning/model-evaluation/statistical-tests.md' },
+
+          ]
+        }
       ],
 
+      '/notes/machine-learning/supervised-learning/':[
+        { text: '导览', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
+        {
+          text: '线性模型',
+          collapsible: true,
+          items: [
+            { text: '线性回归', link: '/notes/machine-learning/supervised-learning/linear-models/linear-regression.md' },
+            { text: '逻辑回归', link: '/notes/machine-learning/supervised-learning/linear-models/logistic-regression.md' },
+            { text: '正则化', link: '/notes/machine-learning/supervised-learning/linear-models/regularization.md' },
+
+          ]
+        },
+        {
+          text: '决策树',
+          collapsible: true,
+          items: [
+            { text: '决策树', link: '/notes/machine-learning/supervised-learning/tree-models/decision-trees.md' },
+            { text: '随机森林', link: '/notes/machine-learning/supervised-learning/tree-models/random-forest.md' },
+            { text: 'GBDT', link: '/notes/machine-learning/supervised-learning/tree-models/gradient-boosting.md' },
+            { text: 'XGBoost', link: '/notes/machine-learning/supervised-learning/tree-models/xgboost.md' },
+
+          ]
+        },
+        {
+          text: '支持向量机',
+          collapsible: true,
+          items: [
+            { text: 'SVM理论', link: '/notes/machine-learning/supervised-learning/svm/svm-theory.md' },
+            { text: '核方法', link: '/notes/machine-learning/supervised-learning/svm/kernel-methods.md' },
+            { text: 'SVM实践', link: '/notes/machine-learning/supervised-learning/svm/svm-implementation.md' }
+          ]
+        },
+
+        {
+          text: '贝叶斯方法',
+          collapsible: true,
+          items: [
+            { text: 'EM算法', link: '/notes/machine-learning/supervised-learning/bayesian-methods/em-algorithm.md' },
+            { text: '高斯过程', link: '/notes/machine-learning/supervised-learning/bayesian-methods/gaussian-processes.md' },
+            { text: '朴素贝叶斯', link: '/notes/machine-learning/supervised-learning/bayesian-methods/naive-bayes.md' }
+          ]
+        }
+      ],
+
+      '/notes/machine-learning/unsupervised-learning/':[
+        { text: '导览', link: '/notes/machine-learning/unsupervised-learning/framework/unsupervised-learning.md' },
+        {
+          text: '聚类',
+          collapsible: true,
+          items: [
+            { text: 'K-means', link: '/notes/machine-learning/unsupervised-learning/clustering/kmeans.md' },
+            { text: 'DBSCAN', link: '/notes/machine-learning/unsupervised-learning/clustering/dbscan.md' },
+            { text: '层次聚类', link: '/notes/machine-learning/unsupervised-learning/clustering/hierarchical.md' },
+            { text: 'KD-Tree', link: '/notes/machine-learning/unsupervised-learning/advanced-structures/kdtree.md' }
+          ]
+        },
+        {
+          text: '降维',
+          collapsible: true,
+          items: [
+            { text: 'PCA', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction/pca.md' },
+            { text: 'LDA', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction/lda.md' },
+            { text: '流行学习', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction/manifold-learning.md' }
+          ]
+        },
+        {
+          text: '关联规则',
+          collapsible: true,
+          items: [
+            { text: '异常检测', link: '/notes/machine-learning/unsupervised-learning/association-rules/anomaly-detection.md' },
+            { text: 'Apriori', link: '/notes/machine-learning/unsupervised-learning/association-rules/apriori.md' },
+          ]
+        }
+      ],
       // 深度学习分类侧边栏
       '/notes/deep-learning/': [
         { text: '导览', link: '/notes/deep-learning/index.md' },
@@ -193,6 +293,23 @@ export default
         { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
         { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
         { text: '实战', link: '/notes/deep-learning/practical.md' },
+        
+      ],
+
+      '/notes/deep-learning/pytorch/': [
+        {
+          text: 'PyTorch',
+          collapsible: true,
+          items: [
+            { text: '基础功能', link: '/notes/deep-learning/pytorch/pytorch-basics.md' },
+            { text: '张量操作', link: '/notes/deep-learning/pytorch/pytorch-tensors.md' },
+            { text: '神经网络', link: '/notes/deep-learning/pytorch/pytorch-nn.md' },
+            { text: '数据处理', link: '/notes/deep-learning/pytorch/pytorch-data.md' },
+            { text: '模型训练', link: '/notes/deep-learning/pytorch/pytorch-training.md' },
+            { text: '高级功能', link: '/notes/deep-learning/pytorch/pytorch-advanced.md' },
+            { text: '实战项目', link: '/notes/deep-learning/pytorch/pytorch-projects.md' }
+          ]
+      }
       ],
 
       '/notes/deep-learning/practice/': [
@@ -200,8 +317,34 @@ export default
 
       ],
 
+
+      '/notes/ai-model/': [
+        { text: '导览', link: '/notes/ai-model/index.md' },
+        { text: '基础模型', link: '/notes/ai-model/ai-model-basics.md' },
+        { text: '预训练原理', link: '/notes/ai-model/pretraining-principles.md' },
+        { text: '微调', link: '/notes/ai-model/finetuning-alignment.md' },
+        { text: '推理优化', link: '/notes/ai-model/inference-optimization.md' },
+        { text: '前言应用', link: '/notes/ai-model/applications-trends.md' },
+      ],
+
+
+      // 强化学习侧边栏
+      '/notes/reinforcement-learning/': [
+        { text: '导览', link: '/notes/reinforcement-learning/index.md' },
+        { text: '强化学习基础入门', link: '/notes/reinforcement-learning/rl-basics.md' },
+        { text: '表格型方法详解', link: '/notes/reinforcement-learning/tabular-methods.md' },
+        { text: '函数逼近与深度强化学习', link: '/notes/reinforcement-learning/function-approximation.md' },
+        { text: '策略梯度方法详解', link: '/notes/reinforcement-learning/policy-gradient.md' },
+        { text: '现代强化学习算法', link: '/notes/reinforcement-learning/modern-algorithms.md' },
+        { text: '多智能体强化学习', link: '/notes/reinforcement-learning/multi-agent-rl.md' },
+        { text: '大模型强化学习', link: '/notes/reinforcement-learning/llm-rl.md' },
+        { text: '强化学习实战环境', link: '/notes/reinforcement-learning/rl-environments.md' },
+        { text: '工程实践', link: '/notes/reinforcement-learning/rl-engineering.md' },
+      ],
+
       // 算法与刷题侧边栏（对齐首页Feature）
       '/notes/algorithm/': [
+        { text: '导览', link: '/notes/algorithm/index.md' },
         { text: '数据结构', link: '/notes/algorithm/数据结构与算法.md' },
         { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
         { text: '搜索', link: '/notes/algorithm/搜索.md' },

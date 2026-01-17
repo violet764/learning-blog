@@ -27,7 +27,7 @@ features:
   - icon: 🧠
     title: 机器学习
     details: 覆盖监督学习、无监督学习、半监督学习等经典机器学习算法，包括回归、分类、聚类等核心概念与实战应用
-    link: /notes/machine-learnig/ml.md
+    link: /notes/machine-learning/index.md
     linkText: 学习更多
 
   - icon: ⚡
@@ -52,7 +52,7 @@ features:
   - icon: 📝
     title: 刷题与算法
     details: 学习经典数据结构与算法、LeetCode刷题思路、数据结构优化技巧
-    link: /notes/algorithm/数据结构与算法.md
+    link: /notes/algorithm/
     linkText: 刷题笔记
 
 ---
