@@ -108,4 +108,8 @@ print(f"平均对数似然值: {loglikelyhood/n:.4f}")
 ```
 以上方法的概率保存在一个表格中，接下来使用似然函数训练神经网络来预测模型
 
+[MLP方法](https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf)
 
+```python
+
+```
