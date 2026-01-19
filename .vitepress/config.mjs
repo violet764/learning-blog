@@ -140,7 +140,7 @@ export default
           { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
           { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
           { text: '正则表达式', link: '/notes/language/python/正则.md' },
-          { text: 'Pandas', link: '/notes/language/python/Pandas.md' },
+          { text: 'Pandas', link: '/notes/language/python/pandas.md' },
           { text: '数据可视化', link: '/notes/language/python/matplotlib.md' },
 
           ]
