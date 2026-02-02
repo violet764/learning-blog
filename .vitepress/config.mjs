@@ -1,10 +1,41 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
+import { demoblockPlugin, demoblockVitePlugin } from 'vitepress-theme-demoblock'
 
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
 export default withMermaid(
   defineConfig({
+    markdown: {
+      config(md) {
+        md.use(tabsMarkdownPlugin)
+        md.use(demoblockPlugin, {
+          customClass: 'demoblock-custom',
+          demoPaths: ['examples', 'src/examples'],
+          componentPaths: ['components', 'src/components'],
+        })
+      },
+      math: true, // 启用VitePress内置的数学公式支持
+      // 启用代码块行号
+      lineNumbers: true,
+      container: {
+        tipLabel: '提示',
+        warningLabel: '注意',
+        dangerLabel: '警告',
+        infoLabel: '信息',
+        detailsLabel: '详情'
+      },
+      // 支持表情符号
+      breaks: true,
+      // 链接自动转换
+      linkify: true,
+      // 外部链接自动添加 target="_blank"
+      externalLinks: {
+        target: '_blank',
+        rel: 'noopener noreferrer'
+      }
+    },
   base:"/learning-blog/",
   head:[["link",{rel:"icon",href:"/learning-blog/spaceship.svg"}]],
   // 站点核心信息（与首页标题/定位一致）
@@ -12,6 +43,7 @@ export default withMermaid(
   description: "深耕Python/C++,拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
   // 添加 Vite 配置来处理 Mermaid 依赖
   vite: {
+    plugins: [demoblockVitePlugin()],
     optimizeDeps: {
       include: [
         '@braintree/sanitize-url',
@@ -25,29 +57,6 @@ export default withMermaid(
       ]
     }
   },
-  // ========== 新增：markdown 配置（math: true 放在这里） ==========
-  markdown: {
-    math: true, // 启用VitePress内置的数学公式支持
-    // 启用代码块行号
-    lineNumbers: true,
-    container: {
-      tipLabel: '提示',
-      warningLabel: '注意',
-      dangerLabel: '警告',
-      infoLabel: '信息',
-      detailsLabel: '详情'
-    },
-    // 支持表情符号
-    breaks: true,
-    // 链接自动转换
-    linkify: true,
-    // 外部链接自动添加 target="_blank"
-    externalLinks: {
-      target: '_blank',
-      rel: 'noopener noreferrer'
-    }
-  },
-  // ==============================================================
   themeConfig: {
     // sidebar:false, //关闭侧边栏
     aside:'right', //侧边栏位置
@@ -129,6 +138,8 @@ export default withMermaid(
           { text: 'Vim', link: '/notes/tools/tools_vim.md' },
           { text: 'Git', link: '/notes/tools/tools_Git.md' },
           { text: 'Conda', link: '/notes/tools/tools_conda.md' },
+          { text: 'tabs', link: '/notes/tools/tabs-example.md' },
+          { text: 'demoblock', link: '/notes/tools/demoblock-example.md' },
 
         ] },
 
@@ -189,7 +200,8 @@ export default withMermaid(
           [ { text: '导览', link: '/notes/language/markdown/index.md' },
             { text: '基础语法', link: '/notes/language/markdown/markdown-basic.md' },
             { text: '拓展语法', link: '/notes/language/markdown/markdown-advanced.md' },
-            { text: '数学公式语法', link: '/notes/language/markdown/markdown-math.md' }
+            { text: '数学公式语法', link: '/notes/language/markdown/markdown-math.md' },
+            { text: 'Vitepress技巧', link: '/notes/language/markdown/markdown_extendsion.md' }
           ]
         },
       ],
@@ -382,6 +394,8 @@ export default withMermaid(
         { text: 'Git', link: '/notes/tools/tools_Git.md' },
         { text: 'Conda', link: '/notes/tools/tools_conda.md' },
         { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
+        { text: 'demoblock', link: '/notes/tools/demoblock-example.md' },
+        
 
       ],
 
@@ -437,5 +451,17 @@ export default withMermaid(
     }
     },
     ignoreDeadLinks: true,
+    // Sitemap配置
+    sitemap: {
+      hostname: 'https://violet764.github.io/learning-blog/',
+      transformItems(items) {
+        // 可以在这里自定义sitemap条目
+        return items.map(item => ({
+          ...item,
+          changefreq: 'monthly',
+          priority: 0.8
+        }))
+      }
+    }
 })
 )
