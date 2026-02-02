@@ -497,6 +497,46 @@ print("Hello, World!")
   </div>
 </div>
 
+### Mermaid流程图
+Mermaid 是一种基于文本的图表和可视化工具，通过简单的语法可以生成各种流程图、时序图等。
+
+流程图语法要素:
+1. 图表方向声明
+`flowchart TD` - 从上到下（Top Down）
+`flowchart LR` - 从左到右（Left Right）
+2. 节点形状
+`A[矩形框]` - 普通处理步骤
+`B{菱形框}` - 判断/决策节点
+`C(圆角矩形)` - 开始/结束节点
+3. 连接线
+`A --> B` - 箭头连接
+`B -->|标签|` C - 带条件标签的连接
+4. 注释语法
+`%% 注释内容` - 正确的 Mermaid 注释方式
+
+```text 
+# 使用mermaid包裹
+flowchart TD
+    A[用户输入账号密码] --> B{验证信息是否正确?}
+    B -->|是| C[跳转到首页]
+    B -->|否| D[提示登录失败]
+    %% 失败后返回重新输入
+    D --> A  
+    C --> E[结束]
+```
+
+渲染结果：
+
+```mermaid
+flowchart TD
+    A[用户输入账号密码] --> B{验证信息是否正确?}
+    B -->|是| C[跳转到首页]
+    B -->|否| D[提示登录失败]
+    %% 失败后返回重新输入
+    D --> A  
+    C --> E[结束]
+```
+
 ### 分割线美化
 ```markdown
 <div style="height: 2px; background: linear-gradient(to right, #FF85C0, #2196F3, #4CAF50); border-radius: 1px; margin: 20px 0;"></div>

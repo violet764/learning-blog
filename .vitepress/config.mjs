@@ -1,14 +1,30 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
-export default 
+export default withMermaid(
   defineConfig({
   base:"/learning-blog/",
   head:[["link",{rel:"icon",href:"/learning-blog/spaceship.svg"}]],
   // 站点核心信息（与首页标题/定位一致）
   title: "星间飞行",
   description: "深耕Python/C++,拆解AI模型与深度学习(PyTorch)底层逻辑 | 个人技术学习笔记",
+  // 添加 Vite 配置来处理 Mermaid 依赖
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@braintree/sanitize-url',
+        'dayjs',
+        'debug',
+        'cytoscape',
+        'cytoscape-cose-bilkent',
+        'd3',
+        'khroma',
+        'dompurify'
+      ]
+    }
+  },
   // ========== 新增：markdown 配置（math: true 放在这里） ==========
   markdown: {
     math: true, // 启用VitePress内置的数学公式支持
@@ -51,8 +67,7 @@ export default
           { text: 'Markdown', link: '/notes/language/markdown/' }
         ] 
       },
-      {
-        text:'机器学习',
+      { text: '机器学习',
         items: [
           { text: '总览', link: '/notes/machine-learning/index.md' },
           { text: '数学基础', link: '/notes/machine-learning/math-foundation/linear-algebra.md' },
@@ -65,19 +80,21 @@ export default
 
 
       // 深度学习
-      { 
-        text: '深度学习', 
+      { text: '深度学习', 
         items: [
           { text: '深度学习', link: '/notes/deep-learning/basic.md' },
           { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
           { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
-          { text: '实践', link: '/notes/practice/index.md' },
+        
         {items:[
           { text: 'PyTorch', link: '/notes/deep-learning/pytorch/index.md' },
         ]},
         {items:[
           { text: 'AI模型', link: '/notes/ai-model/index.md' },
-        ]}
+        ]},
+        {items:[
+          { text: '实践', link: '/notes/practice/index.md' },
+        ]},
       ]
       },
 
@@ -92,7 +109,7 @@ export default
       // 算法刷题
       { text: '算法',
         items:[
-        { text: '数据结构', link: '/notes/algorithm/数据结构与算法.md' },
+        { text: '数据结构', link: '/notes/algorithm/数据结构基础.md' },
         { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
 
         {items:[
@@ -301,6 +318,7 @@ export default
           text: 'PyTorch',
           collapsible: true,
           items: [
+            { text: '导览', link: '/notes/deep-learning/pytorch/index.md' },
             { text: '基础功能', link: '/notes/deep-learning/pytorch/pytorch-basics.md' },
             { text: '张量操作', link: '/notes/deep-learning/pytorch/pytorch-tensors.md' },
             { text: '神经网络', link: '/notes/deep-learning/pytorch/pytorch-nn.md' },
@@ -312,8 +330,11 @@ export default
       }
       ],
 
-      '/notes/deep-learning/practice/': [
-        { text: 'makemore', link: '/notes/practice/index.md' },
+      '/notes/practice/': [
+        { text: '导览', link: '/notes/practice/index.md' },
+        { text: 'micrograd', link: '/notes/practice/nn_zero2hero/micrograd.md' },
+        { text: 'makemore', link: '/notes/practice/nn_zero2hero/makemore.md' },
+        { text: 'nn_zero2hero', link: '/notes/paper/chapters_1_3_detailed.md' },
 
       ],
 
@@ -345,7 +366,8 @@ export default
       // 算法与刷题侧边栏（对齐首页Feature）
       '/notes/algorithm/': [
         { text: '导览', link: '/notes/algorithm/index.md' },
-        { text: '数据结构', link: '/notes/algorithm/数据结构与算法.md' },
+        { text: '基础数据结构', link: '/notes/algorithm/数据结构基础.md' },
+        { text: '高级数据结构', link: '/notes/algorithm/数据结构高级.md' },
         { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
         { text: '搜索', link: '/notes/algorithm/搜索.md' },
         { text: '动态规划', link: '/notes/algorithm/动态规划.md' },
@@ -416,3 +438,4 @@ export default
     },
     ignoreDeadLinks: true,
 })
+)

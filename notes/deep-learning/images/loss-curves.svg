@@ -1,0 +1,26 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 坐标系 -->
+  <rect x="50" y="30" width="300" height="200" fill="none" stroke="#ccc" stroke-width="1"/>
+  
+  <!-- 坐标轴标签 -->
+  <text x="200" y="250" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">迭代次数</text>
+  <text x="15" y="130" text-anchor="middle" font-family="Arial" font-size="12" fill="#333" transform="rotate(-90,15,130)">损失值</text>
+  
+  <!-- 优化器收敛曲线 -->
+  <path d="M50,230 Q150,180 200,130 Q250,80 350,30" fill="none" stroke="#e74c3c" stroke-width="2" id="sgd-curve"/>
+  <path d="M50,230 Q120,150 200,100 Q280,50 350,30" fill="none" stroke="#3498db" stroke-width="2" id="momentum-curve"/>
+  <path d="M50,230 Q100,120 200,70 Q300,40 350,30" fill="none" stroke="#2ecc71" stroke-width="2" id="adam-curve"/>
+  
+  <!-- 图例 -->
+  <rect x="60" y="260" width="10" height="2" fill="#e74c3c"/>
+  <text x="75" y="265" font-family="Arial" font-size="10" fill="#333">SGD</text>
+  
+  <rect x="120" y="260" width="10" height="2" fill="#3498db"/>
+  <text x="135" y="265" font-family="Arial" font-size="10" fill="#333">Momentum</text>
+  
+  <rect x="200" y="260" width="10" height="2" fill="#2ecc71"/>
+  <text x="215" y="265" font-family="Arial" font-size="10" fill="#333">Adam</text>
+  
+  <!-- 标题 -->
+  <text x="200" y="20" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#333">优化器收敛对比</text>
+</svg>

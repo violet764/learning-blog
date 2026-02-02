@@ -1,0 +1,11 @@
+# Attention Mechanism Visualization
+
+This is a placeholder for an attention mechanism diagram.
+
+In a real implementation, this would be an actual PNG image showing:
+- Query, Key, Value matrices
+- Attention weights computation
+- Multi-head attention structure
+- Scaled dot-product attention mechanism
+
+For now, this text serves as a placeholder. In practice, you would create or include actual diagram images here.

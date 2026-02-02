@@ -4,39 +4,22 @@
 
 PyTorch是由Facebook开发的深度学习框架，以其**动态计算图、直观的Python接口和强大的GPU支持**而闻名。本章将带领您从零开始掌握PyTorch的基本概念、安装配置和核心特性。
 
-## PyTorch核心特性
-
-### 动态计算图（动态图）
-- **运行时构建**：计算图在代码执行时动态构建
-- **灵活调试**：可以像普通Python代码一样调试
-- **条件控制**：支持if/for/while等Python控制流
-- **直观理解**：更符合程序员的思维习惯
-
-### Python优先设计
-- **无缝集成**：与NumPy、SciPy等Python科学计算库完美配合
-- **直观API**：API设计符合Python惯例，学习成本低
-- **丰富生态**：可以方便地使用Python的各种工具和库
-
-### 强大的GPU加速
-- **CUDA支持**：自动利用NVIDIA GPU进行加速计算
-- **设备管理**：简单的设备切换和内存管理
-- **分布式训练**：支持多GPU和多机分布式训练
 
 ## 安装与环境配置
 
-### 安装方法
+**安装方法**
 ```bash
 # 使用conda安装（推荐）
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+conda install pytorch torchvision torchaudio pytorch-cuda=12.8 -c pytorch -c nvidia
 
 # 使用pip安装
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 # CPU版本安装
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 ```
 
-### 环境验证
+**环境验证**
 ```python
 import torch
 import torchvision
@@ -52,7 +35,7 @@ if torch.cuda.is_available():
     print(f"GPU名称: {torch.cuda.get_device_name(0)}")
 ```
 
-### 设备管理
+**设备管理**
 ```python
 # 设备选择
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -67,8 +50,8 @@ if torch.cuda.device_count() > 1:
 
 ## PyTorch核心概念
 
-### 张量（Tensor）
-张量是PyTorch中最基本的数据结构，类似于NumPy的数组，但支持GPU加速和自动微分。
+### 张量  
+张量（Tensor）是PyTorch中最基本的数据结构，类似于NumPy的数组，但支持GPU加速和自动微分。
 
 ```python
 import torch
@@ -94,8 +77,8 @@ tensor_3d = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
 print(f"3D张量形状: {tensor_3d.shape}")
 ```
 
-### 自动微分（Autograd）
-PyTorch的自动微分系统可以自动计算梯度，这是深度学习训练的核心。
+### 自动微分
+PyTorch的自动微分系统（Autograd）可以自动计算梯度，这是深度学习训练的核心。
 
 ```python
 print("\n=== 自动微分 ===")
@@ -118,8 +101,8 @@ print(f"dy/dw = {w.grad}")  # 应该是2.0 (x的值)
 print(f"dy/db = {b.grad}")  # 应该是1.0
 ```
 
-### 计算图（Computational Graph）
-PyTorch自动构建计算图来跟踪操作，用于梯度计算。
+### 计算图
+PyTorch自动构建计算图（Computational Graph）来跟踪操作，用于梯度计算。
 
 ```python
 print("\n=== 计算图 ===")
@@ -342,24 +325,7 @@ model = nn.Dropout(0.5)  # Dropout正则化
 - **PyTorch教程**：https://pytorch.org/tutorials/
 - **PyTorch例子**：https://github.com/pytorch/examples
 
-### 在线课程
-- **PyTorch官方教程**：全面覆盖基础到高级主题
-- **Fast.ai课程**：实践导向的深度学习课程
-- **Coursera深度学习专项课程**：系统学习深度学习
-
 ### 书籍推荐
 - 《深度学习入门之PyTorch》
 - 《PyTorch深度学习实战》
 - 《动手学深度学习》（PyTorch版）
-
-## 总结
-
-本章介绍了PyTorch的基础概念、安装配置和核心特性。关键要点包括：
-
-1. **动态计算图**是PyTorch的核心优势，提供灵活的调试和控制
-2. **张量**是基本数据结构，支持GPU加速和自动微分
-3. **自动微分系统**自动计算梯度，简化反向传播
-4. **与NumPy无缝集成**，便于利用现有生态
-5. **完整的深度学习工作流程**：从数据准备到模型训练
-
-在后续章节中，我们将深入探讨PyTorch的各个模块和高级特性。
