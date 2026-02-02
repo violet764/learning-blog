@@ -316,16 +316,21 @@ print("Hello, World!")  # 减少 // [!code --]
 ### 代码块导入功能
 根据给定地址导入代码片段,使用绝对路径时需要加上`@`符号,可以指定语言
 ```markdown
-<<< ./code/import_code.py {python} # 根据给定地址导入代码片段
+<<< ./code/code.py {python} # 根据给定地址导入代码片段
 ```
-<<< ./code/import_code.py {python}
+
+<<< ./code/code.py {python}
 
 也可以导入markdown文件
+
 ```markdown
-<!--@include: ./code/import_code.md-->
+@include: ./code/import_md.md
+
 ```
 导入结果如下:  
-<!--@include: ./code/import_md.md-->
+
+<!-- @include: ./code/import_md.md -->
+
 ### 代码分组功能
 可以将多个代码块分组，方便切换
 ``````markdown

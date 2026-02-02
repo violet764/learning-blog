@@ -178,3 +178,58 @@
   border: none;
 }
 
+/* -----------------------------
+ * Theme polish & UX tweaks
+ * ----------------------------- */
+
+/* Nav blur + subtle border */
+.VPNav {
+  backdrop-filter: saturate(180%) blur(12px);
+}
+.VPNavBar {
+  border-bottom: 1px solid color-mix(in srgb, var(--vp-c-divider) 70%, transparent);
+}
+
+/* Nicer doc typography */
+.vp-doc p {
+  line-height: 1.75;
+}
+.vp-doc a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.vp-doc code {
+  border-radius: 6px;
+}
+
+/* Tables: keep them readable */
+.vp-doc table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.vp-doc th,
+.vp-doc td {
+  padding: 10px 12px;
+}
+
+/* Images: hint zoomability */
+.vp-doc img:not(a img) {
+  cursor: zoom-in;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.vp-doc img:not(a img):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.14);
+}
+
+/* demoblock: slight rounding to match site */
+.demoblock,
+.demoblock-view,
+.demoblock-source,
+.demoblock-control {
+  border-radius: 12px;
+}

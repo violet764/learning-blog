@@ -201,7 +201,7 @@ export default withMermaid(
             { text: '基础语法', link: '/notes/language/markdown/markdown-basic.md' },
             { text: '拓展语法', link: '/notes/language/markdown/markdown-advanced.md' },
             { text: '数学公式语法', link: '/notes/language/markdown/markdown-math.md' },
-            { text: 'Vitepress技巧', link: '/notes/language/markdown/markdown_extendsion.md' }
+            { text: 'Vitepress技巧', link: '/notes/language/markdown/markdown_extendsion.md' },
           ]
         },
       ],
@@ -394,9 +394,7 @@ export default withMermaid(
         { text: 'Git', link: '/notes/tools/tools_Git.md' },
         { text: 'Conda', link: '/notes/tools/tools_conda.md' },
         { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
-        { text: 'demoblock', link: '/notes/tools/demoblock-example.md' },
         
-
       ],
 
 
