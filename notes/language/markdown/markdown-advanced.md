@@ -236,7 +236,7 @@ Markdown 没有图片标题，可以使用如下方法：
 ```
 渲染效果：
 ![描述文本](./images/magic-garden.jpg)  
-<p style="text-align:center">魔法花园。</p>
+<p style="text-align:center">魔法花园</p>
 
 ### 新标签打开链接
 Markdown 不能指定 target="_blank"，但 HTML 可以：

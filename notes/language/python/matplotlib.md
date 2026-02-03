@@ -82,6 +82,8 @@ plt.plot(x, y,
 plt.show()  # 显示图形
 ```
 
+![图片](./images/sine_wave.png)  
+
 **代码说明**：
 这个例子展示了如何使用`plt.plot()`函数绘制正弦函数图像，并自定义了线条和标记的各种样式属性。通过调整这些参数，可以创建出视觉效果丰富的图表。
 
@@ -115,6 +117,8 @@ plt.plot(x, y3, color='green') # 第三条线
 plt.show()  # 显示图形
 ```
 
+![图片](./images/implicit_canvas.png)
+
 **代码说明**：
 在这个例子中，我们没有显式创建画布，Matplotlib会自动创建一个默认的画布，并在上面绘制三条曲线。这是最简单的绘图方式，适合快速绘制简单图形。
 
@@ -146,6 +150,15 @@ plt.plot(x, y3, color='green') # 在第二个画布上绘制正弦曲线
 
 plt.show()  # 显示所有画布
 ```
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/one_plots.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/two_plots.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
 
 **代码说明**：
 这个例子展示了如何显式创建多个画布，并在不同的画布上绘制不同的图形。这种方式允许我们更好地控制图形的组织结构。
@@ -179,6 +192,14 @@ plt.plot(x, y)
 
 plt.show()  # 显示所有画布
 ```
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/figure1.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/figure2.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
 
 **代码说明**：
 这个例子展示了如何使用`plt.figure()`的各种参数来自定义画布的属性，包括大小、分辨率和背景颜色等。通过这些参数，可以精确控制图形的外观。
@@ -203,16 +224,19 @@ x = np.linspace(-5, 5, 50)
 y = x**2
 
 plt.plot(x, y)
-plt.title("测试中文标题：y = x²")  # 中文标题
+plt.title("测试中文标题：$x^2$")  # 中文标题
 plt.xlabel("这是x轴")             # 中文x轴标签
 plt.ylabel("这是y轴")             # 中文y轴标签
 plt.grid(True)                   # 显示网格
 
 plt.show()
 ```
+![图片](./images/chinese_plot.png)
 
 **代码说明**：
 这个例子展示了如何解决matplotlib中中文和负号显示问题。通过设置rcParams，可以指定使用的字体和字符显示方式。注意，SimHei是常见的黑体中文字体，在不同的操作系统中可能需要使用不同的中文字体。
+
+有些时候 `x²` 无法正常显示，是因为 Matplotlib 默认不支持 Unicode 上标数字（如 `²`）的渲染，此时将 `x²` 改为 `$x^2$`，Matplotlib 会自动启用 LaTeX 渲染。
 
 ---
 
@@ -260,6 +284,9 @@ plt.title("正弦函数图像")  # 添加标题
 plt.grid(True)            # 添加网格线
 plt.show()
 ```
+![图片](./images/sine_function.png)
+
+
 
 **代码说明**：
 这个例子展示了如何设置坐标轴标签，并演示了如何自定义标签的字体大小。坐标轴标签是图表的重要组成部分，可以帮助读者理解数据的含义。
@@ -315,6 +342,22 @@ plt.yticks(ticks=[-1, -0.8, -0.5, -0.1, 1])
 plt.show()  # 显示所有图形
 ```
 
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/ticks1.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/ticks2.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/ticks3.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/ticks4.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
+
+
 **代码说明**：
 这个例子展示了多种设置坐标轴刻度的方法，包括自定义刻度位置和标签、去掉刻度、关闭坐标轴等。这些技巧可以帮助我们更好地控制图表的显示效果，使数据呈现更加清晰和有意义。
 
@@ -352,6 +395,8 @@ plt.title("自定义坐标边框颜色")
 plt.grid(True)  # 添加网格线
 plt.show()
 ```
+
+![图片](./images/custom_spines_colors.png)
 
 **代码说明**：
 这个例子展示了如何修改坐标轴边框的颜色，以及如何隐藏特定的边框。通过这种方式，可以创建出更加简洁或更加突出的图表样式。
@@ -396,6 +441,8 @@ plt.title("移动坐标边框位置")
 plt.grid(True)  # 添加网格线
 plt.show()
 ```
+
+![图片](./images/move_spines.png) 
 
 **代码说明**：
 这个例子展示了如何移动坐标轴边框的位置，将传统的框式坐标系转换为十字坐标系。这种技术在科学图表中很常见，可以使图表更加简洁和专业。
@@ -479,6 +526,17 @@ plt.legend(handles=[line1, ], labels=['线条1', ])
 plt.show()
 ```
 
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/legend_example1.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/legend_example2.png" style="width: 100%; height: 100%;">
+  </div>
+</div>  
+
+![图片](./images/legend_example3.png)
+
 **代码说明**：
 这个例子展示了创建图例的三种不同方式：
 1. 使用绘图函数中的`label`参数，让`plt.legend()`自动创建图例
@@ -545,6 +603,8 @@ plt.grid(True)
 plt.show()
 ```
 
+![图片](./images/matplotlib_text.png)
+
 **代码说明**：
 这个例子展示了如何在图表中添加文本说明和注释。文本说明可以帮助突出图表中的重要特征，如极值点、特殊点等。通过调整文本的位置、大小、颜色和对齐方式，可以使图表信息更加丰富和清晰。
 
@@ -574,7 +634,8 @@ plt.show()
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
-
+import random
+random.seed(42)
 # 从正态分布中抽取100个随机样本
 x1 = np.random.normal(0, 1, 100)  # 第一组x数据
 y1 = np.random.normal(0, 1, 100)  # 第一组y数据
@@ -605,6 +666,7 @@ plt.ylabel("Y值")
 plt.grid(True)
 plt.show()
 ```
+![图片](./images/scatter.png)
 
 **代码说明**：
 这个例子展示了如何使用`plt.scatter()`函数绘制两组数据的散点图。散点图非常适合用来观察两个变量之间的相关性、聚类情况或异常值。通过调整点的大小、颜色、透明度等参数，可以突出显示数据的特定特征。
@@ -679,6 +741,15 @@ plt.grid(True, axis='y', linestyle='--', alpha=0.7)
 plt.tight_layout()  # 自动调整子图参数
 plt.show()
 ```
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/bar_chart1.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/bar_chart2.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
 
 **代码说明**：
 这个例子展示了两种常见的条形图类型：上下条形图（适合展示正负值对比）和并排条形图（适合比较不同组别的数据）。条形图是展示分类数据最常用的图表类型之一，通过调整条形的位置、宽度、颜色等属性，可以创建出清晰直观的比较图表。
@@ -762,6 +833,8 @@ plt.colorbar()
 plt.tight_layout()
 plt.show()
 ```
+
+![图](./images/matplotlib_imshow_examples.png)
 
 **代码说明**：
 这个例子展示了`plt.imshow()`函数的多种用法，包括显示自定义数据、灰度图、随机矩阵、热力图和颜色渐变。`imshow()`函数不仅可以用来显示图像文件，还可以将各种二维数据可视化为图像，特别适合展示矩阵、热力图和空间分布数据。
@@ -861,6 +934,15 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 ```
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/subplot_layouts1.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/subplot_layouts2.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
 
 **代码说明**：
 这个例子展示了两种常见的子图布局方式：规则的2×2网格和不规则的网格布局。第一种布局将画布均匀划分为4个子图，每种函数占据一个子图；第二种布局则展示了如何创建不同大小的子图组合，上面是一个大图，下面是三个小图。
@@ -972,6 +1054,15 @@ plt.grid(True, alpha=0.3)
 plt.suptitle('复杂画中图布局', fontsize=16, y=0.95)
 plt.show()
 ```
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/subplot_example1.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/subplot_example2.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
 
 **代码说明**：
 这个例子展示了两种画中图的实现方式：第一种是简单的画中图布局，一个主图和两个子图；第二种是更复杂的布局，包含背景图像和多个不同类型的小图。
@@ -1137,6 +1228,21 @@ for file in os.listdir('saved_images'):
 
 plt.show()
 ```
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/scatter_vector.svg" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/trigonometric_default.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/transparent_bg.png" style="width: 100%; height: 100%;">
+  </div>
+  <div style="flex: 1; min-width: 300px;">
+    <img src="./images/trigonometric_hq.png" style="width: 100%; height: 100%;">
+  </div>
+</div>
 
 **代码说明**：
 这个例子展示了多种图像保存方式，包括：

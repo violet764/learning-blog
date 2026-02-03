@@ -6,6 +6,8 @@ import PageProgressBar from './components/PageProgressBar.vue'
 import BackToTop from './components/BackToTop.vue'
 import ReadingProgress from './components/ReadingProgress.vue'
 import DocMeta from './components/DocMeta.vue'
+import ArticleMeta from './components/ArticleMeta.vue' // 自定义元信息组件
+import TagCloud from './components/TagCloud.vue'     // 自定义标签云组件
 import ImageZoom from './components/ImageZoom.vue'
 import './style.css'
 
@@ -30,6 +32,9 @@ export default {
     DefaultTheme.enhanceApp?.(ctx)
 
     ctx.app.component('PageProgressBar', PageProgressBar)
+
+    ctx.app.component('ArticleMeta', ArticleMeta)
+    ctx.app.component('TagCloud', TagCloud)
 
   }
 }
