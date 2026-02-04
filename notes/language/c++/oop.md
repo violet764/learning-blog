@@ -2191,91 +2191,6 @@ void demonstrateBitFields() {
 }
 ```
 
-### 位运算在权限系统中的应用
-
-```cpp
-#include <iostream>
-#include <bitset>
-
-// 权限标志枚举
-enum Permission {
-    READ = 1 << 0,    // 0001
-    WRITE = 1 << 1,   // 0010
-    EXECUTE = 1 << 2, // 0100
-    DELETE = 1 << 3   // 1000
-};
-
-class PermissionManager {
-private:
-    unsigned int permissions;
-    
-public:
-    PermissionManager() : permissions(0) {}
-    
-    // 添加权限
-    void addPermission(Permission perm) {
-        permissions |= perm;
-    }
-    
-    // 移除权限
-    void removePermission(Permission perm) {
-        permissions &= ~perm;
-    }
-    
-    // 检查权限
-    bool hasPermission(Permission perm) const {
-        return (permissions & perm) != 0;
-    }
-    
-    // 切换权限
-    void togglePermission(Permission perm) {
-        permissions ^= perm;
-    }
-    
-    // 获取所有权限
-    unsigned int getAllPermissions() const {
-        return permissions;
-    }
-    
-    // 显示权限
-    void displayPermissions() const {
-        std::cout << "权限位: " << std::bitset<4>(permissions) << std::endl;
-        std::cout << "READ: " << hasPermission(READ) << std::endl;
-        std::cout << "WRITE: " << hasPermission(WRITE) << std::endl;
-        std::cout << "EXECUTE: " << hasPermission(EXECUTE) << std::endl;
-        std::cout << "DELETE: " << hasPermission(DELETE) << std::endl;
-    }
-};
-
-void demonstratePermissionSystem() {
-    PermissionManager manager;
-    
-    // 初始权限
-    manager.displayPermissions();
-    
-    // 添加权限
-    manager.addPermission(READ);
-    manager.addPermission(WRITE);
-    std::cout << "\n添加READ和WRITE权限后:" << std::endl;
-    manager.displayPermissions();
-    
-    // 切换EXECUTE权限
-    manager.togglePermission(EXECUTE);
-    std::cout << "\n切换EXECUTE权限后:" << std::endl;
-    manager.displayPermissions();
-    
-    // 移除WRITE权限
-    manager.removePermission(WRITE);
-    std::cout << "\n移除WRITE权限后:" << std::endl;
-    manager.displayPermissions();
-    
-    // 检查特定权限
-    std::cout << "\n权限检查:" << std::endl;
-    std::cout << "是否有READ权限: " << manager.hasPermission(READ) << std::endl;
-    std::cout << "是否有WRITE权限: " << manager.hasPermission(WRITE) << std::endl;
-}
-```
-
 ### 位运算性能优化示例
 
 ```cpp
@@ -2360,22 +2275,4 @@ int main() {
     return 0;
 }
 ```
-
-## 总结
-
-继承方式和位运算是C++中非常重要的概念：
-
-### 继承方式要点：
-- **public继承**：实现"is-a"关系，保持基类接口
-- **protected继承**：实现"implemented-in-terms-of"关系
-- **private继承**：实现"implemented-using"关系
-- **虚继承**：解决菱形继承问题，确保基类只有一个实例
-
-### 位运算要点：
-- **高效性**：位运算通常比算术运算更快
-- **内存优化**：位字段可以显著节省内存
-- **实用技巧**：权限管理、标志位操作、性能优化
-- **底层编程**：硬件操作、网络协议、加密算法等
-
-通过合理使用继承方式和位运算，可以编写出更加高效、灵活和内存友好的C++代码。
 

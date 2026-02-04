@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
 import { withMermaid } from 'vitepress-plugin-mermaid'
-
+import mathjax3 from 'markdown-it-mathjax3';
 
 
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
@@ -9,6 +9,13 @@ export default withMermaid(
   defineConfig({
     markdown: {
       math: true, // 启用VitePress内置的数学公式支持
+      extendMarkdown: (md) => {
+      md.use(katex)
+      },
+      config: (md) => {
+        md.use(mathjax3);
+      },
+  
       
       // 启用代码块行号
       lineNumbers: true,
@@ -398,7 +405,6 @@ export default withMermaid(
       '/notes/starred': [
         { text: '经典论文', link: '/notes/starred/awesome_paper.md' },
         { text: '优质博客', link: '/notes/starred/awesome_blog.md' },
-        { text: 'new', link: '/example.md' },
 
 
       ],

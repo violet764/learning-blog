@@ -8,7 +8,7 @@ Matplotlib 是 Python 常用的第三方 2D 绘图库，是 Python 中最受欢�
 - Matplotlib 是一个用于创建出版质量图表的库
 - 它可以与 NumPy、Pandas 等数据处理库无缝集成
 - 提供了面向对象的 API 和简单的 pyplot 接口
-
+- 更多的内容可以查看 [Matplotlib 官方文档](https://matplotlib.org/stable/api/index.html)
 ---
 
 ## 基础绘图

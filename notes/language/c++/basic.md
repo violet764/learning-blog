@@ -1,7 +1,20 @@
 # C++基础与核心语法
 
-**C++语言概述**  
-C++ 是一种静态类型的、编译式的、通用的、大小写敏感的、不规则的编程语言，支持过程化编程、面向对象编程和泛型编程。
+## 语言概述
+
+C++ 是一种静态类型的、编译式的、通用的、大小写敏感的编程语言，支持过程化编程、面向对象编程和泛型编程。
+
+### 第一个C++程序
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;
+}
+```
 
 
 **第一个C++程序**
@@ -17,7 +30,7 @@ int main() {
 ```
 
 
-## <span style="background-color: #26e6bcff; padding: 2px 4px; border-radius: 3px; color: #333;">数据类型</span>
+## 数据类型与变量
 
 C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型，尺寸受编译器/平台影响（以下为64位系统典型值）。
 

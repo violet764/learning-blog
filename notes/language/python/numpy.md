@@ -4,7 +4,7 @@
 
 ### NumPy简介
 
-NumPy（Numerical Python）是 Python 进行科学计算的一个扩展库，提供了大量的函数和操作，主要用于对多维数组执行计算，它比 Python 自身的嵌套列表结构要高效的多。
+NumPy（Numerical Python）是 Python 进行科学计算的一个扩展库，提供了大量的函数和操作，主要用于对多维数组执行计算，它比 Python 自身的嵌套列表结构要高效的多。更多内容请参考：[NumPy官方文档](https://numpy.org/doc/stable/reference/index.html)。
 
 NumPy 数组和 Python 列表的主要区别：
 - 数组会对元素的数据类型做统一，而列表不会。

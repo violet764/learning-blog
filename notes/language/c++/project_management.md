@@ -387,6 +387,188 @@ int main() {
 
 
 
+
+### 命名空间
+
+命名空间是 C++ 中用于**组织代码**和**避免命名冲突**的机制。
+
+#### 为什么需要命名空间？
+
+```cpp
+// 问题示例：命名冲突
+#include <iostream>
+using namespace std;
+
+int count = 5;  // 全局变量
+
+void count() {  // 函数名冲突！
+    cout << "Hello";
+}
+
+int main() {
+    cout << count;  // 错误：count 是变量还是函数？
+}
+```
+
+#### 解决方案：命名空间
+
+```cpp
+#include <iostream>
+namespace MySpace {
+    int count = 5;
+    void print() {
+        std::cout << "Hello from MySpace";
+    }
+}
+
+int main() {
+    std::cout << MySpace::count;  // 明确指定命名空间
+    MySpace::print();
+}
+```
+
+#### 定义命名空间
+
+**基本语法：**
+```cpp
+namespace namespace_name {
+    // 变量、函数、类等声明
+}
+```
+
+**示例：**
+```cpp
+namespace Math {
+    const double PI = 3.14159;
+    
+    double add(double a, double b) {
+        return a + b;
+    }
+    
+    class Calculator {
+    public:
+        double multiply(double x, double y) {
+            return x * y;
+        }
+    };
+}
+```
+
+#### 使用命名空间
+
+**方法 1：完全限定名（推荐）**
+```cpp
+#include <iostream>
+int main() {
+    std::cout << Math::PI;  // 明确指定命名空间
+    Math::Calculator calc;
+    std::cout << calc.multiply(3, 4);
+}
+```
+
+**方法 2：using 声明（引入特定成员）**
+```cpp
+#include <iostream>
+using Math::PI;  // 只引入 PI
+using Math::Calculator;  // 只引入 Calculator 类
+
+int main() {
+    std::cout << PI;  // 直接使用
+    Calculator calc;
+    std::cout << calc.multiply(3, 4);
+}
+```
+
+**方法 3：using 指令（引入整个命名空间）**
+```cpp
+#include <iostream>
+using namespace Math;  // 引入所有成员
+
+int main() {
+    std::cout << PI;  // 直接使用
+    Calculator calc;
+    std::cout << calc.multiply(3, 4);
+}
+```
+
+⚠️ **注意**：在头文件中避免使用 `using` 指令，防止污染全局命名空间
+
+#### 命名空间嵌套
+
+```cpp
+namespace Outer {
+    int value = 10;
+    
+    namespace Inner {
+        int value = 20;
+        void show() {
+            std::cout << "Inner value: " << value;
+        }
+    }
+}
+
+int main() {
+    std::cout << Outer::value;        // 10
+    std::cout << Outer::Inner::value; // 20
+    Outer::Inner::show();             // "Inner value: 20"
+}
+```
+
+#### 命名空间别名
+
+为长命名空间创建别名：
+```cpp
+namespace VeryLongNamespaceName {
+    void func() { std::cout << "Hello!"; }
+}
+
+// 创建别名
+namespace VLNN = VeryLongNamespaceName;
+
+int main() {
+    VLNN::func();  // 使用别名
+}
+```
+
+#### 标准命名空间 `std`
+
+C++ 标准库的所有内容都在 `std` 命名空间中：
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+
+int main() {
+    std::string name = "Alice";
+    std::vector<int> scores = {90, 85, 88};
+    std::cout << "Name: " << name;
+}
+```
+
+**常见用法：**
+```cpp
+// 方法 1：完全限定名（推荐）
+std::cout << "Hello";
+
+// 方法 2：using 声明（常用）
+using std::cout;
+using std::endl;
+cout << "Hello" << endl;
+
+// 方法 3：using 指令（仅限小型程序）
+using namespace std;  // 简单但可能引起冲突
+```
+
+#### 命名空间最佳实践
+
+1. **避免全局 `using`**：在头文件中绝不使用 `using namespace std;`
+2. **优先使用完全限定名**：明确代码来源，提高可读性
+3. **合理使用 `using` 声明**：在函数内部引入常用名称
+4. **组织代码**：将相关功能放在同一命名空间
+5. **命名规范**：使用有意义的命名空间名称（如 `Company::Project::Module`）
+
+> **编程提示**：在团队协作中，命名空间是组织代码的重要工具，就像给文件分类放入不同文件夹一样！
+
 ## 1. 多文件编程概述
 
 ### 1.1 为什么需要多文件编程？
