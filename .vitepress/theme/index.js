@@ -35,6 +35,23 @@ export default {
 
     ctx.app.component('ArticleMeta', ArticleMeta)
     ctx.app.component('TagCloud', TagCloud)
-
+    // 可以在所有页面中添加点击效果
+    if (typeof window !== 'undefined') {
+      window.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.card.clickable')
+        cards.forEach(card => {
+          card.addEventListener('click', function() {
+            // 添加点击动画
+            this.style.transform = 'scale(0.98)'
+            setTimeout(() => {
+              this.style.transform = ''
+            }, 150)
+          })
+        })
+      })
+    }
   }
 }
+
+
+

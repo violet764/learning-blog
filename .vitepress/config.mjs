@@ -2,12 +2,14 @@ import { defineConfig } from 'vitepress'
 import { set_sidebar } from '../.vitepress/utils/auto_sidebar.mjs';
 import { withMermaid } from 'vitepress-plugin-mermaid'
 
+
+
 // 知行代码集 - Python/C++/AI模型/深度学习(PyTorch) 专属配置
 export default withMermaid(
   defineConfig({
     markdown: {
-    
       math: true, // 启用VitePress内置的数学公式支持
+      
       // 启用代码块行号
       lineNumbers: true,
       container: {
@@ -125,6 +127,7 @@ export default withMermaid(
         items:[
 
           { text: 'Shell', link: '/notes/tools/tools_shell.md' },
+          { text: 'Bash', link: '/notes/tools/bash.md' },
           { text: 'Vim', link: '/notes/tools/tools_vim.md' },
           { text: 'Git', link: '/notes/tools/tools_Git.md' },
           { text: 'Conda', link: '/notes/tools/tools_conda.md' },
@@ -151,7 +154,8 @@ export default withMermaid(
           items: [
           { text: '导览', link: '/notes/language/python/index.md' },
           { text: '变量', link: '/notes/language/python/基础_变量.md' },
-          { text: '容器', link: '/notes/language/python/基础_容器.md' },
+          { text: '容器(列表，元组，集合）', link: '/notes/language/python/基础_容器1.md' },
+          { text: '容器(字典，字符串）', link: '/notes/language/python/基础_容器2.md' },
           { text: '面向对象', link: '/notes/language/python/基础_函数与类.md' },
           { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
           { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
@@ -174,10 +178,11 @@ export default withMermaid(
             { text: '函数与内存', link: '/notes/language/c++/func.md' },
             { text: '面向对象', link: '/notes/language/c++/oop.md' },
             { text: '进阶语法', link: '/notes/language/c++/advanced.md' },
+            { text: 'IO流', link: '/notes/language/c++/IO-stream.md' },
+            { text: 'C++新特性', link: '/notes/language/c++/new_feature.md' },
             { text: 'STL容器', link: '/notes/language/c++/stl_container.md' },
             { text: 'STL算法', link: '/notes/language/c++/algorithm.md' },
             { text: '多文件管理', link: '/notes/language/c++/project_management.md' },
-
           ]
         }],
 
@@ -380,10 +385,12 @@ export default withMermaid(
       '/notes/tools/': [
 
         { text: 'Shell', link: '/notes/tools/tools_shell.md' },
+        { text: 'Bash', link: '/notes/tools/bash.md' },
         { text: 'Vim', link: '/notes/tools/tools_vim.md' },
         { text: 'Git', link: '/notes/tools/tools_Git.md' },
         { text: 'Conda', link: '/notes/tools/tools_conda.md' },
         { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
+
         
       ],
 
@@ -391,6 +398,7 @@ export default withMermaid(
       '/notes/starred': [
         { text: '经典论文', link: '/notes/starred/awesome_paper.md' },
         { text: '优质博客', link: '/notes/starred/awesome_blog.md' },
+        { text: 'new', link: '/example.md' },
 
 
       ],
