@@ -651,69 +651,6 @@
     "category": "domestic"
   },
   {
-    "id": "python-cn-official",
-    "title": "Python官方中文社区",
-    "url": "https://www.python.org/zh-CN/feeds/blogs.rss",
-    "homepage": "https://www.python.org/zh-CN/",
-    "category": "domestic"
-  },
-  {
-    "id": "pythonzh-docs",
-    "title": "Python中文文档",
-    "url": "https://docs.python.org/zh-cn/3/feed.xml",
-    "homepage": "https://docs.python.org/zh-cn/3/",
-    "category": "domestic"
-  },
-  {
-    "id": "zhihu-python-topic",
-    "title": "知乎Python话题精选",
-    "url": "https://www.zhihu.com/rss/topic/19551031",
-    "homepage": "https://www.zhihu.com/topic/19551031",
-    "category": "domestic"
-  },
-  {
-    "id": "csdn-python",
-    "title": "CSDN Python专栏",
-    "url": "https://www.csdn.net/rss/python.xml",
-    "homepage": "https://www.csdn.net/nav/python",
-    "category": "domestic"
-  },
-  {
-    "id": "oschina-python",
-    "title": "开源中国Python频道",
-    "url": "https://www.oschina.net/question/tag/102?scope=all&status=all&style=rss",
-    "homepage": "https://www.oschina.net/topic/python",
-    "category": "domestic"
-  },
-  {
-    "id": "cppreference-cn",
-    "title": "C++参考手册中文站",
-    "url": "https://zh.cppreference.com/mwiki/index.php?title=Special:RecentChanges&feed=rss",
-    "homepage": "https://zh.cppreference.com/w/Main_Page",
-    "category": "domestic"
-  },
-  {
-    "id": "zhihu-cpp-topic",
-    "title": "知乎C++话题精选",
-    "url": "https://www.zhihu.com/rss/topic/19551047",
-    "homepage": "https://www.zhihu.com/topic/19551047",
-    "category": "domestic"
-  },
-  {
-    "id": "csdn-cpp",
-    "title": "CSDN C++专栏",
-    "url": "https://www.csdn.net/rss/c++.xml",
-    "homepage": "https://www.csdn.net/nav/c++",
-    "category": "domestic"
-  },
-  {
-    "id": "oschina-cpp",
-    "title": "开源中国C++频道",
-    "url": "https://www.oschina.net/question/tag/101?scope=all&status=all&style=rss",
-    "homepage": "https://www.oschina.net/topic/c%2B%2B",
-    "category": "domestic"
-  },
-  {
     "id": "ruanyifeng-ai",
     "title": "阮一峰的网络日志-AI相关",
     "url": "https://www.ruanyifeng.com/blog/atom.xml",
@@ -721,24 +658,26 @@
     "category": "domestic"
   },
   {
-    "id": "zhihu-ai-topic",
-    "title": "知乎人工智能话题精选",
-    "url": "https://www.zhihu.com/rss/topic/19551073",
-    "homepage": "https://www.zhihu.com/topic/19551073",
-    "category": "domestic"
-  },
-  {
-    "id": "csdn-ai",
-    "title": "CSDN 人工智能专栏",
-    "url": "https://www.csdn.net/rss/ai.xml",
-    "homepage": "https://www.csdn.net/nav/ai",
-    "category": "domestic"
-  },
-  {
     "id": "jiqizhixin",
     "title": "机器之心",
-    "url": "https://www.jiqizhixin.com/feed",
+    "url": "https://www.jiqizhixin.com/rss",
     "homepage": "https://www.jiqizhixin.com/",
+    "proxyPool": [
+      "https://cors.eu.org/{url}",
+      "https://api.allorigins.win/raw?url={url}"
+    ],
+    "category": "domestic"
+  },
+  {
+    "id": "qbitai",
+    "title": "量子位",
+    "url": "https://www.qbitai.com/feed",
+    "homepage": "https://www.qbitai.com/",
+    "proxyPool": [
+      "https://cors.eu.org/{url}",
+      "https://api.codetabs.com/v1/proxy?quest={url}",
+      "https://api.allorigins.win/raw?url={url}"
+    ],
     "category": "domestic"
   },
   {
@@ -749,24 +688,10 @@
     "category": "domestic"
   },
   {
-    "id": "leiphone-ai",
-    "title": "雷锋网-AI科技评论",
-    "url": "https://www.leiphone.com/category/ai/feed",
-    "homepage": "https://www.leiphone.com/category/ai",
-    "category": "domestic"
-  },
-  {
     "id": "52ai-blog",
     "title": "52AI博客",
     "url": "https://www.52ai.net/feed",
     "homepage": "https://www.52ai.net/",
-    "category": "domestic"
-  },
-  {
-    "id": "tensorflow-cn",
-    "title": "TensorFlow中文社区",
-    "url": "https://tensorflow.google.cn/blog/feed.xml?hl=zh-cn",
-    "homepage": "https://tensorflow.google.cn/?hl=zh-cn",
     "category": "domestic"
   }
 ]

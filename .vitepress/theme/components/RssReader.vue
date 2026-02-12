@@ -1,13 +1,28 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import feedList from '../../rss-feeds.json'
 
-const DEFAULT_PROXY = 'https://api.allorigins.win/raw?url='
 const STORAGE_KEY = 'vitepress-rss-reader-custom-feeds-v1'
+const HEALTH_STORAGE_KEY = 'vitepress-rss-reader-health-v1'
+const FEED_SELECTION_STORAGE_KEY = 'vitepress-rss-reader-selection-v1'
+
+const REQUEST_TIMEOUT_MS = 12000
+const MAX_RETRIES = 2
+const CONCURRENCY_LIMIT = 6
+const FAILURE_SKIP_THRESHOLD = 4
+const FAILURE_COOLDOWN_MS = 30 * 60 * 1000
+const SUMMARY_PREVIEW_CHARS = 220
+
+const DEFAULT_PROXY_POOL = [
+  'https://api.allorigins.win/raw?url={url}',
+  'https://corsproxy.io/?{url}',
+  'https://cors.isomorphic-git.org/{url}'
+]
 
 const items = ref([])
 const loading = ref(false)
+const stopping = ref(false)
 const error = ref('')
 const failedFeeds = ref([])
 const lastUpdated = ref('')
@@ -15,17 +30,19 @@ const customFeeds = ref([])
 const formError = ref('')
 const formMessage = ref('')
 const opmlText = ref('')
+const healthMap = ref({})
+const selectedFeedIds = ref([])
 const filterMode = ref('all')
 const rangeStart = ref('')
 const rangeEnd = ref('')
-const categoryFilter = ref('all') // 分类筛选：all, domestic, international
+const refreshAbortController = ref(null)
 
 const newFeed = ref({
   title: '',
   url: '',
   homepage: '',
   proxy: '',
-  category: 'domestic' // 默认国内
+  proxyPool: ''
 })
 
 const randomId = (prefix) => `${prefix}-${Math.random().toString(36).slice(2, 10)}`
@@ -39,12 +56,23 @@ const feedHost = (url) => {
   }
 }
 
+const parseProxyPoolInput = (value) => {
+  const raw = String(value || '').trim()
+  if (!raw) return undefined
+  return raw
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+}
+
 const normalizeFeed = (raw, index, prefix = 'feed', isCustom = false) => {
   const url = normalizeUrl(raw.url || raw.xmlUrl)
   const title = (raw.title || raw.text || '').trim() || feedHost(url) || `Feed ${index + 1}`
   const homepage = normalizeUrl(raw.homepage || raw.htmlUrl || '')
   const proxy = raw.proxy
-  const category = raw.category || 'domestic' // 默认国内
+  const proxyPool = Array.isArray(raw.proxyPool)
+    ? raw.proxyPool.map(p => String(p).trim()).filter(Boolean)
+    : undefined
 
   return {
     id: (raw.id || '').trim() || randomId(prefix),
@@ -52,7 +80,7 @@ const normalizeFeed = (raw, index, prefix = 'feed', isCustom = false) => {
     url,
     homepage,
     proxy,
-    category,
+    proxyPool,
     maxItems: Number(raw.maxItems) > 0 ? Number(raw.maxItems) : 30,
     custom: isCustom
   }
@@ -64,6 +92,9 @@ const builtinFeeds = feedList
 
 const feeds = computed(() => [...builtinFeeds, ...customFeeds.value])
 const hasFeeds = computed(() => feeds.value.length > 0)
+const selectedFeedSet = computed(() => new Set(selectedFeedIds.value))
+const activeFeeds = computed(() => feeds.value.filter(feed => selectedFeedSet.value.has(feed.id)))
+const hasActiveFeeds = computed(() => activeFeeds.value.length > 0)
 
 const rangeError = computed(() => {
   if (filterMode.value !== 'range') return ''
@@ -77,31 +108,23 @@ const rangeError = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  let filtered = items.value
-
-  // 首先按分类筛选
-  if (categoryFilter.value !== 'all') {
-    filtered = filtered.filter(item => {
-      // 找到对应的订阅源来获取分类信息
-      const feed = feeds.value.find(f => f.title === item.sourceTitle)
-      return feed && feed.category === categoryFilter.value
-    })
+  if (filterMode.value === 'all') {
+    return items.value
   }
 
-  // 再按时间筛选
   if (filterMode.value === 'month') {
     const startTs = dayjs().subtract(30, 'day').startOf('day').valueOf()
-    filtered = filtered.filter(item => item.dateTs && item.dateTs >= startTs)
+    return items.value.filter(item => item.dateTs && item.dateTs >= startTs)
   }
-  else if (filterMode.value === 'range') {
-    if (rangeError.value) return []
 
+  if (filterMode.value === 'range') {
+    if (rangeError.value) return []
     const start = rangeStart.value ? dayjs(rangeStart.value).startOf('day') : null
     const end = rangeEnd.value ? dayjs(rangeEnd.value).endOf('day') : null
     const startTs = start?.isValid() ? start.valueOf() : null
     const endTs = end?.isValid() ? end.valueOf() : null
 
-    filtered = filtered.filter((item) => {
+    return items.value.filter((item) => {
       if (!item.dateTs) return false
       if (startTs !== null && item.dateTs < startTs) return false
       if (endTs !== null && item.dateTs > endTs) return false
@@ -109,8 +132,15 @@ const filteredItems = computed(() => {
     })
   }
 
-  return filtered
+  return items.value
 })
+
+const unhealthyCount = computed(() =>
+  feeds.value.filter(feed => {
+    const record = healthMap.value[feed.id]
+    return record && Number(record.consecutiveFailures || 0) > 0
+  }).length
+)
 
 const setStatus = (message = '', isError = false) => {
   if (isError) {
@@ -131,6 +161,9 @@ const toConfigFeed = (feed) => {
   if (feed.homepage) output.homepage = feed.homepage
   if (feed.proxy !== undefined && feed.proxy !== null && `${feed.proxy}`.trim() !== '') {
     output.proxy = feed.proxy
+  }
+  if (Array.isArray(feed.proxyPool) && feed.proxyPool.length > 0) {
+    output.proxyPool = feed.proxyPool
   }
   if (feed.maxItems && feed.maxItems !== 30) {
     output.maxItems = feed.maxItems
@@ -161,7 +194,7 @@ const exportFeedsAsJson = async () => {
       setStatus('已导出 JSON，并复制到剪贴板，可直接覆盖 .vitepress/rss-feeds.json')
       return
     } catch {
-      // Ignore clipboard errors and keep download-only success.
+      // ignore clipboard errors
     }
   }
 
@@ -189,6 +222,86 @@ const loadCustomFeeds = () => {
   }
 }
 
+const saveFeedSelection = () => {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(FEED_SELECTION_STORAGE_KEY, JSON.stringify(selectedFeedIds.value))
+}
+
+const loadFeedSelection = () => {
+  if (typeof window === 'undefined') return []
+  const cached = window.localStorage.getItem(FEED_SELECTION_STORAGE_KEY)
+  if (!cached) return []
+
+  try {
+    const parsed = JSON.parse(cached)
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(id => String(id))
+  } catch {
+    return []
+  }
+}
+
+const reconcileFeedSelection = (selectAllWhenEmpty = false) => {
+  const allIds = new Set(feeds.value.map(feed => feed.id))
+  const next = selectedFeedIds.value.filter(id => allIds.has(id))
+  if (selectAllWhenEmpty && next.length === 0 && feeds.value.length > 0) {
+    selectedFeedIds.value = feeds.value.map(feed => feed.id)
+    return
+  }
+  selectedFeedIds.value = next
+}
+
+const saveHealthMap = () => {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(HEALTH_STORAGE_KEY, JSON.stringify(healthMap.value))
+}
+
+const loadHealthMap = () => {
+  if (typeof window === 'undefined') return {}
+  const cached = window.localStorage.getItem(HEALTH_STORAGE_KEY)
+  if (!cached) return {}
+  try {
+    const parsed = JSON.parse(cached)
+    if (!parsed || typeof parsed !== 'object') return {}
+    return parsed
+  } catch {
+    return {}
+  }
+}
+
+const resetHealthStatus = () => {
+  healthMap.value = {}
+  saveHealthMap()
+  setStatus('已重置源健康状态，下次会重新尝试全部订阅源')
+}
+
+const isFeedSelected = (feedId) => selectedFeedSet.value.has(feedId)
+
+const toggleFeedSelection = (feedId) => {
+  const next = new Set(selectedFeedIds.value)
+  if (next.has(feedId)) {
+    next.delete(feedId)
+  } else {
+    next.add(feedId)
+  }
+  selectedFeedIds.value = [...next]
+}
+
+const selectAllFeeds = () => {
+  selectedFeedIds.value = feeds.value.map(feed => feed.id)
+}
+
+const invertFeedSelection = () => {
+  const current = new Set(selectedFeedIds.value)
+  selectedFeedIds.value = feeds.value
+    .map(feed => feed.id)
+    .filter(id => !current.has(id))
+}
+
+const clearFeedSelection = () => {
+  selectedFeedIds.value = []
+}
+
 const fallbackId = () => Math.random().toString(36).slice(2)
 
 const parseDateTs = (value) => {
@@ -206,6 +319,12 @@ const toPlainText = (html) => {
   if (!html) return ''
   const doc = new DOMParser().parseFromString(html, 'text/html')
   return doc.body.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+}
+
+const buildSummaryPreview = (value) => {
+  const text = String(value || '').replace(/\s+/g, ' ').trim()
+  if (text.length <= SUMMARY_PREVIEW_CHARS) return text
+  return `${text.slice(0, SUMMARY_PREVIEW_CHARS)}...`
 }
 
 const parseFeed = (xmlText, feed) => {
@@ -227,11 +346,11 @@ const parseFeed = (xmlText, feed) => {
         link: item.querySelector('link')?.textContent?.trim() || '#',
         date: formatDate(dateTs),
         dateTs,
-        summary: toPlainText(
+        summary: buildSummaryPreview(toPlainText(
           item.querySelector('description')?.textContent ||
           item.querySelector('content\\:encoded')?.textContent ||
           ''
-        ),
+        )),
         guid: item.querySelector('guid')?.textContent?.trim() ||
           item.querySelector('link')?.textContent?.trim() ||
           fallbackId(),
@@ -255,11 +374,11 @@ const parseFeed = (xmlText, feed) => {
         link: preferredLink?.getAttribute('href')?.trim() || '#',
         date: formatDate(dateTs),
         dateTs,
-        summary: toPlainText(
+        summary: buildSummaryPreview(toPlainText(
           entry.querySelector('summary')?.textContent ||
           entry.querySelector('content')?.textContent ||
           ''
-        ),
+        )),
         guid: entry.querySelector('id')?.textContent?.trim() ||
           preferredLink?.getAttribute('href')?.trim() ||
           fallbackId(),
@@ -270,18 +389,6 @@ const parseFeed = (xmlText, feed) => {
   }
 
   return []
-}
-
-const buildRequestUrl = (feed) => {
-  if (!feed) return ''
-  if (feed.proxy === false) return feed.url
-
-  const proxyText = typeof feed.proxy === 'string' ? feed.proxy.trim() : ''
-  const proxyPrefix = proxyText || DEFAULT_PROXY
-  if (proxyPrefix.includes('{url}')) {
-    return proxyPrefix.replace('{url}', encodeURIComponent(feed.url))
-  }
-  return `${proxyPrefix}${encodeURIComponent(feed.url)}`
 }
 
 const dedupeAndSort = (rawItems) => {
@@ -299,13 +406,207 @@ const dedupeAndSort = (rawItems) => {
   return merged
 }
 
-const fetchOneFeed = async (feed) => {
-  const requestUrl = buildRequestUrl(feed)
-  const resp = await fetch(requestUrl)
-  if (!resp.ok) throw new Error(`获取失败 (${resp.status})`)
-  const text = await resp.text()
-  const parsedItems = parseFeed(text, feed).slice(0, feed.maxItems || 30)
-  return parsedItems
+const normalizeProxyPattern = (pattern, encodedUrl) => {
+  const text = String(pattern || '').trim()
+  if (!text) return ''
+  if (text.includes('{url}')) return text.replace('{url}', encodedUrl)
+  return `${text}${encodedUrl}`
+}
+
+const buildRequestCandidates = (feed) => {
+  const encodedUrl = encodeURIComponent(feed.url)
+
+  if (feed.proxy === false) {
+    return [feed.url]
+  }
+
+  const candidates = []
+  if (Array.isArray(feed.proxyPool) && feed.proxyPool.length > 0) {
+    for (const pattern of feed.proxyPool) {
+      const built = normalizeProxyPattern(pattern, encodedUrl)
+      if (built) candidates.push(built)
+    }
+  }
+
+  if (typeof feed.proxy === 'string' && feed.proxy.trim()) {
+    const built = normalizeProxyPattern(feed.proxy, encodedUrl)
+    if (built) candidates.unshift(built)
+  }
+
+  if (!candidates.length) {
+    for (const pattern of DEFAULT_PROXY_POOL) {
+      const built = normalizeProxyPattern(pattern, encodedUrl)
+      if (built) candidates.push(built)
+    }
+  }
+
+  return [...new Set(candidates)]
+}
+
+const getHealthRecord = (feedId) => {
+  return healthMap.value[feedId] || {
+    consecutiveFailures: 0,
+    lastError: '',
+    lastCheckedAt: 0,
+    lastSuccessAt: 0
+  }
+}
+
+const markFeedSuccess = (feedId) => {
+  const next = { ...healthMap.value }
+  next[feedId] = {
+    consecutiveFailures: 0,
+    lastError: '',
+    lastCheckedAt: Date.now(),
+    lastSuccessAt: Date.now()
+  }
+  healthMap.value = next
+}
+
+const markFeedFailure = (feedId, message) => {
+  const current = getHealthRecord(feedId)
+  const next = { ...healthMap.value }
+  next[feedId] = {
+    consecutiveFailures: Number(current.consecutiveFailures || 0) + 1,
+    lastError: message,
+    lastCheckedAt: Date.now(),
+    lastSuccessAt: Number(current.lastSuccessAt || 0)
+  }
+  healthMap.value = next
+}
+
+const shouldSkipFeed = (feedId) => {
+  const record = getHealthRecord(feedId)
+  const failures = Number(record.consecutiveFailures || 0)
+  if (failures < FAILURE_SKIP_THRESHOLD) return null
+
+  const elapsed = Date.now() - Number(record.lastCheckedAt || 0)
+  if (elapsed >= FAILURE_COOLDOWN_MS) return null
+
+  const remainMinutes = Math.max(1, Math.ceil((FAILURE_COOLDOWN_MS - elapsed) / 60000))
+  return `连续失败 ${failures} 次，暂时跳过（约 ${remainMinutes} 分钟后重试）`
+}
+
+const createCancelledError = () => {
+  const err = new Error('已取消刷新')
+  err.code = 'CANCELLED'
+  return err
+}
+
+const isCancelledError = (err) => {
+  return Boolean(err && (err.code === 'CANCELLED' || err.message === '已取消刷新'))
+}
+
+const cancelRefresh = () => {
+  if (!loading.value || !refreshAbortController.value) return
+  stopping.value = true
+  refreshAbortController.value.abort()
+  setStatus('正在停止刷新...')
+}
+
+const fetchWithTimeout = async (url, outerSignal) => {
+  if (outerSignal?.aborted) {
+    throw createCancelledError()
+  }
+
+  const controller = new AbortController()
+  let cancelledByOuter = false
+  const onOuterAbort = () => {
+    cancelledByOuter = true
+    controller.abort()
+  }
+
+  if (outerSignal) {
+    outerSignal.addEventListener('abort', onOuterAbort, { once: true })
+  }
+
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    const resp = await fetch(url, { signal: controller.signal })
+    return resp
+  } catch (err) {
+    if (cancelledByOuter || outerSignal?.aborted) {
+      throw createCancelledError()
+    }
+    if (err?.name === 'AbortError') {
+      throw new Error(`请求超时 (${Math.floor(REQUEST_TIMEOUT_MS / 1000)}s)`)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+    if (outerSignal) {
+      outerSignal.removeEventListener('abort', onOuterAbort)
+    }
+  }
+}
+
+const fetchOneFeedWithFallback = async (feed, signal) => {
+  if (signal?.aborted) {
+    return { ok: false, skipped: true, cancelled: true, message: '已取消刷新', feed }
+  }
+
+  const skipReason = shouldSkipFeed(feed.id)
+  if (skipReason) {
+    return { ok: false, skipped: true, message: skipReason, feed }
+  }
+
+  const candidates = buildRequestCandidates(feed)
+  let lastError = new Error('Failed to fetch')
+
+  for (const candidate of candidates) {
+    if (signal?.aborted) {
+      return { ok: false, skipped: true, cancelled: true, message: '已取消刷新', feed }
+    }
+
+    for (let i = 0; i <= MAX_RETRIES; i += 1) {
+      if (signal?.aborted) {
+        return { ok: false, skipped: true, cancelled: true, message: '已取消刷新', feed }
+      }
+
+      try {
+        const resp = await fetchWithTimeout(candidate, signal)
+        if (!resp.ok) {
+          throw new Error(`获取失败 (${resp.status})`)
+        }
+        const text = await resp.text()
+        const parsedItems = parseFeed(text, feed).slice(0, feed.maxItems || 30)
+        markFeedSuccess(feed.id)
+        return { ok: true, feed, items: parsedItems }
+      } catch (err) {
+        if (isCancelledError(err)) {
+          return { ok: false, skipped: true, cancelled: true, message: '已取消刷新', feed }
+        }
+        lastError = err instanceof Error ? err : new Error(String(err))
+      }
+    }
+  }
+
+  markFeedFailure(feed.id, lastError.message || 'Failed to fetch')
+  return {
+    ok: false,
+    skipped: false,
+    feed,
+    message: lastError.message || 'Failed to fetch'
+  }
+}
+
+const mapWithConcurrency = async (list, limit, worker, signal) => {
+  const results = new Array(list.length)
+  if (!list.length) return results
+
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(limit, list.length) }, async () => {
+    while (true) {
+      if (signal?.aborted) return
+      const index = cursor
+      cursor += 1
+      if (index >= list.length) return
+      results[index] = await worker(list[index], index)
+    }
+  })
+
+  await Promise.all(workers)
+  return results
 }
 
 const loadAllFeeds = async () => {
@@ -315,35 +616,43 @@ const loadAllFeeds = async () => {
     return
   }
 
+  if (!hasActiveFeeds.value) {
+    items.value = []
+    failedFeeds.value = []
+    error.value = '当前未选择任何站点，请先勾选站点后再刷新。'
+    return
+  }
+
   loading.value = true
+  stopping.value = false
   error.value = ''
   failedFeeds.value = []
 
-  try {
-    const jobs = feeds.value.map(async (feed) => {
-      try {
-        const feedItems = await fetchOneFeed(feed)
-        return { feed, ok: true, items: feedItems }
-      } catch (err) {
-        return {
-          feed,
-          ok: false,
-          message: err?.message || '加载失败'
-        }
-      }
-    })
+  const runController = new AbortController()
+  refreshAbortController.value = runController
 
-    const results = await Promise.all(jobs)
+  try {
+    const results = await mapWithConcurrency(
+      activeFeeds.value,
+      CONCURRENCY_LIMIT,
+      async (feed) => fetchOneFeedWithFallback(feed, runController.signal),
+      runController.signal
+    )
+
     const mergedItems = []
     const failures = []
+    const wasCancelled = runController.signal.aborted
 
     for (const result of results) {
-      if (result.ok) {
+      if (!result) continue
+      if (result?.ok) {
         mergedItems.push(...result.items)
-      } else {
+      } else if (result) {
+        if (result.cancelled) continue
         failures.push({
           title: result.feed.title,
-          message: result.message
+          message: result.message,
+          skipped: Boolean(result.skipped)
         })
       }
     }
@@ -351,11 +660,19 @@ const loadAllFeeds = async () => {
     items.value = dedupeAndSort(mergedItems)
     failedFeeds.value = failures
     lastUpdated.value = dayjs().format('YYYY-MM-DD HH:mm')
+    saveHealthMap()
 
-    if (!items.value.length && failures.length) {
-      error.value = '全部订阅源都加载失败，请检查代理或订阅源可用性。'
+    if (wasCancelled) {
+      error.value = ''
+      setStatus('已停止刷新，保留当前已完成加载的内容')
+    } else if (!items.value.length && failures.length) {
+      error.value = '全部订阅源都加载失败，请检查代理、网络或订阅源可用性。'
     }
   } finally {
+    if (refreshAbortController.value === runController) {
+      refreshAbortController.value = null
+    }
+    stopping.value = false
     loading.value = false
   }
 }
@@ -383,18 +700,20 @@ const addFeed = async () => {
     url,
     homepage: newFeed.value.homepage,
     proxy: newFeed.value.proxy.trim() ? newFeed.value.proxy.trim() : undefined,
-    category: newFeed.value.category
+    proxyPool: parseProxyPoolInput(newFeed.value.proxyPool)
   }, customFeeds.value.length, 'custom', true)
 
   customFeeds.value = [feed, ...customFeeds.value]
+  selectedFeedIds.value = [feed.id, ...selectedFeedIds.value]
   saveCustomFeeds()
-  setStatus(`已添加订阅：${feed.title}（${feed.category === 'domestic' ? '国内' : '国外'}）`)
-  newFeed.value = { title: '', url: '', homepage: '', proxy: '', category: 'domestic' }
+  setStatus(`已添加订阅：${feed.title}`)
+  newFeed.value = { title: '', url: '', homepage: '', proxy: '', proxyPool: '' }
   await loadAllFeeds()
 }
 
 const removeFeed = async (feedId) => {
   customFeeds.value = customFeeds.value.filter(feed => feed.id !== feedId)
+  selectedFeedIds.value = selectedFeedIds.value.filter(id => id !== feedId)
   saveCustomFeeds()
   setStatus('已删除该自定义订阅')
   await loadAllFeeds()
@@ -407,6 +726,7 @@ const clearCustomFeeds = async () => {
   }
 
   customFeeds.value = []
+  selectedFeedIds.value = selectedFeedIds.value.filter(id => !id.startsWith('custom-'))
   saveCustomFeeds()
   setStatus('已清空所有自定义订阅')
   await loadAllFeeds()
@@ -449,6 +769,10 @@ const importOpml = async () => {
     }
 
     customFeeds.value = [...deduped, ...customFeeds.value]
+    selectedFeedIds.value = [
+      ...deduped.map(feed => feed.id),
+      ...selectedFeedIds.value
+    ]
     saveCustomFeeds()
     setStatus(`导入完成：新增 ${deduped.length} 个订阅`)
     await loadAllFeeds()
@@ -466,8 +790,19 @@ const handleOpmlFile = async (event) => {
 
 onMounted(async () => {
   customFeeds.value = loadCustomFeeds()
+  selectedFeedIds.value = loadFeedSelection()
+  reconcileFeedSelection(true)
+  healthMap.value = loadHealthMap()
   await loadAllFeeds()
 })
+
+watch(feeds, () => {
+  reconcileFeedSelection(false)
+})
+
+watch(selectedFeedIds, () => {
+  saveFeedSelection()
+}, { deep: true })
 </script>
 
 <template>
@@ -475,17 +810,28 @@ onMounted(async () => {
     <div class="rss-reader__controls">
       <div class="rss-reader__overview">
         <strong>聚合订阅流</strong>
-        <span>共 {{ feeds.length }} 个订阅源</span>
+        <span>总源数 {{ feeds.length }}</span>
+        <span>已选 {{ activeFeeds.length }}</span>
+        <span>异常源 {{ unhealthyCount }}</span>
         <span v-if="failedFeeds.length > 0">本次失败 {{ failedFeeds.length }} 个</span>
       </div>
       <div class="rss-reader__actions">
         <button
           class="rss-reader__button"
           type="button"
-          :disabled="loading || !hasFeeds"
+          :disabled="loading || !hasActiveFeeds"
           @click="loadAllFeeds"
         >
           {{ loading ? '刷新中...' : '刷新全部订阅' }}
+        </button>
+        <button
+          v-if="loading"
+          class="rss-reader__button rss-reader__button--muted"
+          type="button"
+          :disabled="stopping"
+          @click="cancelRefresh"
+        >
+          {{ stopping ? '停止中...' : '停止刷新' }}
         </button>
         <span
           v-if="lastUpdated"
@@ -495,6 +841,51 @@ onMounted(async () => {
         </span>
       </div>
     </div>
+
+    <details class="rss-reader__sources">
+      <summary>站点选择与反选</summary>
+      <div class="rss-reader__sources-actions">
+        <button
+          class="rss-reader__button rss-reader__button--small"
+          type="button"
+          @click="selectAllFeeds"
+        >
+          全选
+        </button>
+        <button
+          class="rss-reader__button rss-reader__button--small"
+          type="button"
+          @click="invertFeedSelection"
+        >
+          反选
+        </button>
+        <button
+          class="rss-reader__button rss-reader__button--small"
+          type="button"
+          @click="clearFeedSelection"
+        >
+          全不选
+        </button>
+        <span class="rss-reader__sources-meta">
+          当前已选 {{ activeFeeds.length }} / {{ feeds.length }}
+        </span>
+      </div>
+
+      <div class="rss-reader__sources-list">
+        <label
+          v-for="feed in feeds"
+          :key="`feed-selector-${feed.id}`"
+          class="rss-reader__source-item"
+        >
+          <input
+            type="checkbox"
+            :checked="isFeedSelected(feed.id)"
+            @change="toggleFeedSelection(feed.id)"
+          >
+          <span>{{ feed.title }}</span>
+        </label>
+      </div>
+    </details>
 
     <details class="rss-reader__manager">
       <summary>管理订阅源（支持手动添加 / OPML 导入）</summary>
@@ -520,15 +911,13 @@ onMounted(async () => {
           <input
             v-model.trim="newFeed.proxy"
             type="text"
-            placeholder="代理前缀（可选，默认 allorigins）"
+            placeholder="主代理（可选，支持 {url} 占位符）"
           >
-          <div class="rss-reader__category-selector">
-            <label>分类：</label>
-            <select v-model="newFeed.category">
-              <option value="domestic">国内</option>
-              <option value="international">国外</option>
-            </select>
-          </div>
+          <textarea
+            v-model.trim="newFeed.proxyPool"
+            rows="4"
+            placeholder="备用代理池（可选，每行一个，支持 {url} 占位符）"
+          />
           <button
             class="rss-reader__button"
             type="button"
@@ -567,6 +956,13 @@ onMounted(async () => {
               导出 JSON
             </button>
             <button
+              class="rss-reader__button"
+              type="button"
+              @click="resetHealthStatus"
+            >
+              重置健康状态
+            </button>
+            <button
               class="rss-reader__button rss-reader__button--danger"
               type="button"
               :disabled="customFeeds.length === 0"
@@ -591,7 +987,7 @@ onMounted(async () => {
             v-for="failed in failedFeeds"
             :key="failed.title"
           >
-            {{ failed.title }}：{{ failed.message }}
+            {{ failed.title }}：{{ failed.message }}<span v-if="failed.skipped">（熔断跳过）</span>
           </li>
         </ul>
       </div>
@@ -606,12 +1002,7 @@ onMounted(async () => {
             v-for="feed in customFeeds"
             :key="feed.id"
           >
-            <span class="rss-reader__feed-info">
-              <span class="rss-reader__feed-title">{{ feed.title }}</span>
-              <span class="rss-reader__category-tag" :class="`rss-reader__category-tag--${feed.category}`">
-                {{ feed.category === 'domestic' ? '国内' : '国外' }}
-              </span>
-            </span>
+            <span>{{ feed.title }}</span>
             <button
               type="button"
               class="rss-reader__remove"
@@ -628,38 +1019,11 @@ onMounted(async () => {
       <div class="rss-reader__filter-tabs">
         <button
           class="rss-reader__chip"
-          :class="{ 'rss-reader__chip--active': categoryFilter === 'all' }"
-          type="button"
-          @click="categoryFilter = 'all'"
-        >
-          全部分类
-        </button>
-        <button
-          class="rss-reader__chip"
-          :class="{ 'rss-reader__chip--active': categoryFilter === 'domestic' }"
-          type="button"
-          @click="categoryFilter = 'domestic'"
-        >
-          国内
-        </button>
-        <button
-          class="rss-reader__chip"
-          :class="{ 'rss-reader__chip--active': categoryFilter === 'international' }"
-          type="button"
-          @click="categoryFilter = 'international'"
-        >
-          国外
-        </button>
-      </div>
-      
-      <div class="rss-reader__filter-tabs">
-        <button
-          class="rss-reader__chip"
           :class="{ 'rss-reader__chip--active': filterMode === 'all' }"
           type="button"
           @click="setFilter('all')"
         >
-          全部时间
+          全部
         </button>
         <button
           class="rss-reader__chip"
@@ -711,7 +1075,11 @@ onMounted(async () => {
     </div>
 
     <p class="rss-reader__hint">
-      GitHub Pages 为静态托管。网页端新增的订阅保存在当前浏览器 LocalStorage，不会自动同步到其他设备。
+      稳定化策略：并发 {{ CONCURRENCY_LIMIT }}、超时 {{ Math.floor(REQUEST_TIMEOUT_MS / 1000) }}s、重试 {{ MAX_RETRIES }} 次、连续失败熔断。
+    </p>
+
+    <p class="rss-reader__hint">
+      GitHub Pages 为静态托管。网页端新增订阅和源健康状态保存在当前浏览器 LocalStorage，不会自动同步到其他设备。
     </p>
 
     <div
@@ -782,54 +1150,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.rss-reader__category-selector {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.rss-reader__category-selector label {
-  font-size: 0.9em;
-  color: #666;
-}
-
-.rss-reader__category-selector select {
-  padding: 4px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-}
-
-.rss-reader__feed-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.rss-reader__feed-title {
-  flex: 1;
-}
-
-.rss-reader__category-tag {
-  font-size: 0.8em;
-  padding: 2px 6px;
-  border-radius: 12px;
-  background: #e0e0e0;
-  color: #333;
-  white-space: nowrap;
-}
-
-.rss-reader__category-tag--domestic {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.rss-reader__category-tag--international {
-  background: #f3e5f5;
-  color: #7b1fa2;
-}
-</style>

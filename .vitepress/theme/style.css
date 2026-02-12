@@ -310,6 +310,17 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
+.rss-reader__button--small {
+  padding: 6px 10px;
+  font-size: 0.86rem;
+}
+
+.rss-reader__button--muted {
+  border-color: var(--vp-c-warning-2);
+  background: var(--vp-c-warning-2);
+  color: var(--vp-c-bg);
+}
+
 .rss-reader__timestamp {
   color: var(--vp-c-text-2);
   font-size: 0.9rem;
@@ -453,6 +464,12 @@
   color: var(--vp-c-text-1);
   line-height: 1.6;
   font-size: 0.97rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .rss-reader__manager {
@@ -460,6 +477,64 @@
   border-radius: 12px;
   padding: 12px 14px;
   background: var(--vp-c-bg-soft);
+}
+
+.rss-reader__sources {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--vp-c-bg-soft);
+}
+
+.rss-reader__sources summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.rss-reader__sources-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.rss-reader__sources-meta {
+  color: var(--vp-c-text-2);
+  font-size: 0.9rem;
+}
+
+.rss-reader__sources-list {
+  margin-top: 10px;
+  max-height: 280px;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+@media (min-width: 900px) {
+  .rss-reader__sources-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.rss-reader__source-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-1);
+}
+
+.rss-reader__source-item input {
+  width: 15px;
+  height: 15px;
 }
 
 .rss-reader__manager summary {
