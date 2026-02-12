@@ -1,0 +1,772 @@
+[
+  {
+    "id": "simonwillison",
+    "title": "simonwillison.net",
+    "url": "https://simonwillison.net/atom/everything/",
+    "homepage": "https://simonwillison.net",
+    "category": "international"
+  },
+  {
+    "id": "jeffgeerling",
+    "title": "jeffgeerling.com",
+    "url": "https://www.jeffgeerling.com/blog.xml",
+    "homepage": "https://jeffgeerling.com",
+    "category": "international"
+  },
+  {
+    "id": "seangoedecke",
+    "title": "seangoedecke.com",
+    "url": "https://www.seangoedecke.com/rss.xml",
+    "homepage": "https://seangoedecke.com",
+    "category": "international"
+  },
+  {
+    "id": "krebsonsecurity",
+    "title": "krebsonsecurity.com",
+    "url": "https://krebsonsecurity.com/feed/",
+    "homepage": "https://krebsonsecurity.com",
+    "category": "international"
+  },
+  {
+    "id": "daringfireball",
+    "title": "daringfireball.net",
+    "url": "https://daringfireball.net/feeds/main",
+    "homepage": "https://daringfireball.net",
+    "category": "international"
+  },
+  {
+    "id": "ericmigi",
+    "title": "ericmigi.com",
+    "url": "https://ericmigi.com/rss.xml",
+    "homepage": "https://ericmigi.com",
+    "category": "international"
+  },
+  {
+    "id": "antirez",
+    "title": "antirez.com",
+    "url": "http://antirez.com/rss",
+    "homepage": "http://antirez.com",
+    "category": "international"
+  },
+  {
+    "id": "idiallo",
+    "title": "idiallo.com",
+    "url": "https://idiallo.com/feed.rss",
+    "homepage": "https://idiallo.com",
+    "category": "international"
+  },
+  {
+    "id": "maurycyz",
+    "title": "maurycyz.com",
+    "url": "https://maurycyz.com/index.xml",
+    "homepage": "https://maurycyz.com",
+    "category": "international"
+  },
+  {
+    "id": "pluralistic",
+    "title": "pluralistic.net",
+    "url": "https://pluralistic.net/feed/",
+    "homepage": "https://pluralistic.net",
+    "category": "international"
+  },
+  {
+    "id": "shkspr",
+    "title": "shkspr.mobi",
+    "url": "https://shkspr.mobi/blog/feed/",
+    "homepage": "https://shkspr.mobi",
+    "category": "international"
+  },
+  {
+    "id": "lcamtuf",
+    "title": "lcamtuf.substack.com",
+    "url": "https://lcamtuf.substack.com/feed",
+    "homepage": "https://lcamtuf.substack.com",
+    "category": "international"
+  },
+  {
+    "id": "mitchellh",
+    "title": "mitchellh.com",
+    "url": "https://mitchellh.com/feed.xml",
+    "homepage": "https://mitchellh.com",
+    "category": "international"
+  },
+  {
+    "id": "dynomight",
+    "title": "dynomight.net",
+    "url": "https://dynomight.net/feed.xml",
+    "homepage": "https://dynomight.net",
+    "category": "international"
+  },
+  {
+    "id": "utcc-cks",
+    "title": "utcc.utoronto.ca/~cks",
+    "url": "https://utcc.utoronto.ca/~cks/space/blog/?atom",
+    "homepage": "https://utcc.utoronto.ca/~cks",
+    "category": "international"
+  },
+  {
+    "id": "xeiaso",
+    "title": "xeiaso.net",
+    "url": "https://xeiaso.net/blog.rss",
+    "homepage": "https://xeiaso.net",
+    "category": "international"
+  },
+  {
+    "id": "oldnewthing",
+    "title": "devblogs.microsoft.com/oldnewthing",
+    "url": "https://devblogs.microsoft.com/oldnewthing/feed",
+    "homepage": "https://devblogs.microsoft.com/oldnewthing",
+    "category": "international"
+  },
+  {
+    "id": "righto",
+    "title": "righto.com",
+    "url": "https://www.righto.com/feeds/posts/default",
+    "homepage": "https://righto.com",
+    "category": "international"
+  },
+  {
+    "id": "lucumr-pocoo",
+    "title": "lucumr.pocoo.org",
+    "url": "https://lucumr.pocoo.org/feed.atom",
+    "homepage": "https://lucumr.pocoo.org",
+    "category": "international"
+  },
+  {
+    "id": "skyfall",
+    "title": "skyfall.dev",
+    "url": "https://skyfall.dev/rss.xml",
+    "homepage": "https://skyfall.dev",
+    "category": "international"
+  },
+  {
+    "id": "garymarcus",
+    "title": "garymarcus.substack.com",
+    "url": "https://garymarcus.substack.com/feed",
+    "homepage": "https://garymarcus.substack.com",
+    "category": "international"
+  },
+  {
+    "id": "rachelbythebay",
+    "title": "rachelbythebay.com",
+    "url": "https://rachelbythebay.com/w/atom.xml",
+    "homepage": "https://rachelbythebay.com",
+    "category": "international"
+  },
+  {
+    "id": "overreacted",
+    "title": "overreacted.io",
+    "url": "https://overreacted.io/rss.xml",
+    "homepage": "https://overreacted.io",
+    "category": "international"
+  },
+  {
+    "id": "timsh",
+    "title": "timsh.org",
+    "url": "https://timsh.org/rss/",
+    "homepage": "https://timsh.org",
+    "category": "international"
+  },
+  {
+    "id": "johndcook",
+    "title": "johndcook.com",
+    "url": "https://www.johndcook.com/blog/feed/",
+    "homepage": "https://www.johndcook.com",
+    "category": "international"
+  },
+  {
+    "id": "gilesthomas",
+    "title": "gilesthomas.com",
+    "url": "https://gilesthomas.com/feed/rss.xml",
+    "homepage": "https://gilesthomas.com",
+    "category": "international"
+  },
+  {
+    "id": "matklad",
+    "title": "matklad.github.io",
+    "url": "https://matklad.github.io/feed.xml",
+    "homepage": "https://matklad.github.io",
+    "category": "international"
+  },
+  {
+    "id": "derekthompson",
+    "title": "derekthompson.org",
+    "url": "https://www.theatlantic.com/feed/author/derek-thompson/",
+    "homepage": "https://derekthompson.org",
+    "category": "international"
+  },
+  {
+    "id": "evanhahn",
+    "title": "evanhahn.com",
+    "url": "https://evanhahn.com/feed.xml",
+    "homepage": "https://evanhahn.com",
+    "category": "international"
+  },
+  {
+    "id": "terriblesoftware",
+    "title": "terriblesoftware.org",
+    "url": "https://terriblesoftware.org/feed/",
+    "homepage": "https://terriblesoftware.org",
+    "category": "international"
+  },
+  {
+    "id": "rakhim-exotext",
+    "title": "rakhim.exotext.com",
+    "url": "https://rakhim.exotext.com/rss.xml",
+    "homepage": "https://rakhim.exotext.com",
+    "category": "international"
+  },
+  {
+    "id": "joanwestenberg",
+    "title": "joanwestenberg.com",
+    "url": "https://joanwestenberg.com/rss",
+    "homepage": "https://joanwestenberg.com",
+    "category": "international"
+  },
+  {
+    "id": "xania",
+    "title": "xania.org",
+    "url": "https://xania.org/feed",
+    "homepage": "https://xania.org",
+    "category": "international"
+  },
+  {
+    "id": "micahflee",
+    "title": "micahflee.com",
+    "url": "https://micahflee.com/feed/",
+    "homepage": "https://micahflee.com",
+    "category": "international"
+  },
+  {
+    "id": "nesbitt",
+    "title": "nesbitt.io",
+    "url": "https://nesbitt.io/feed.xml",
+    "homepage": "https://nesbitt.io",
+    "category": "international"
+  },
+  {
+    "id": "construction-physics",
+    "title": "construction-physics.com",
+    "url": "https://www.construction-physics.com/feed",
+    "homepage": "https://construction-physics.com",
+    "category": "international"
+  },
+  {
+    "id": "tedium",
+    "title": "tedium.co",
+    "url": "https://feed.tedium.co/",
+    "homepage": "https://tedium.co",
+    "category": "international"
+  },
+  {
+    "id": "susam",
+    "title": "susam.net",
+    "url": "https://susam.net/feed.xml",
+    "homepage": "https://susam.net",
+    "category": "international"
+  },
+  {
+    "id": "entropicthoughts",
+    "title": "entropicthoughts.com",
+    "url": "https://entropicthoughts.com/feed.xml",
+    "homepage": "https://entropicthoughts.com",
+    "category": "international"
+  },
+  {
+    "id": "hillelwayne-buttondown",
+    "title": "buttondown.com/hillelwayne",
+    "url": "https://buttondown.com/hillelwayne/rss",
+    "homepage": "https://buttondown.com/hillelwayne",
+    "category": "international"
+  },
+  {
+    "id": "dwarkesh",
+    "title": "dwarkesh.com",
+    "url": "https://www.dwarkeshpatel.com/feed",
+    "homepage": "https://dwarkesh.com",
+    "category": "international"
+  },
+  {
+    "id": "borretti",
+    "title": "borretti.me",
+    "url": "https://borretti.me/feed.xml",
+    "homepage": "https://borretti.me",
+    "category": "international"
+  },
+  {
+    "id": "wheresyoured",
+    "title": "wheresyoured.at",
+    "url": "https://www.wheresyoured.at/rss/",
+    "homepage": "https://wheresyoured.at",
+    "category": "international"
+  },
+  {
+    "id": "jayd",
+    "title": "jayd.ml",
+    "url": "https://jayd.ml/feed.xml",
+    "homepage": "https://jayd.ml",
+    "category": "international"
+  },
+  {
+    "id": "minimaxir",
+    "title": "minimaxir.com",
+    "url": "https://minimaxir.com/index.xml",
+    "homepage": "https://minimaxir.com",
+    "category": "international"
+  },
+  {
+    "id": "geohot",
+    "title": "geohot.github.io",
+    "url": "https://geohot.github.io/blog/feed.xml",
+    "homepage": "https://geohot.github.io",
+    "category": "international"
+  },
+  {
+    "id": "paulgraham",
+    "title": "paulgraham.com",
+    "url": "http://www.aaronsw.com/2002/feeds/pgessays.rss",
+    "homepage": "https://paulgraham.com",
+    "category": "international"
+  },
+  {
+    "id": "filfre",
+    "title": "filfre.net",
+    "url": "https://www.filfre.net/feed/",
+    "homepage": "https://www.filfre.net",
+    "category": "international"
+  },
+  {
+    "id": "jim-nielsen",
+    "title": "blog.jim-nielsen.com",
+    "url": "https://blog.jim-nielsen.com/feed.xml",
+    "homepage": "https://blog.jim-nielsen.com",
+    "category": "international"
+  },
+  {
+    "id": "dfarq",
+    "title": "dfarq.homeip.net",
+    "url": "https://dfarq.homeip.net/feed/",
+    "homepage": "https://dfarq.homeip.net",
+    "category": "international"
+  },
+  {
+    "id": "jyn",
+    "title": "jyn.dev",
+    "url": "https://jyn.dev/atom.xml",
+    "homepage": "https://jyn.dev",
+    "category": "international"
+  },
+  {
+    "id": "geoffreylitt",
+    "title": "geoffreylitt.com",
+    "url": "https://www.geoffreylitt.com/feed.xml",
+    "homepage": "https://www.geoffreylitt.com",
+    "category": "international"
+  },
+  {
+    "id": "downtowndougbrown",
+    "title": "downtowndougbrown.com",
+    "url": "https://www.downtowndougbrown.com/feed/",
+    "homepage": "https://www.downtowndougbrown.com",
+    "category": "international"
+  },
+  {
+    "id": "brutecat",
+    "title": "brutecat.com",
+    "url": "https://brutecat.com/rss.xml",
+    "homepage": "https://brutecat.com",
+    "category": "international"
+  },
+  {
+    "id": "eli-thegreenplace",
+    "title": "eli.thegreenplace.net",
+    "url": "https://eli.thegreenplace.net/feeds/all.atom.xml",
+    "homepage": "https://eli.thegreenplace.net",
+    "category": "international"
+  },
+  {
+    "id": "abortretry",
+    "title": "abortretry.fail",
+    "url": "https://www.abortretry.fail/feed",
+    "homepage": "https://abortretry.fail",
+    "category": "international"
+  },
+  {
+    "id": "fabiensanglard",
+    "title": "fabiensanglard.net",
+    "url": "https://fabiensanglard.net/rss.xml",
+    "homepage": "https://fabiensanglard.net",
+    "category": "international"
+  },
+  {
+    "id": "oldvcr",
+    "title": "oldvcr.blogspot.com",
+    "url": "https://oldvcr.blogspot.com/feeds/posts/default",
+    "homepage": "https://oldvcr.blogspot.com",
+    "category": "international"
+  },
+  {
+    "id": "bogdanthegeek",
+    "title": "bogdanthegeek.github.io",
+    "url": "https://bogdanthegeek.github.io/blog/index.xml",
+    "homepage": "https://bogdanthegeek.github.io",
+    "category": "international"
+  },
+  {
+    "id": "hugotunius",
+    "title": "hugotunius.se",
+    "url": "https://hugotunius.se/feed.xml",
+    "homepage": "https://hugotunius.se",
+    "category": "international"
+  },
+  {
+    "id": "gwern",
+    "title": "gwern.net",
+    "url": "https://gwern.substack.com/feed",
+    "homepage": "https://gwern.net",
+    "category": "international"
+  },
+  {
+    "id": "berthub",
+    "title": "berthub.eu",
+    "url": "https://berthub.eu/articles/index.xml",
+    "homepage": "https://berthub.eu",
+    "category": "international"
+  },
+  {
+    "id": "chadnauseam",
+    "title": "chadnauseam.com",
+    "url": "https://chadnauseam.com/rss.xml",
+    "homepage": "https://chadnauseam.com",
+    "category": "international"
+  },
+  {
+    "id": "simone",
+    "title": "simone.org",
+    "url": "https://simone.org/feed/",
+    "homepage": "https://simone.org",
+    "category": "international"
+  },
+  {
+    "id": "it-notes-dragas",
+    "title": "it-notes.dragas.net",
+    "url": "https://it-notes.dragas.net/feed/",
+    "homepage": "https://it-notes.dragas.net",
+    "category": "international"
+  },
+  {
+    "id": "beej",
+    "title": "beej.us",
+    "url": "https://beej.us/blog/rss.xml",
+    "homepage": "https://beej.us",
+    "category": "international"
+  },
+  {
+    "id": "hey-paris",
+    "title": "hey.paris",
+    "url": "https://hey.paris/index.xml",
+    "homepage": "https://hey.paris",
+    "category": "international"
+  },
+  {
+    "id": "danielwirtz",
+    "title": "danielwirtz.com",
+    "url": "https://danielwirtz.com/rss.xml",
+    "homepage": "https://danielwirtz.com",
+    "category": "international"
+  },
+  {
+    "id": "matduggan",
+    "title": "matduggan.com",
+    "url": "https://matduggan.com/rss/",
+    "homepage": "https://matduggan.com",
+    "category": "international"
+  },
+  {
+    "id": "refactoringenglish",
+    "title": "refactoringenglish.com",
+    "url": "https://refactoringenglish.com/index.xml",
+    "homepage": "https://refactoringenglish.com",
+    "category": "international"
+  },
+  {
+    "id": "worksonmymachine",
+    "title": "worksonmymachine.substack.com",
+    "url": "https://worksonmymachine.substack.com/feed",
+    "homepage": "https://worksonmymachine.substack.com",
+    "category": "international"
+  },
+  {
+    "id": "philiplaine",
+    "title": "philiplaine.com",
+    "url": "https://philiplaine.com/index.xml",
+    "homepage": "https://philiplaine.com",
+    "category": "international"
+  },
+  {
+    "id": "steveblank",
+    "title": "steveblank.com",
+    "url": "https://steveblank.com/feed/",
+    "homepage": "https://steveblank.com",
+    "category": "international"
+  },
+  {
+    "id": "bernsteinbear",
+    "title": "bernsteinbear.com",
+    "url": "https://bernsteinbear.com/feed.xml",
+    "homepage": "https://bernsteinbear.com",
+    "category": "international"
+  },
+  {
+    "id": "danieldelaney",
+    "title": "danieldelaney.net",
+    "url": "https://danieldelaney.net/feed",
+    "homepage": "https://danieldelaney.net",
+    "category": "international"
+  },
+  {
+    "id": "troyhunt",
+    "title": "troyhunt.com",
+    "url": "https://www.troyhunt.com/rss/",
+    "homepage": "https://troyhunt.com",
+    "category": "international"
+  },
+  {
+    "id": "herman-bearblog",
+    "title": "herman.bearblog.dev",
+    "url": "https://herman.bearblog.dev/feed/",
+    "homepage": "https://herman.bearblog.dev",
+    "category": "international"
+  },
+  {
+    "id": "tomrenner",
+    "title": "tomrenner.com",
+    "url": "https://tomrenner.com/index.xml",
+    "homepage": "https://tomrenner.com",
+    "category": "international"
+  },
+  {
+    "id": "pixelmelt",
+    "title": "blog.pixelmelt.dev",
+    "url": "https://blog.pixelmelt.dev/rss/",
+    "homepage": "https://blog.pixelmelt.dev",
+    "category": "international"
+  },
+  {
+    "id": "martinalderson",
+    "title": "martinalderson.com",
+    "url": "https://martinalderson.com/feed.xml",
+    "homepage": "https://martinalderson.com",
+    "category": "international"
+  },
+  {
+    "id": "danielchasehooper",
+    "title": "danielchasehooper.com",
+    "url": "https://danielchasehooper.com/feed.xml",
+    "homepage": "https://danielchasehooper.com",
+    "category": "international"
+  },
+  {
+    "id": "chiark-sgtatham",
+    "title": "chiark.greenend.org.uk/~sgtatham",
+    "url": "https://www.chiark.greenend.org.uk/~sgtatham/quasiblog/feed.xml",
+    "homepage": "https://chiark.greenend.org.uk/~sgtatham",
+    "category": "international"
+  },
+  {
+    "id": "grantslatton",
+    "title": "grantslatton.com",
+    "url": "https://grantslatton.com/rss.xml",
+    "homepage": "https://grantslatton.com",
+    "category": "international"
+  },
+  {
+    "id": "experimental-history",
+    "title": "experimental-history.com",
+    "url": "https://www.experimental-history.com/feed",
+    "homepage": "https://www.experimental-history.com",
+    "category": "international"
+  },
+  {
+    "id": "anildash",
+    "title": "anildash.com",
+    "url": "https://anildash.com/feed.xml",
+    "homepage": "https://anildash.com",
+    "category": "international"
+  },
+  {
+    "id": "aresluna",
+    "title": "aresluna.org",
+    "url": "https://aresluna.org/main.rss",
+    "homepage": "https://aresluna.org",
+    "category": "international"
+  },
+  {
+    "id": "michael-stapelberg",
+    "title": "michael.stapelberg.ch",
+    "url": "https://michael.stapelberg.ch/feed.xml",
+    "homepage": "https://michael.stapelberg.ch",
+    "category": "international"
+  },
+  {
+    "id": "miguelgrinberg",
+    "title": "miguelgrinberg.com",
+    "url": "https://blog.miguelgrinberg.com/feed",
+    "homepage": "https://miguelgrinberg.com",
+    "category": "international"
+  },
+  {
+    "id": "keygen",
+    "title": "keygen.sh",
+    "url": "https://keygen.sh/blog/feed.xml",
+    "homepage": "https://keygen.sh",
+    "category": "international"
+  },
+  {
+    "id": "mjg59",
+    "title": "mjg59.dreamwidth.org",
+    "url": "https://mjg59.dreamwidth.org/data/rss",
+    "homepage": "https://mjg59.dreamwidth.org",
+    "category": "international"
+  },
+  {
+    "id": "computer-rip",
+    "title": "computer.rip",
+    "url": "https://computer.rip/rss.xml",
+    "homepage": "https://computer.rip",
+    "category": "international"
+  },
+  {
+    "id": "tedunangst",
+    "title": "tedunangst.com",
+    "url": "https://www.tedunangst.com/flak/rss",
+    "homepage": "https://tedunangst.com",
+    "category": "international"
+  },
+    {
+    "id": "infoq",
+    "title": "InfoQ 中国",
+    "url": "https://www.infoq.cn/feed",
+    "homepage": "https://www.infoq.cn/",
+    "category": "domestic"
+  },
+  {
+    "id": "python-cn-official",
+    "title": "Python官方中文社区",
+    "url": "https://www.python.org/zh-CN/feeds/blogs.rss",
+    "homepage": "https://www.python.org/zh-CN/",
+    "category": "domestic"
+  },
+  {
+    "id": "pythonzh-docs",
+    "title": "Python中文文档",
+    "url": "https://docs.python.org/zh-cn/3/feed.xml",
+    "homepage": "https://docs.python.org/zh-cn/3/",
+    "category": "domestic"
+  },
+  {
+    "id": "zhihu-python-topic",
+    "title": "知乎Python话题精选",
+    "url": "https://www.zhihu.com/rss/topic/19551031",
+    "homepage": "https://www.zhihu.com/topic/19551031",
+    "category": "domestic"
+  },
+  {
+    "id": "csdn-python",
+    "title": "CSDN Python专栏",
+    "url": "https://www.csdn.net/rss/python.xml",
+    "homepage": "https://www.csdn.net/nav/python",
+    "category": "domestic"
+  },
+  {
+    "id": "oschina-python",
+    "title": "开源中国Python频道",
+    "url": "https://www.oschina.net/question/tag/102?scope=all&status=all&style=rss",
+    "homepage": "https://www.oschina.net/topic/python",
+    "category": "domestic"
+  },
+  {
+    "id": "cppreference-cn",
+    "title": "C++参考手册中文站",
+    "url": "https://zh.cppreference.com/mwiki/index.php?title=Special:RecentChanges&feed=rss",
+    "homepage": "https://zh.cppreference.com/w/Main_Page",
+    "category": "domestic"
+  },
+  {
+    "id": "zhihu-cpp-topic",
+    "title": "知乎C++话题精选",
+    "url": "https://www.zhihu.com/rss/topic/19551047",
+    "homepage": "https://www.zhihu.com/topic/19551047",
+    "category": "domestic"
+  },
+  {
+    "id": "csdn-cpp",
+    "title": "CSDN C++专栏",
+    "url": "https://www.csdn.net/rss/c++.xml",
+    "homepage": "https://www.csdn.net/nav/c++",
+    "category": "domestic"
+  },
+  {
+    "id": "oschina-cpp",
+    "title": "开源中国C++频道",
+    "url": "https://www.oschina.net/question/tag/101?scope=all&status=all&style=rss",
+    "homepage": "https://www.oschina.net/topic/c%2B%2B",
+    "category": "domestic"
+  },
+  {
+    "id": "ruanyifeng-ai",
+    "title": "阮一峰的网络日志-AI相关",
+    "url": "https://www.ruanyifeng.com/blog/atom.xml",
+    "homepage": "https://www.ruanyifeng.com/blog/",
+    "category": "domestic"
+  },
+  {
+    "id": "zhihu-ai-topic",
+    "title": "知乎人工智能话题精选",
+    "url": "https://www.zhihu.com/rss/topic/19551073",
+    "homepage": "https://www.zhihu.com/topic/19551073",
+    "category": "domestic"
+  },
+  {
+    "id": "csdn-ai",
+    "title": "CSDN 人工智能专栏",
+    "url": "https://www.csdn.net/rss/ai.xml",
+    "homepage": "https://www.csdn.net/nav/ai",
+    "category": "domestic"
+  },
+  {
+    "id": "jiqizhixin",
+    "title": "机器之心",
+    "url": "https://www.jiqizhixin.com/feed",
+    "homepage": "https://www.jiqizhixin.com/",
+    "category": "domestic"
+  },
+  {
+    "id": "ai-front",
+    "title": "AI前线",
+    "url": "https://www.infoq.cn/feed/ai",
+    "homepage": "https://www.infoq.cn/topic/ai",
+    "category": "domestic"
+  },
+  {
+    "id": "leiphone-ai",
+    "title": "雷锋网-AI科技评论",
+    "url": "https://www.leiphone.com/category/ai/feed",
+    "homepage": "https://www.leiphone.com/category/ai",
+    "category": "domestic"
+  },
+  {
+    "id": "52ai-blog",
+    "title": "52AI博客",
+    "url": "https://www.52ai.net/feed",
+    "homepage": "https://www.52ai.net/",
+    "category": "domestic"
+  },
+  {
+    "id": "tensorflow-cn",
+    "title": "TensorFlow中文社区",
+    "url": "https://tensorflow.google.cn/blog/feed.xml?hl=zh-cn",
+    "homepage": "https://tensorflow.google.cn/?hl=zh-cn",
+    "category": "domestic"
+  }
+]

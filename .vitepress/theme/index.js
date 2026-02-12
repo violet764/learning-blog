@@ -9,6 +9,7 @@ import DocMeta from './components/DocMeta.vue'
 import ArticleMeta from './components/ArticleMeta.vue' // 自定义元信息组件
 import TagCloud from './components/TagCloud.vue'     // 自定义标签云组件
 import ImageZoom from './components/ImageZoom.vue'
+import RssReader from './components/RssReader.vue'
 import './style.css'
 
 /** @type {import('vitepress').Theme} */
@@ -35,6 +36,7 @@ export default {
 
     ctx.app.component('ArticleMeta', ArticleMeta)
     ctx.app.component('TagCloud', TagCloud)
+    ctx.app.component('RssReader', RssReader)
     // 可以在所有页面中添加点击效果
     if (typeof window !== 'undefined') {
       window.addEventListener('DOMContentLoaded', () => {

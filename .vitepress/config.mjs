@@ -138,14 +138,14 @@ export default withMermaid(
           { text: 'Vim', link: '/notes/tools/tools_vim.md' },
           { text: 'Git', link: '/notes/tools/tools_Git.md' },
           { text: 'Conda', link: '/notes/tools/tools_conda.md' },
-
+          { text: 'RSS', link: '/rss-reader/' },
         ] },
 
       // 收藏夹
       { text: '收藏夹', link: '/notes/starred' },
       
       // RSS阅读器
-      { text: 'RSS阅读器', link: '/rss-reader' },
+      // { text: 'RSS阅读器', link: '/rss-reader/' },
     
     ],
 
@@ -154,6 +154,10 @@ export default withMermaid(
       '/': [
         { text: '首页', link: '/' },
         { text: '笔记', link: '/posts/blog_setup.md' },
+      ],
+      '/rss-reader/': [
+        { text: '使用说明', link: '/rss-reader/' },
+        { text: 'RSS阅读器', link: '/rss-reader/reader' }
       ],
       
       // 编程语言分类侧边栏
@@ -394,7 +398,6 @@ export default withMermaid(
 
       // 工具与环境侧边栏（对齐首页Feature）
       '/notes/tools/': [
-
         { text: 'Shell', link: '/notes/tools/tools_shell.md' },
         { text: 'Bash', link: '/notes/tools/bash.md' },
         { text: 'Vim', link: '/notes/tools/tools_vim.md' },
