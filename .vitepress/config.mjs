@@ -143,6 +143,9 @@ export default withMermaid(
 
       // 收藏夹
       { text: '收藏夹', link: '/notes/starred' },
+      
+      // RSS阅读器
+      { text: 'RSS阅读器', link: '/rss-reader' },
     
     ],
 
@@ -164,6 +167,7 @@ export default withMermaid(
           { text: '容器(列表，元组，集合）', link: '/notes/language/python/基础_容器1.md' },
           { text: '容器(字典，字符串）', link: '/notes/language/python/基础_容器2.md' },
           { text: '面向对象', link: '/notes/language/python/基础_函数与类.md' },
+          { text: '常用标准库', link: '/notes/language/python/常用库.md' },
           { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
           { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
           { text: '正则表达式', link: '/notes/language/python/正则.md' },

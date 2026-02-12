@@ -17,19 +17,6 @@ int main() {
 ```
 
 
-**第一个C++程序**
-
-```cpp
-#include <iostream>  
-using namespace std;
-
-int main() {  
-    std::cout << "Hello, World!" << std::endl;  
-    return 0;  
-}
-```
-
-
 ## 数据类型与变量
 
 C++ 原生支持的基础数据类型，分为数值型、布尔型、空类型，尺寸受编译器/平台影响（以下为64位系统典型值）。
@@ -591,12 +578,6 @@ std::cout << uninitialized << std::endl;  // 未定义行为：可能输出任�
 
 **重要概念：** C++的算术运算遵循严格的类型转换规则。不同类型的操作数运算时，会按照"类型提升"规则转换为更宽的类型。整数除法会截断小数部分，这与Python的浮点除法行为不同。
 
-**位运算符：**
-```cpp
-unsigned int flags = 0b1010;  // 二进制表示
-flags = flags | 0b0001;       // 按位或
-flags = flags & ~0b1000;      // 按位与+取反
-```
 
 **赋值运算符：**
 ```cpp
@@ -662,12 +643,150 @@ result = !(a == b);                 // 非运算 not
 ```
 
 **位运算（Python中也存在）：**
+
+位运算符直接操作整数的二进制位，在底层编程、性能优化和硬件操作中非常重要。
+
 ```cpp
 unsigned int flags = 0b1010;  // 二进制表示
 flags = flags | 0b0001;       // 按位或
 flags = flags & ~0b1000;      // 按位与+取反
 ```
 [位运算查看python中的位运算](../python/基础_变量.html#位运算符)
+
+
+
+**位运算符概述**
+```cpp
+#include <iostream>
+#include <bitset>
+#include <iomanip>
+
+void demonstrateBitOperations() {
+    unsigned int a = 0b11001100;  // 204
+    unsigned int b = 0b10101010;  // 170
+    
+    std::cout << "a = " << std::bitset<8>(a) << " (" << a << ")" << std::endl;
+    std::cout << "b = " << std::bitset<8>(b) << " (" << b << ")" << std::endl;
+    
+    // 按位与 (&)
+    unsigned int and_result = a & b;
+    std::cout << "a & b = " << std::bitset<8>(and_result) << " (" << and_result << ")" << std::endl;
+    
+    // 按位或 (|)
+    unsigned int or_result = a | b;
+    std::cout << "a | b = " << std::bitset<8>(or_result) << " (" << or_result << ")" << std::endl;
+    
+    // 按位异或 (^)
+    unsigned int xor_result = a ^ b;
+    std::cout << "a ^ b = " << std::bitset<8>(xor_result) << " (" << xor_result << ")" << std::endl;
+    
+    // 按位取反 (~)
+    unsigned int not_result = ~a;
+    std::cout << "~a = " << std::bitset<8>(not_result) << " (" << not_result << ")" << std::endl;
+    
+    // 左移 (<<)
+    unsigned int left_shift = a << 2;
+    std::cout << "a << 2 = " << std::bitset<8>(left_shift) << " (" << left_shift << ")" << std::endl;
+    
+    // 右移 (>>)
+    unsigned int right_shift = a >> 2;
+    std::cout << "a >> 2 = " << std::bitset<8>(right_shift) << " (" << right_shift << ")" << std::endl;
+}
+```
+
+**位运算实用技巧**
+
+```cpp
+#include <iostream>
+#include <bitset>
+
+class BitUtils {
+public:
+    // 检查特定位是否为1
+    static bool isBitSet(unsigned int num, int pos) {
+        return (num & (1 << pos)) != 0;
+    }
+    
+    // 设置特定位为1
+    static unsigned int setBit(unsigned int num, int pos) {
+        return num | (1 << pos);
+    }
+    
+    // 清除特定位（设置为0）
+    static unsigned int clearBit(unsigned int num, int pos) {
+        return num & ~(1 << pos);
+    }
+    
+    // 切换特定位（0变1，1变0）
+    static unsigned int toggleBit(unsigned int num, int pos) {
+        return num ^ (1 << pos);
+    }
+    
+    // 计算1的个数（汉明重量）
+    static int countOnes(unsigned int num) {
+        int count = 0;
+        while (num) {
+            count += num & 1;
+            num >>= 1;
+        }
+        return count;
+    }
+    
+    // 判断是否为2的幂
+    static bool isPowerOfTwo(unsigned int num) {
+        return num && !(num & (num - 1));
+    }
+    
+    // 获取最低有效位（最右边的1）
+    static unsigned int getLowestSetBit(unsigned int num) {
+        return num & -num;
+    }
+    
+    // 交换两个变量的值（不使用临时变量）
+    static void swap(int& a, int& b) {
+        a = a ^ b;
+        b = a ^ b;
+        a = a ^ b;
+    }
+};
+
+void demonstrateBitUtils() {
+    unsigned int num = 0b10110110;  // 182
+    
+    std::cout << "原始数字: " << std::bitset<8>(num) << " (" << num << ")" << std::endl;
+    
+    // 检查第3位
+    std::cout << "第3位是否为1: " << BitUtils::isBitSet(num, 3) << std::endl;
+    
+    // 设置第0位
+    unsigned int set = BitUtils::setBit(num, 0);
+    std::cout << "设置第0位后: " << std::bitset<8>(set) << " (" << set << ")" << std::endl;
+    
+    // 清除第2位
+    unsigned int cleared = BitUtils::clearBit(num, 2);
+    std::cout << "清除第2位后: " << std::bitset<8>(cleared) << " (" << cleared << ")" << std::endl;
+    
+    // 切换第4位
+    unsigned int toggled = BitUtils::toggleBit(num, 4);
+    std::cout << "切换第4位后: " << std::bitset<8>(toggled) << " (" << toggled << ")" << std::endl;
+    
+    // 计算1的个数
+    std::cout << "1的个数: " << BitUtils::countOnes(num) << std::endl;
+    
+    // 判断是否为2的幂
+    std::cout << "是否为2的幂: " << BitUtils::isPowerOfTwo(num) << std::endl;
+    std::cout << "64是否为2的幂: " << BitUtils::isPowerOfTwo(64) << std::endl;
+    
+    // 交换变量
+    int x = 10, y = 20;
+    std::cout << "交换前: x=" << x << ", y=" << y << std::endl;
+    BitUtils::swap(x, y);
+    std::cout << "交换后: x=" << x << ", y=" << y << std::endl;
+}
+```
+
+
+
 ### 条件语句
 
 **`if-else`语句：条件逻辑与代码优化**

@@ -111,7 +111,6 @@ n次根号：\sqrt[n]{x}
 
 ## 常用运算符
 
-
 | 符号 | 代码 | 符号 | 代码 | 符号 | 代码 |
 |------|------|------|------|------|------|
 | $+$ | `+` | $-$ | `-` | $\times$ | `\times` |
@@ -124,6 +123,18 @@ n次根号：\sqrt[n]{x}
 | $\land$ | `\land` | $\lor$ | `\lor` | $\implies$ | `\implies` |
 | $\rightarrow$ | `\rightarrow` | $\leftarrow$ | `\leftarrow` | $\leftrightarrow$ | `\leftrightarrow` |
 | $\Rightarrow$ | `\Rightarrow` | $\Leftarrow$ | `\Leftarrow` | $\Leftrightarrow$ | `\Leftrightarrow` |
+
+### 高级运算符
+| 符号 | 代码 | 符号 | 代码 | 符号 | 代码 |
+|------|------|------|------|------|------|
+| $\nabla$ | `\nabla` | $\partial$ | `\partial` | $\infty$ | `\infty` |
+| $\propto$ | `\propto` | $\sim$ | `\sim` | $\cong$ | `\cong` |
+| $\oplus$ | `\oplus` | $\otimes$ | `\otimes` | $\odot$ | `\odot` |
+| $\bigcirc$ | `\bigcirc` | $\bigtriangleup$ | `\bigtriangleup` | $\bigtriangledown$ | `\bigtriangledown` |
+| $\dagger$ | `\dagger` | $\ddagger$ | `\ddagger` | $\S$ | `\S` |
+| $\ast$ | `\ast` | $\star$ | `\star` | $\circ$ | `\circ` |
+| $\bullet$ | `\bullet` | $\cdot$ | `\cdot` | $\cdots$ | `\cdots` |
+| $\vdots$ | `\vdots` | $\ddots$ | `\ddots` | $\ldots$ | `\ldots` |
 
 ## 矩阵与向量
 
@@ -146,12 +157,16 @@ n次根号：\sqrt[n]{x}
 列向量：\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix}
 行向量：\begin{pmatrix} x_1 & x_2 & x_3 \end{pmatrix}
 单位向量：\mathbf{i}, \mathbf{j}, \mathbf{k}
+向量点积：\vec{a} \cdot \vec{b} = a_x b_x + a_y b_y + a_z b_z
+向量叉积：\vec{a} \times \vec{b} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ a_x & a_y & a_z \\ b_x & b_y & b_z \end{vmatrix}
 ```
 
 显示效果：
 - 列向量：$\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix}$
 - 行向量：$\begin{pmatrix} x_1 & x_2 & x_3 \end{pmatrix}$
 - 单位向量：$\mathbf{i}, \mathbf{j}, \mathbf{k}$
+- 向量点积：$\vec{a} \cdot \vec{b} = a_x b_x + a_y b_y + a_z b_z$
+- 向量叉积：$\vec{a} \times \vec{b} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ a_x & a_y & a_z \\ b_x & b_y & b_z \end{vmatrix}$
 
 ## 高级公式示例
 
@@ -216,6 +231,99 @@ $$
 $$
 f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x-a)^n
 $$
+
+### 傅里叶级数
+
+```
+$$
+f(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty} \left[ a_n \cos\left(\frac{2\pi n x}{T}\right) + b_n \sin\left(\frac{2\pi n x}{T}\right) \right]
+$$
+```
+
+显示效果：
+$$
+f(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty} \left[ a_n \cos\left(\frac{2\pi n x}{T}\right) + b_n \sin\left(\frac{2\pi n x}{T}\right) \right]
+$$
+
+### 拉普拉斯变换
+
+```
+$$
+F(s) = \mathcal{L}\{f(t)\} = \int_{0}^{\infty} e^{-st} f(t) dt
+$$
+```
+
+显示效果：
+$$
+F(s) = \mathcal{L}\{f(t)\} = \int_{0}^{\infty} e^{-st} f(t) dt
+$$
+
+### 微分方程
+
+```
+$$
+\frac{d^2y}{dx^2} + p(x)\frac{dy}{dx} + q(x)y = f(x)
+$$
+
+一阶线性微分方程：
+$$
+\frac{dy}{dx} + P(x)y = Q(x)
+$$
+
+热传导方程：
+$$
+\frac{\partial u}{\partial t} = \alpha \nabla^2 u
+$$
+```
+
+显示效果：
+$$
+\frac{d^2y}{dx^2} + p(x)\frac{dy}{dx} + q(x)y = f(x)
+$$
+
+一阶线性微分方程：
+$$
+\frac{dy}{dx} + P(x)y = Q(x)
+$$
+
+热传导方程：
+$$
+\frac{\partial u}{\partial t} = \alpha \nabla^2 u
+$$
+
+### 概率统计公式
+
+```
+期望值：E[X] = \sum_{i=1}^{n} x_i p_i
+方差：\text{Var}(X) = E[(X - \mu)^2]
+协方差：\text{Cov}(X, Y) = E[(X - \mu_X)(Y - \mu_Y)]
+相关系数：\rho_{X,Y} = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}
+贝叶斯定理：P(A|B) = \frac{P(B|A)P(A)}{P(B)}
+```
+
+显示效果：
+- 期望值：$E[X] = \sum_{i=1}^{n} x_i p_i$
+- 方差：$\text{Var}(X) = E[(X - \mu)^2]$
+- 协方差：$\text{Cov}(X, Y) = E[(X - \mu_X)(Y - \mu_Y)]$
+- 相关系数：$\rho_{X,Y} = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}$
+- 贝叶斯定理：$P(A|B) = \frac{P(B|A)P(A)}{P(B)}$
+
+### 集合论公式
+
+```
+并集：A \cup B = \{x | x \in A \text{ 或 } x \in B\}
+交集：A \cap B = \{x | x \in A \text{ 且 } x \in B\}
+补集：A^c = \{x | x \notin A\}
+德摩根定律：(A \cup B)^c = A^c \cap B^c
+幂集：\mathcal{P}(A) = \{X | X \subseteq A\}
+```
+
+显示效果：
+- 并集：$A \cup B = \{x | x \in A \text{ 或 } x \in B\}$
+- 交集：$A \cap B = \{x | x \in A \text{ 且 } x \in B\}$
+- 补集：$A^c = \{x | x \notin A\}$
+- 德摩根定律：$(A \cup B)^c = A^c \cap B^c$
+- 幂集：$\mathcal{P}(A) = \{X | X \subseteq A\}$
 
 ## 数学环境
 
@@ -314,6 +422,19 @@ $$
    - `\mathrm{}`：正体
    - `\mathsf{}`：无衬线
    - `\mathtt{}`：打字机字体
+   - `\mathcal{}`：书法体
+   - `\mathbb{}`：黑板粗体
+   - `\mathfrak{}`：哥特体
+
+字体样式示例：
+```
+\mathbf{ABC} \quad \mathit{ABC} \quad \mathrm{ABC} \quad \mathsf{ABC}
+\mathcal{ABC} \quad \mathbb{ABC} \quad \mathfrak{ABC}
+```
+
+显示效果：
+$\mathbf{ABC} \quad \mathit{ABC} \quad \mathrm{ABC} \quad \mathsf{ABC}$
+$\mathcal{ABC} \quad \mathbb{ABC} \quad \mathfrak{ABC}$
 
 ## VitePress 中的数学公式支持
 
@@ -346,4 +467,207 @@ module.exports = {
 3. 相应地，需要在 HTML 中引入 MathJax 或 KaTeX 的 CSS/JS 文件。
 
 这样配置后，就可以在 VitePress 中正常渲染 LaTeX 数学公式了。
+
+## 高级 LaTeX 技巧
+
+### 多行公式和编号
+
+```
+$$
+\begin{align}
+(a + b)^2 &= a^2 + 2ab + b^2 \\
+(a - b)^2 &= a^2 - 2ab + b^2 \\
+(a + b)(a - b) &= a^2 - b^2
+\end{align}
+$$
+```
+
+显示效果：
+$$
+\begin{align}
+(a + b)^2 &= a^2 + 2ab + b^2 \\
+(a - b)^2 &= a^2 - 2ab + b^2 \\
+(a + b)(a - b) &= a^2 - b^2
+\end{align}
+$$
+
+### 分段函数
+
+```
+$$
+f(x) = 
+\begin{cases}
+0 & \text{如果 } x < 0 \\
+x^2 & \text{如果 } 0 \leq x < 1 \\
+2x - 1 & \text{如果 } x \geq 1
+\end{cases}
+$$
+```
+
+显示效果：
+$$
+f(x) = 
+\begin{cases}
+0 & \text{如果 } x < 0 \\
+x^2 & 	ext{如果 } 0 \leq x < 1 \\
+2x - 1 & \text{如果 } x \geq 1
+\end{cases}
+$$
+
+### 矩阵的更多类型
+
+```
+普通矩阵：\begin{matrix} a & b \\ c & d \end{matrix}
+圆括号矩阵：\begin{pmatrix} a & b \\ c & d \end{pmatrix}
+方括号矩阵：\begin{bmatrix} a & b \\ c & d \end{bmatrix}
+行列式：\begin{vmatrix} a & b \\ c & d \end{vmatrix}
+范数矩阵：\begin{Vmatrix} a & b \\ c & d \end{Vmatrix}
+```
+
+显示效果：
+- 普通矩阵：$\begin{matrix} a & b \\ c & d \end{matrix}$
+- 圆括号矩阵：$\begin{pmatrix} a & b \\ c & d \end{pmatrix}$
+- 方括号矩阵：$\begin{bmatrix} a & b \\ c & d \end{bmatrix}$
+- 行列式：$\begin{vmatrix} a & b \\ c & d \end{vmatrix}$
+- 范数矩阵：$\begin{Vmatrix} a & b \\ c & d \end{Vmatrix}$
+
+### 复杂的积分和求和
+
+```
+$$
+\iint\limits_D f(x,y)\,dx\,dy = \int_{a}^{b} \int_{c}^{d} f(x,y)\,dy\,dx
+$$
+
+$$
+\sum_{\substack{1 \leq i \leq n \\ 1 \leq j \leq m}} a_{ij} = \sum_{i=1}^{n} \sum_{j=1}^{m} a_{ij}
+$$
+```
+
+显示效果：
+$$
+\iint\limits_D f(x,y)\,dx\,dy = \int_{a}^{b} \int_{c}^{d} f(x,y)\,dy\,dx
+$$
+
+$$
+\sum_{\substack{1 \leq i \leq n \\ 1 \leq j \leq m}} a_{ij} = \sum_{i=1}^{n} \sum_{j=1}^{m} a_{ij}
+$$
+
+### 定理和证明环境
+
+```
+**定理 1** (勾股定理)
+$$
+a^2 + b^2 = c^2
+$$
+其中 $a$, $b$ 是直角三角形的两条直角边，$c$ 是斜边。
+
+**证明**：
+考虑边长为 $a+b$ 的正方形，其内部有四个全等的直角三角形...
+$$
+(a+b)^2 = 4 \times \frac{1}{2}ab + c^2
+$$
+化简得 $a^2 + b^2 = c^2$。
+```
+
+显示效果：
+**定理 1** (勾股定理)
+$$
+a^2 + b^2 = c^2
+$$
+其中 $a$, $b$ 是直角三角形的两条直角边，$c$ 是斜边。
+
+**证明**：
+考虑边长为 $a+b$ 的正方形，其内部有四个全等的直角三角形...
+$$
+(a+b)^2 = 4 \times \frac{1}{2}ab + c^2
+$$
+化简得 $a^2 + b^2 = c^2$。
+
+### 化学方程式
+
+```
+$$
+\ce{2H2 + O2 -> 2H2O}
+$$
+
+$$
+\ce{CH4 + 2O2 -> CO2 + 2H2O}
+$$
+
+$$
+\ce{NaCl <=> Na+ + Cl-}
+$$
+```
+
+显示效果：
+$$
+\ce{2H2 + O2 -> 2H2O}
+$$
+
+$$
+\ce{CH4 + 2O2 -> CO2 + 2H2O}
+$$
+
+$$
+\ce{NaCl <=> Na+ + Cl-}
+$$
+
+## 实用技巧和最佳实践
+
+### 1. 代码组织和可读性
+
+**良好做法**：
+```latex
+% 使用注释说明复杂公式
+$$
+\begin{align}
+    % 动能公式
+    E_k &= \frac{1}{2}mv^2 \\
+    % 势能公式
+    E_p &= mgh
+\end{align}
+$$
+```
+
+### 2. 错误处理和调试
+
+常见错误及解决方法：
+- **缺失花括号**：`x^2` ✅  vs `x^2` ❌
+- **转义字符**：使用 `\` 转义特殊字符
+- **括号匹配**：确保所有 `{ }`、`( )`、`[ ]` 成对出现
+
+### 3. 性能优化
+
+- 对于复杂公式，考虑拆分成多个简单公式
+- 避免过度嵌套，保持公式结构清晰
+- 使用别名简化重复的复杂表达式
+
+### 4. 跨平台兼容性
+
+不同渲染引擎可能支持不同的 LaTeX 特性：
+- **MathJax**：功能最全，支持大多数 LaTeX 命令
+- **KaTeX**：渲染速度快，但功能相对较少
+- **原生 LaTeX**：功能完整，但需要 LaTeX 环境
+
+### 5. 实用工具推荐
+
+1. **在线 LaTeX 编辑器**：Overleaf, LaTeX Base
+2. **公式识别工具**：Mathpix Snip
+3. **本地 LaTeX 环境**：TeX Live, MiKTeX
+4. **浏览器插件**：TeX All the Things
+
+## 总结
+
+通过本文的完整学习，您应该能够：
+- 熟练使用基本数学符号和公式
+- 掌握矩阵、向量、方程组等复杂结构的编写
+- 了解微分方程、概率统计等高级数学公式
+- 运用字体样式、间距调整等排版技巧
+- 配置 VitePress 支持数学公式渲染
+- 理解完整的 LaTeX 文档结构
+- 创建自定义命令和环境
+- 使用各种 LaTeX 包和扩展功能
+- 进行有效的错误调试和代码组织
+
+LaTeX 是一个功能强大的排版系统，熟练掌握将极大提升您的文档质量。建议从简单文档开始，逐步掌握更高级的功能。多练习、多参考优秀代码，是学习 LaTeX 的最佳途径。
 
