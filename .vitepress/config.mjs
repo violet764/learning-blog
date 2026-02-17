@@ -72,6 +72,7 @@ export default withMermaid(
         items: [
           { text: 'Python', link: '/notes/language/python/' },
           { text: 'C++', link: '/notes/language/c++/' },
+          { text: 'Rust', link: '/notes/language/rust/' },
           { text: 'Markdown', link: '/notes/language/markdown/' }
         ] 
       },
@@ -170,9 +171,10 @@ export default withMermaid(
           { text: '变量', link: '/notes/language/python/基础_变量.md' },
           { text: '容器(列表，元组，集合）', link: '/notes/language/python/基础_容器1.md' },
           { text: '容器(字典，字符串）', link: '/notes/language/python/基础_容器2.md' },
-          { text: '面向对象', link: '/notes/language/python/基础_函数与类.md' },
+          { text: '函数', link: '/notes/language/python/基础_函数.md' },
+          { text: '面向对象', link: '/notes/language/python/基础_面向对象.md' },
+          { text: '异常处理', link: '/notes/language/python/基础_异常处理.md' },
           { text: '常用标准库', link: '/notes/language/python/常用库.md' },
-          { text: '装饰器', link: '/notes/language/python/基础_装饰器.md' },
           { text: '文件操作', link: '/notes/language/python/基础_文件操作.md' },
           { text: '正则表达式', link: '/notes/language/python/正则.md' },
           { text: 'Numpy', link: '/notes/language/python/numpy.md' },
@@ -189,15 +191,16 @@ export default withMermaid(
           collapsible: true,
           items: [
             { text: '导览', link: '/notes/language/c++/index.md' },
-            { text: '基础语法', link: '/notes/language/c++/basic.md' },
-            { text: '函数与内存', link: '/notes/language/c++/func.md' },
-            { text: '面向对象', link: '/notes/language/c++/oop.md' },
-            { text: '进阶语法', link: '/notes/language/c++/advanced.md' },
+            { text: '基础语法1', link: '/notes/language/c++/基础语法1.md' },
+            { text: '基础语法2', link: '/notes/language/c++/基础语法2.md' },
+            { text: '函数与内存', link: '/notes/language/c++/04_数组、字符串与函数.md' },
+            { text: '面向对象', link: '/notes/language/c++/01_面向对象基础.md' },
+            { text: '进阶语法', link: '/notes/language/c++/04_Lambda表达式.md' },
             { text: 'IO流', link: '/notes/language/c++/IO-stream.md' },
             { text: 'C++新特性', link: '/notes/language/c++/new_feature.md' },
-            { text: 'STL容器', link: '/notes/language/c++/stl_container.md' },
-            { text: 'STL算法', link: '/notes/language/c++/algorithm.md' },
-            { text: '多文件管理', link: '/notes/language/c++/project_management.md' },
+            { text: 'STL容器', link: '/notes/language/c++/05_模板（泛型编程）.md' },
+            { text: 'STL算法', link: '/notes/language/c++/06_多线程编程.md' },
+            { text: '多文件管理', link: '/notes/language/c++/01_编译器（GCC-Clang-MSVC）.md' },
           ]
         }],
 
@@ -216,7 +219,25 @@ export default withMermaid(
         },
       ],
 
+        '/notes/language/rust/': [
+        {
+          text: 'Rust',
+          collapsible: true,
+          items: 
+          [ { text: '导览', link: '/notes/language/rust/index.md' },
+            { text: '初识 Rust', link: '/notes/language/rust/01_rust_intro.md' },
+            { text: '基础语法', link: '/notes/language/rust/02_basic_syntax.md' },
+            { text: '所有权', link: '/notes/language/rust/03_ownership_borrowing.md' },
+            { text: '结构体', link: '/notes/language/rust/04_struct_enum.md' },
+            { text: '泛型', link: '/notes/language/rust/05_generic_trait.md' },
+            { text: '包管理', link: '/notes/language/rust/06_module_concurrency.md' },
+            { text: '性能优化', link: '/notes/language/rust/07_project_optimization.md' },
+            { text: '不安全Rust', link: '/notes/language/rust/08_unsafe_ecosystem.md' },
 
+          
+          ]
+        },
+      ],
       // 机器学习分类侧边栏
       '/notes/machine-learning/': [
         {

@@ -537,6 +537,40 @@ flowchart TD
     C --> E[结束]
 ```
 
+### 使用vue代码
+
+- 对于逻辑复杂、需要跨文档复用的交互组件，推荐抽离为独立 Vue 文件：
+- 在 VitePress 项目的 theme 目录下新建 components 文件夹，创建 .vue 后缀的组件文件；
+- 可以直接调用文件如：
+```javascript
+<script setup>
+import BfsAnimation from '/.vitepress/theme/components/BFSAnimation.vue'
+</script>
+
+<!-- 使用组件 -->
+<BfsAnimation />
+```
+
+效果如下：
+<script setup>
+import BFSAnimation from '/.vitepress/theme/components/BFSAnimation.vue'
+</script>
+
+<!-- 使用组件 -->
+<BFSAnimation />
+
+在 Markdown 正文区域直接使用组件标签即可渲染。
+
+- 也可以在theme 文件夹下的index.js 文件中 import 文件，并注册为全局组件即可；
+
+```javascript
+import BFSAnimation from '/.vitepress/theme/components/BFSAnimation.vue'
+export default { 
+  enhanceApp(ctx) {
+    ctx.app.component('BFSAnimation', BFSAnimation)
+  }
+}
+```
 ### 分割线美化
 ```markdown
 <div style="height: 2px; background: linear-gradient(to right, #FF85C0, #2196F3, #4CAF50); border-radius: 1px; margin: 20px 0;"></div>
