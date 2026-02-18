@@ -349,12 +349,13 @@ criterion_main!(benches);
 cargo bench --bench fibonacci
 
 # 查看 HTML 报告
-# target/criterion/
+# target/criterion/  
+
 ```
 
 ### 内存管理
 
-#### Box<T> - 堆分配
+#### Box&lt;T&gt; - 堆分配
 
 ```rust
 // 栈上分配
@@ -365,14 +366,14 @@ let x = Box::new(5);
 
 // 递归类型需要 Box
 enum List {
-    Cons(i32, Box<List>),
+    Cons(i32, Box&lt;List&gt;),
     Nil,
 }
 
 let list = List::Cons(1, Box::new(List::Cons(2, Box::new(List::Nil))));
 ```
 
-#### Rc<T> - 引用计数
+#### Rc&lt;T&gt; - 引用计数
 
 ```rust
 use std::rc::Rc;
@@ -385,7 +386,7 @@ let clone2 = Rc::clone(&data);
 println!("引用计数: {}", Rc::strong_count(&data));  // 3
 ```
 
-#### Arc<T> - 原子引用计数（多线程）
+#### Arc&lt;T&gt; - 原子引用计数（多线程）
 
 ```rust
 use std::sync::Arc;
@@ -405,7 +406,7 @@ for handle in handles {
 }
 ```
 
-#### RefCell<T> - 内部可变性
+#### RefCell&lt;T&gt; - 内部可变性
 
 ```rust
 use std::cell::RefCell;
@@ -421,7 +422,7 @@ let mut borrowed = x.borrow_mut();
 borrowed.push(4);
 ```
 
-#### 组合：Rc<RefCell<T>>
+#### 组合：Rc&lt;RefCell&lt;T&gt;&gt;
 
 ```rust
 use std::cell::RefCell;
@@ -430,7 +431,7 @@ use std::rc::Rc;
 #[derive(Debug)]
 struct Node {
     value: i32,
-    children: Vec<Rc<RefCell<Node>>>,
+    children: Vec&lt;Rc&lt;RefCell&lt;Node&gt;&gt;,
 }
 
 let leaf = Rc::new(RefCell::new(Node {

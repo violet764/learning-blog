@@ -222,7 +222,7 @@ let set: HashSet<MyStruct> = HashSet::new();
 
 ## 集合类型
 
-### Vec<T> 动态数组
+### Vec&lt;T&gt; 动态数组
 
 ```rust
 // 创建
@@ -280,7 +280,7 @@ let v2 = vec![3, 4];
 v1.extend(v2);  // v1: [1, 2, 3, 4]
 ```
 
-### HashMap<K, V>
+### HashMap&lt;K, V&gt;
 
 ```rust
 use std::collections::HashMap;
@@ -465,9 +465,9 @@ let all_big = v.iter().all(|&x| x > 0);   // true
 4. **常用内置 Trait**：Debug、Clone、Copy、Eq、Ord 等
 
 ### 集合类型
-1. **Vec<T>**：动态数组，最常用
+1. **Vec&lt;T&gt;**：动态数组，最常用
 2. **HashMap<K, V>**：键值对映射
-3. **HashSet<T>**：无序集合
+3. **HashSet&lt;T&gt;**：无序集合
 4. **迭代器**：惰性操作的函数式风格
 
 ### 迭代器

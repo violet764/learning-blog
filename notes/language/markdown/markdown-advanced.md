@@ -579,5 +579,11 @@ export default {
 <div style="height: 2px; background: linear-gradient(to right, #FF85C0, #2196F3, #4CAF50); border-radius: 1px; margin: 20px 0;"></div>
 
 
+### TIPS
+
+在文件中不要使用如 `< xxx >` 这样的标签 ，会被解析为html标签，导致报错，使用 ` &lt; xxx &gt;` 代替。
+显示为  &lt; Markdown &gt;
+
+
 
 
