@@ -9,3 +9,4 @@ prompt.txt
 *.local
 *.idea
 .gitignore
+*everything-claude-code

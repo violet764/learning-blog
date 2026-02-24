@@ -16,6 +16,10 @@ import AStarSearch from './components/AStarSearch.vue'
 import KMPSearch from './components/KMPSearch.vue'
 import DFSAnimation from './components/DFSAnimation.vue'
 import DijkstraAnimation from './components/DijkstraAnimation.vue'
+import TrieAnimation from './components/TrieAnimation.vue'
+import BITAnimation from './components/BITAnimation.vue'
+import SegmentTreeAnimation from './components/SegmentTreeAnimation.vue'
+import UnionFindAnimation from './components/UnionFindAnimation.vue'
 import FloydAnimation from './components/FloydAnimation.vue'
 import './style.css'
 
@@ -50,6 +54,10 @@ export default {
     ctx.app.component('KMPSearch', KMPSearch)
     ctx.app.component('DFSAnimation', DFSAnimation)
     ctx.app.component('DijkstraAnimation', DijkstraAnimation)
+    ctx.app.component('TrieAnimation', TrieAnimation)
+    ctx.app.component('BITAnimation', BITAnimation)
+    ctx.app.component('SegmentTreeAnimation', SegmentTreeAnimation)
+    ctx.app.component('UnionFindAnimation', UnionFindAnimation)
     ctx.app.component('FloydAnimation', FloydAnimation)
     // 可以在所有页面中添加点击效果
     if (typeof window !== 'undefined') {
