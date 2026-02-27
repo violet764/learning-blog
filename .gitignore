@@ -10,3 +10,4 @@ prompt.txt
 *.idea
 .gitignore
 *everything-claude-code
+a.py
