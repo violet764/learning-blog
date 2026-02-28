@@ -111,7 +111,10 @@ export default withMermaid(
       { text: '强化学习', 
         items:[
         { text: '导览', link: '/notes/reinforcement-learning/index.md' },
-        { text: '强化学习', link: '/notes/reinforcement-learning/rl-basics.md' },
+        { text: '强化学习基础', link: '/notes/reinforcement-learning/rl-basics.md' },
+        { text: 'DQN与函数逼近', link: '/notes/reinforcement-learning/function-approximation.md' },
+        { text: 'PPO/SAC/TD3', link: '/notes/reinforcement-learning/modern-algorithms.md' },
+        { text: 'RLHF与大模型', link: '/notes/reinforcement-learning/llm-rl.md' },
         ]
       },
 
@@ -377,15 +380,39 @@ export default withMermaid(
       // 强化学习侧边栏
       '/notes/reinforcement-learning/': [
         { text: '导览', link: '/notes/reinforcement-learning/index.md' },
-        { text: '强化学习基础入门', link: '/notes/reinforcement-learning/rl-basics.md' },
-        { text: '表格型方法详解', link: '/notes/reinforcement-learning/tabular-methods.md' },
-        { text: '函数逼近与深度强化学习', link: '/notes/reinforcement-learning/function-approximation.md' },
-        { text: '策略梯度方法详解', link: '/notes/reinforcement-learning/policy-gradient.md' },
-        { text: '现代强化学习算法', link: '/notes/reinforcement-learning/modern-algorithms.md' },
-        { text: '多智能体强化学习', link: '/notes/reinforcement-learning/multi-agent-rl.md' },
-        { text: '大模型强化学习', link: '/notes/reinforcement-learning/llm-rl.md' },
-        { text: '强化学习实战环境', link: '/notes/reinforcement-learning/rl-environments.md' },
-        { text: '工程实践', link: '/notes/reinforcement-learning/rl-engineering.md' },
+        {
+          text: '基础理论',
+          collapsible: true,
+          items: [
+            { text: '强化学习基础', link: '/notes/reinforcement-learning/rl-basics.md' },
+            { text: '表格型方法', link: '/notes/reinforcement-learning/tabular-methods.md' },
+          ]
+        },
+        {
+          text: '深度强化学习',
+          collapsible: true,
+          items: [
+            { text: '函数逼近与DQN', link: '/notes/reinforcement-learning/function-approximation.md' },
+            { text: '策略梯度方法', link: '/notes/reinforcement-learning/policy-gradient.md' },
+            { text: '现代算法(PPO/SAC/TD3)', link: '/notes/reinforcement-learning/modern-algorithms.md' },
+          ]
+        },
+        {
+          text: '前沿应用',
+          collapsible: true,
+          items: [
+            { text: '多智能体RL', link: '/notes/reinforcement-learning/multi-agent-rl.md' },
+            { text: '大模型RL(RLHF)', link: '/notes/reinforcement-learning/llm-rl.md' },
+          ]
+        },
+        {
+          text: '工程实践',
+          collapsible: true,
+          items: [
+            { text: '实战环境', link: '/notes/reinforcement-learning/rl-environments.md' },
+            { text: '工程实践', link: '/notes/reinforcement-learning/rl-engineering.md' },
+          ]
+        },
       ],
 
       // 算法与刷题侧边栏（对齐首页Feature）

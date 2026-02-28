@@ -1,235 +1,499 @@
 # 强化学习工程实践
 
-## 章节概述
-本章将介绍强化学习的工程实践，包括系统架构设计、实验管理、超参数调优、模型部署和性能监控等。良好的工程实践是强化学习项目成功的关键，能够显著提高开发效率和系统可靠性。
+本章介绍强化学习的工程实践，包括系统架构设计、实验管理、超参数调优、模型部署和性能监控等。良好的工程实践是强化学习项目成功的关键。
 
-## 核心知识点
+## 项目结构
 
-### 1. 强化学习系统架构
+### 推荐目录结构
 
-#### 1.1 分布式训练架构
-```python
-class DistributedRLSystem:
-    """分布式强化学习系统"""
-    def __init__(self, num_workers=4):
-        self.num_workers = num_workers
-        self.workers = []
-        
-        # 中央经验缓冲区
-        self.replay_buffer = ReplayBuffer(capacity=1000000)
-        
-        # 中央模型
-        self.central_model = DQN(state_dim=4, action_dim=2)
-        
-    def start_training(self):
-        """启动分布式训练"""
-        # 启动工作进程
-        for i in range(self.num_workers):
-            worker = Process(target=self.worker_loop, args=(i,))
-            worker.start()
-            self.workers.append(worker)
-        
-        # 中央训练循环
-        self.central_training_loop()
-    
-    def worker_loop(self, worker_id):
-        """工作进程循环"""
-        env = gym.make('CartPole-v1')
-        
-        while True:
-            # 获取最新模型参数
-            model_params = self.get_latest_params()
-            
-            # 收集经验
-            experiences = self.collect_experiences(env, model_params)
-            
-            # 发送经验到中央缓冲区
-            self.send_experiences(experiences)
-    
-    def central_training_loop(self):
-        """中央训练循环"""
-        while True:
-            # 从缓冲区采样
-            batch = self.replay_buffer.sample(batch_size=32)
-            
-            # 更新模型
-            loss = self.central_model.update(batch)
-            
-            # 定期保存模型
-            if self.step_count % 1000 == 0:
-                self.save_model()
+```
+rl_project/
+├── configs/                 # 配置文件
+│   ├── default.yaml
+│   └── experiments/
+├── src/
+│   ├── agents/             # 智能体实现
+│   │   ├── __init__.py
+│   │   ├── dqn.py
+│   │   └── ppo.py
+│   ├── environments/       # 环境实现
+│   │   ├── __init__.py
+│   │   └── custom_env.py
+│   ├── networks/           # 网络架构
+│   │   ├── __init__.py
+│   │   └── models.py
+│   ├── utils/              # 工具函数
+│   │   ├── replay_buffer.py
+│   │   └── logger.py
+│   └── train.py            # 训练入口
+├── tests/                  # 测试代码
+├── scripts/                # 脚本
+│   └── run_experiment.sh
+├── requirements.txt
+└── README.md
 ```
 
-### 2. 实验管理与跟踪
+## 配置管理
 
-#### 2.1 实验配置管理
+### 使用 YAML 配置
+
+```yaml
+# configs/default.yaml
+algorithm: PPO
+env:
+  name: CartPole-v1
+  max_episode_steps: 500
+
+training:
+  total_timesteps: 100000
+  learning_rate: 3e-4
+  batch_size: 64
+  gamma: 0.99
+  
+ppo:
+  clip_epsilon: 0.2
+  gae_lambda: 0.95
+  epochs: 10
+
+logging:
+  log_dir: ./logs
+  save_freq: 10000
+  eval_freq: 5000
+```
+
+### 配置加载
+
 ```python
 import yaml
 from dataclasses import dataclass
+from typing import Optional
 
 @dataclass
-class ExperimentConfig:
-    """实验配置"""
+class TrainingConfig:
+    """训练配置"""
     algorithm: str
     env_name: str
     learning_rate: float
-    gamma: float
     batch_size: int
-    max_episodes: int
+    gamma: float
+    total_timesteps: int
     
     @classmethod
-    def from_yaml(cls, config_path):
-        with open(config_path, 'r') as f:
-            config_dict = yaml.safe_load(f)
-        return cls(**config_dict)
+    def from_yaml(cls, path: str):
+        with open(path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        return cls(
+            algorithm=config['algorithm'],
+            env_name=config['env']['name'],
+            learning_rate=config['training']['learning_rate'],
+            batch_size=config['training']['batch_size'],
+            gamma=config['training']['gamma'],
+            total_timesteps=config['training']['total_timesteps']
+        )
     
-    def to_yaml(self, config_path):
-        with open(config_path, 'w') as f:
-            yaml.dump(self.__dict__, f)
+    def to_dict(self):
+        return self.__dict__
 
-# 示例配置
-config = ExperimentConfig(
-    algorithm="PPO",
-    env_name="CartPole-v1",
-    learning_rate=3e-4,
-    gamma=0.99,
-    batch_size=64,
-    max_episodes=10000
-)
+
+# 使用
+config = TrainingConfig.from_yaml('configs/default.yaml')
+print(config)
 ```
 
-#### 2.2 实验跟踪（W&B集成）
+## 实验跟踪
+
+### TensorBoard 集成
+
+```python
+from torch.utils.tensorboard import SummaryWriter
+import numpy as np
+
+class RLLogger:
+    """强化学习日志记录器"""
+    def __init__(self, log_dir: str):
+        self.writer = SummaryWriter(log_dir)
+        self.episode_rewards = []
+        self.episode_lengths = []
+    
+    def log_step(self, step: int, metrics: dict):
+        """记录单步指标"""
+        for key, value in metrics.items():
+            self.writer.add_scalar(f'train/{key}', value, step)
+    
+    def log_episode(self, episode: int, reward: float, length: int):
+        """记录回合信息"""
+        self.episode_rewards.append(reward)
+        self.episode_lengths.append(length)
+        
+        self.writer.add_scalar('episode/reward', reward, episode)
+        self.writer.add_scalar('episode/length', length, episode)
+        
+        # 滑动平均
+        if len(self.episode_rewards) >= 100:
+            avg_reward = np.mean(self.episode_rewards[-100:])
+            avg_length = np.mean(self.episode_lengths[-100:])
+            self.writer.add_scalar('episode/avg_reward_100', avg_reward, episode)
+            self.writer.add_scalar('episode/avg_length_100', avg_length, episode)
+    
+    def log_hyperparams(self, config: dict):
+        """记录超参数"""
+        self.writer.add_hparams(config, {})
+    
+    def log_model(self, model, step: int):
+        """记录模型"""
+        for name, param in model.named_parameters():
+            self.writer.add_histogram(f'parameters/{name}', param, step)
+    
+    def close(self):
+        self.writer.close()
+```
+
+### Weights & Biases 集成
+
 ```python
 import wandb
 
-class ExperimentTracker:
-    """实验跟踪器"""
-    def __init__(self, project_name, config):
-        wandb.init(project=project_name, config=config)
-        self.step = 0
+class WandBLogger:
+    """W&B 日志记录器"""
+    def __init__(self, project: str, config: dict, name: str = None):
+        wandb.init(
+            project=project,
+            config=config,
+            name=name
+        )
     
-    def log_metrics(self, metrics):
-        """记录指标"""
-        wandb.log(metrics, step=self.step)
-        self.step += 1
+    def log(self, metrics: dict, step: int = None):
+        wandb.log(metrics, step=step)
     
-    def log_model(self, model, model_name):
-        """记录模型"""
-        torch.save(model.state_dict(), f"{model_name}.pth")
-        wandb.save(f"{model_name}.pth")
+    def log_model(self, model, name: str):
+        torch.save(model.state_dict(), f'{name}.pt')
+        wandb.save(f'{name}.pt')
     
     def finish(self):
         wandb.finish()
 
-# 使用示例
-tracker = ExperimentTracker("rl-baselines", config.__dict__)
 
-for episode in range(config.max_episodes):
-    # 训练逻辑...
-    episode_reward = train_episode()
-    
-    # 记录指标
-    tracker.log_metrics({
-        "episode_reward": episode_reward,
-        "epsilon": agent.epsilon
-    })
+# 使用
+logger = WandBLogger(
+    project='rl-baselines',
+    config=config.to_dict(),
+    name='ppo-cartpole-v1'
+)
+
+# 训练循环中
+logger.log({'reward': episode_reward, 'length': episode_length}, step=total_steps)
 ```
 
-### 3. 超参数优化
+## 超参数调优
 
-#### 3.1 网格搜索
+### 网格搜索
+
 ```python
 from itertools import product
 
-def grid_search():
-    """网格搜索超参数"""
-    learning_rates = [1e-3, 3e-4, 1e-4]
-    gammas = [0.9, 0.95, 0.99]
-    batch_sizes = [32, 64, 128]
-    
+def grid_search(env_name, param_grid, train_fn, eval_episodes=10):
+    """网格搜索"""
     best_reward = -float('inf')
     best_params = None
+    results = []
     
-    for lr, gamma, batch_size in product(learning_rates, gammas, batch_sizes):
-        print(f"测试参数: lr={lr}, gamma={gamma}, batch_size={batch_size}")
+    # 生成所有参数组合
+    param_names = list(param_grid.keys())
+    param_values = list(param_grid.values())
+    
+    for values in product(*param_values):
+        params = dict(zip(param_names, values))
+        print(f"Testing: {params}")
         
-        # 使用当前参数训练
-        agent = DQNAgent(learning_rate=lr, gamma=gamma, batch_size=batch_size)
-        avg_reward = evaluate_agent(agent, episodes=10)
+        # 训练模型
+        agent = train_fn(env_name, params)
+        
+        # 评估
+        avg_reward = evaluate(agent, env_name, episodes=eval_episodes)
+        
+        results.append({**params, 'reward': avg_reward})
         
         if avg_reward > best_reward:
             best_reward = avg_reward
-            best_params = (lr, gamma, batch_size)
+            best_params = params
     
-    print(f"最佳参数: {best_params}, 最佳奖励: {best_reward}")
-    return best_params
+    print(f"\nBest params: {best_params}")
+    print(f"Best reward: {best_reward:.2f}")
+    
+    return best_params, results
+
+
+# 定义搜索空间
+param_grid = {
+    'learning_rate': [1e-4, 3e-4, 1e-3],
+    'batch_size': [32, 64, 128],
+    'gamma': [0.95, 0.99, 0.999]
+}
+
+best_params, results = grid_search('CartPole-v1', param_grid, train_ppo)
 ```
 
-#### 3.2 贝叶斯优化
+### Optuna 调优
+
 ```python
-from skopt import gp_minimize
-from skopt.space import Real, Integer
+import optuna
 
-def bayesian_optimization():
-    """贝叶斯优化超参数"""
+def objective(trial):
+    """Optuna 目标函数"""
     # 定义搜索空间
-    space = [
-        Real(1e-5, 1e-2, name='learning_rate'),
-        Real(0.8, 0.999, name='gamma'),
-        Integer(16, 256, name='batch_size')
-    ]
+    learning_rate = trial.suggest_float('learning_rate', 1e-5, 1e-3, log=True)
+    batch_size = trial.suggest_categorical('batch_size', [32, 64, 128, 256])
+    gamma = trial.suggest_float('gamma', 0.9, 0.999)
+    clip_epsilon = trial.suggest_float('clip_epsilon', 0.1, 0.3)
     
-    def objective(params):
-        lr, gamma, batch_size = params
-        
-        # 负奖励作为目标（最小化）
-        agent = DQNAgent(learning_rate=lr, gamma=gamma, batch_size=batch_size)
-        avg_reward = evaluate_agent(agent, episodes=5)
-        
-        return -avg_reward  # 最小化负奖励
+    # 训练
+    config = {
+        'learning_rate': learning_rate,
+        'batch_size': batch_size,
+        'gamma': gamma,
+        'clip_epsilon': clip_epsilon
+    }
     
-    result = gp_minimize(objective, space, n_calls=50, random_state=42)
+    agent = train_ppo('CartPole-v1', config, total_timesteps=50000)
+    avg_reward = evaluate(agent, 'CartPole-v1', episodes=10)
     
-    print(f"最佳参数: {result.x}")
-    print(f"最佳奖励: {-result.fun}")
-    
-    return result.x
+    return avg_reward
+
+
+# 运行优化
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=50)
+
+print(f"Best params: {study.best_params}")
+print(f"Best value: {study.best_value}")
 ```
 
-### 4. 模型部署与监控
+## 模型保存与加载
 
-#### 4.1 模型服务化
+```python
+import torch
+import os
+
+class ModelCheckpoint:
+    """模型检查点管理"""
+    def __init__(self, save_dir: str, max_to_keep: int = 5):
+        self.save_dir = save_dir
+        self.max_to_keep = max_to_keep
+        self.saved_models = []
+        
+        os.makedirs(save_dir, exist_ok=True)
+    
+    def save(self, model, optimizer, step: int, metrics: dict):
+        """保存模型"""
+        filename = f'model_step_{step}.pt'
+        path = os.path.join(self.save_dir, filename)
+        
+        torch.save({
+            'step': step,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'metrics': metrics
+        }, path)
+        
+        self.saved_models.append(path)
+        
+        # 删除旧模型
+        while len(self.saved_models) > self.max_to_keep:
+            old_path = self.saved_models.pop(0)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        
+        # 同时保存最佳模型
+        if metrics.get('is_best', False):
+            best_path = os.path.join(self.save_dir, 'best_model.pt')
+            torch.save({
+                'step': step,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'metrics': metrics
+            }, best_path)
+    
+    def load_latest(self, model, optimizer):
+        """加载最新模型"""
+        if not self.saved_models:
+            return None
+        
+        latest_path = self.saved_models[-1]
+        checkpoint = torch.load(latest_path)
+        
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        
+        return checkpoint['step'], checkpoint['metrics']
+    
+    def load_best(self, model, optimizer):
+        """加载最佳模型"""
+        best_path = os.path.join(self.save_dir, 'best_model.pt')
+        
+        if not os.path.exists(best_path):
+            return None
+        
+        checkpoint = torch.load(best_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        
+        return checkpoint['step'], checkpoint['metrics']
+```
+
+## 分布式训练
+
+### 数据并行
+
+```python
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+def train_worker(rank, world_size, env_name, shared_model, optimizer):
+    """分布式训练工作进程"""
+    # 初始化进程组
+    dist.init_process_group('gloo', rank=rank, world_size=world_size)
+    
+    # 创建环境
+    env = gym.make(env_name)
+    
+    # 包装模型
+    model = DDP(shared_model)
+    
+    # 训练循环
+    for episode in range(1000):
+        # ... 收集经验 ...
+        
+        # 同步更新
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+
+def distributed_train(env_name, num_workers=4):
+    """启动分布式训练"""
+    world_size = num_workers
+    
+    # 创建共享模型
+    model = DQN(state_dim=4, action_dim=2)
+    model.share_memory()  # 共享内存
+    
+    optimizer = torch.optim.Adam(model.parameters())
+    
+    # 启动工作进程
+    mp.spawn(
+        train_worker,
+        args=(world_size, env_name, model, optimizer),
+        nprocs=world_size
+    )
+```
+
+### 经验收集并行
+
+```python
+from multiprocessing import Process, Queue
+
+def collect_worker(env_name, policy_queue, experience_queue, worker_id):
+    """经验收集工作进程"""
+    env = gym.make(env_name)
+    
+    while True:
+        # 获取最新策略参数
+        policy_params = policy_queue.get()
+        if policy_params is None:
+            break
+        
+        # 收集经验
+        experiences = []
+        state = env.reset()
+        
+        for _ in range(1000):
+            action = select_action(state, policy_params)
+            next_state, reward, done, _ = env.step(action)
+            experiences.append((state, action, reward, next_state, done))
+            state = next_state
+            
+            if done:
+                state = env.reset()
+        
+        experience_queue.put(experiences)
+
+
+class ParallelCollector:
+    """并行经验收集器"""
+    def __init__(self, env_name, num_workers=4):
+        self.policy_queue = Queue()
+        self.experience_queue = Queue()
+        
+        self.workers = [
+            Process(
+                target=collect_worker,
+                args=(env_name, self.policy_queue, self.experience_queue, i)
+            )
+            for i in range(num_workers)
+        ]
+        
+        for w in self.workers:
+            w.start()
+    
+    def collect(self, policy_params):
+        """收集经验"""
+        # 发送策略参数
+        for _ in range(len(self.workers)):
+            self.policy_queue.put(policy_params)
+        
+        # 收集经验
+        all_experiences = []
+        for _ in range(len(self.workers)):
+            experiences = self.experience_queue.get()
+            all_experiences.extend(experiences)
+        
+        return all_experiences
+    
+    def close(self):
+        for _ in range(len(self.workers)):
+            self.policy_queue.put(None)
+        for w in self.workers:
+            w.join()
+```
+
+## 模型部署
+
+### Flask API 服务
+
 ```python
 from flask import Flask, request, jsonify
 import torch
 
 app = Flask(__name__)
 
-class RLModelServer:
-    """强化学习模型服务"""
+class RLService:
+    """强化学习服务"""
     def __init__(self, model_path):
         self.model = DQN(state_dim=4, action_dim=2)
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
     
     def predict(self, state):
-        """预测动作"""
         with torch.no_grad():
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
             q_values = self.model(state_tensor)
-            action = q_values.max(1)[1].item()
-        
+            action = q_values.argmax(1).item()
         return action
 
-# 初始化服务
-model_server = RLModelServer("best_model.pth")
+service = None
+
+@app.before_first_request
+def init_service():
+    global service
+    service = RLService('best_model.pt')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
     state = data['state']
     
-    action = model_server.predict(state)
+    action = service.predict(state)
     
     return jsonify({'action': action})
 
@@ -241,153 +505,138 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-#### 4.2 性能监控
-```python
-import psutil
-import time
+### ONNX 导出
 
-class PerformanceMonitor:
-    """性能监控器"""
-    def __init__(self):
-        self.metrics = {
-            'cpu_usage': [],
-            'memory_usage': [],
-            'inference_time': []
+```python
+def export_to_onnx(model, state_dim, output_path):
+    """导出为 ONNX 格式"""
+    model.eval()
+    
+    dummy_input = torch.randn(1, state_dim)
+    
+    torch.onnx.export(
+        model,
+        dummy_input,
+        output_path,
+        input_names=['state'],
+        output_names=['q_values'],
+        dynamic_axes={
+            'state': {0: 'batch_size'},
+            'q_values': {0: 'batch_size'}
         }
+    )
     
-    def start_monitoring(self):
-        """开始监控"""
-        self.running = True
-        
-        while self.running:
-            # CPU使用率
-            cpu_percent = psutil.cpu_percent(interval=1)
-            self.metrics['cpu_usage'].append(cpu_percent)
-            
-            # 内存使用
-            memory_info = psutil.virtual_memory()
-            self.metrics['memory_usage'].append(memory_info.percent)
-            
-            time.sleep(5)  # 每5秒记录一次
-    
-    def record_inference(self, inference_time):
-        """记录推理时间"""
-        self.metrics['inference_time'].append(inference_time)
-    
-    def get_summary(self):
-        """获取性能摘要"""
-        summary = {}
-        
-        for metric, values in self.metrics.items():
-            if values:
-                summary[f'{metric}_mean'] = np.mean(values)
-                summary[f'{metric}_max'] = np.max(values)
-                summary[f'{metric}_min'] = np.min(values)
-        
-        return summary
+    print(f"Model exported to {output_path}")
+
+
+# 导出
+export_to_onnx(trained_model, state_dim=4, output_path='dqn.onnx')
 ```
 
-### 5. 持续集成与测试
+## 单元测试
 
-#### 5.1 单元测试
 ```python
 import unittest
+import torch
+import numpy as np
 
-class TestRLComponents(unittest.TestCase):
-    """强化学习组件测试"""
+class TestReplayBuffer(unittest.TestCase):
+    """测试经验回放缓冲区"""
     
-    def test_replay_buffer(self):
-        """测试经验回放缓冲区"""
-        buffer = ReplayBuffer(capacity=10)
-        
+    def setUp(self):
+        self.buffer = ReplayBuffer(capacity=100)
+    
+    def test_push_and_sample(self):
         # 测试存储
-        for i in range(5):
-            buffer.push(i, i, i, i, False)
+        for i in range(50):
+            self.buffer.push(
+                state=np.zeros(4),
+                action=i,
+                reward=1.0,
+                next_state=np.ones(4),
+                done=False
+            )
         
-        self.assertEqual(len(buffer), 5)
+        self.assertEqual(len(self.buffer), 50)
         
         # 测试采样
-        batch = buffer.sample(3)
-        self.assertEqual(len(batch[0]), 3)
+        batch = self.buffer.sample(10)
+        self.assertEqual(len(batch[0]), 10)
     
-    def test_dqn_update(self):
-        """测试DQN更新"""
+    def test_capacity(self):
+        # 测试容量限制
+        for i in range(150):
+            self.buffer.push(
+                state=np.zeros(4),
+                action=i,
+                reward=1.0,
+                next_state=np.ones(4),
+                done=False
+            )
+        
+        self.assertEqual(len(self.buffer), 100)
+
+
+class TestDQN(unittest.TestCase):
+    """测试 DQN 网络"""
+    
+    def setUp(self):
+        self.model = DQN(state_dim=4, action_dim=2)
+    
+    def test_forward(self):
+        state = torch.randn(10, 4)
+        q_values = self.model(state)
+        
+        self.assertEqual(q_values.shape, (10, 2))
+    
+    def test_select_action(self):
         agent = DQNAgent(state_dim=4, action_dim=2)
+        state = np.zeros(4)
         
-        # 添加一些经验
-        for i in range(10):
-            agent.store_transition([0]*4, 0, 1, [0]*4, False)
+        action = agent.select_action(state)
         
-        # 测试更新
-        loss = agent.update()
-        self.assertIsInstance(loss, float)
+        self.assertIn(action, [0, 1])
+
 
 if __name__ == '__main__':
     unittest.main()
 ```
 
-#### 5.2 集成测试
-```python
-def integration_test():
-    """集成测试"""
-    # 测试完整训练流程
-    env = gym.make('CartPole-v1')
-    agent = DQNAgent(state_dim=4, action_dim=2)
-    
-    # 训练几个回合
-    for episode in range(10):
-        state = env.reset()
-        total_reward = 0
-        
-        while True:
-            action = agent.select_action(state)
-            next_state, reward, done, _ = env.step(action)
-            
-            agent.store_transition(state, action, reward, next_state, done)
-            agent.update()
-            
-            total_reward += reward
-            state = next_state
-            
-            if done:
-                break
-        
-        print(f"Episode {episode}: Reward {total_reward}")
-    
-    # 验证模型能够预测
-    test_state = env.reset()
-    action = agent.select_action(test_state)
-    assert action in [0, 1], "动作应该在有效范围内"
-    
-    print("集成测试通过!")
-```
+## 核心要点
 
-## 工程最佳实践
+### 工程最佳实践
 
-### 代码组织
-```
-rl_project/
-├── src/
-│   ├── agents/          # 智能体实现
-│   ├── environments/    # 环境实现
-│   ├── networks/        # 网络架构
-│   └── utils/          # 工具函数
-├── configs/            # 配置文件
-├── experiments/        # 实验记录
-├── tests/             # 测试代码
-└── deployment/        # 部署配置
-```
+| 实践 | 说明 |
+|------|------|
+| 配置管理 | 使用 YAML/JSON 分离配置和代码 |
+| 实验跟踪 | 记录所有超参数和指标 |
+| 版本控制 | Git 管理代码，DVC 管理数据 |
+| 模型检查点 | 定期保存，保留最佳模型 |
+| 单元测试 | 测试关键组件 |
 
-### 版本控制
-- 使用Git进行版本控制
-- 为每个实验创建独立分支
-- 使用标签标记重要版本
+### 调试技巧
 
-### 文档编写
-- 为每个模块编写文档字符串
-- 维护README文件说明项目结构
-- 记录实验设置和结果
+| 问题 | 排查方法 |
+|------|----------|
+| 训练不稳定 | 检查梯度、学习率、奖励尺度 |
+| 不收敛 | 检查网络架构、探索策略 |
+| 内存溢出 | 减小 batch_size，使用经验回放 |
+
+## 学习建议
+
+### 实践要点
+
+1. **从小项目开始**：先跑通简单环境和算法
+2. **记录一切**：日志、配置、实验结果
+3. **模块化设计**：便于复用和调试
+
+### 后续方向
+
+- **大规模训练**：分布式、多 GPU
+- **生产部署**：模型压缩、推理优化
+- **持续学习**：在线更新、A/B 测试
 
 ---
 
-**下一章**：前沿应用与未来发展
+**上一章**：[强化学习实战环境](./rl-environments.md)  
+**返回**：[强化学习总览](./index.md)

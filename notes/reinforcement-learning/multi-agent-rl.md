@@ -1,396 +1,487 @@
 # 多智能体强化学习
 
-## 章节概述
-本章将介绍多智能体强化学习（MARL），这是强化学习的重要扩展，涉及多个智能体在共享环境中的交互。多智能体系统面临非平稳性、信用分配、通信协调等独特挑战，需要专门的算法和技术来解决。
+本章介绍多智能体强化学习（Multi-Agent Reinforcement Learning, MARL），这是强化学习的重要扩展，涉及多个智能体在共享环境中的协同与竞争。多智能体系统面临非平稳性、信用分配、通信协调等独特挑战。
 
-## 核心知识点
+## 问题定义
 
-### 1. 多智能体问题基础
+### 多智能体 MDP（MMDP）
 
-#### 1.1 多智能体MDP（MMDP）
-扩展MDP到多智能体场景：
-- **联合状态空间**：S = S₁ × S₂ × ... × S_N
-- **联合动作空间**：A = A₁ × A₂ × ... × A_N
-- **联合奖励函数**：R(s, a, s')
+扩展 MDP 到多智能体场景：
 
-#### 1.2 关键挑战
-- **非平稳性**：其他智能体的策略在变化
-- **信用分配**：如何分配联合奖励给各个智能体
-- **可扩展性**：状态动作空间随智能体数量指数增长
-- **通信协调**：智能体间如何有效协作
+$$
+\text{MMDP} = (\mathcal{S}, \mathcal{A}_1 \times \cdots \times \mathcal{A}_N, P, R_1, \ldots, R_N, \gamma)
+$$
 
-### 2. 多智能体算法分类
+| 要素 | 说明 |
+|------|------|
+| 联合状态空间 | $\mathcal{S}$：全局状态 |
+| 联合动作空间 | $\mathcal{A} = \mathcal{A}_1 \times \cdots \times \mathcal{A}_N$ |
+| 状态转移 | $P(s'|s, a_1, \ldots, a_N)$：联合动作决定转移 |
+| 奖励函数 | $R_i(s, a_1, \ldots, a_N)$：每个智能体可能获得不同奖励 |
 
-#### 2.1 完全集中式
-所有智能体共享一个中央控制器：
-```python
-class CentralizedController:
-    def __init__(self, state_dim, action_dims):
-        self.n_agents = len(action_dims)
-        self.total_actions = sum(action_dims)
-        
-        # 集中式策略网络
-        self.policy_net = nn.Sequential(
-            nn.Linear(state_dim, 256),
-            nn.ReLU(),
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.Linear(256, self.total_actions)
-        )
-    
-    def forward(self, joint_state):
-        return self.policy_net(joint_state)
-```
+### 关键挑战
 
-#### 2.2 完全分布式
-每个智能体独立学习：
+| 挑战 | 说明 |
+|------|------|
+| **非平稳性** | 其他智能体的策略在变化，环境不再平稳 |
+| **信用分配** | 如何将联合奖励合理分配给各智能体 |
+| **可扩展性** | 状态-动作空间随智能体数量指数增长 |
+| **通信协调** | 智能体间如何有效交换信息 |
+
+## 学习框架
+
+### 完全分布式（IQL）
+
+每个智能体独立学习，忽略其他智能体：
+
 ```python
 class IndependentQLearning:
-    """独立Q学习"""
-    def __init__(self, n_agents, state_dims, action_dims):
-        self.agents = []
-        for i in range(n_agents):
-            agent = DQNAgent(state_dims[i], action_dims[i])
-            self.agents.append(agent)
+    """独立 Q 学习"""
+    def __init__(self, n_agents, state_dim, action_dim):
+        self.agents = [
+            DQNAgent(state_dim, action_dim) 
+            for _ in range(n_agents)
+        ]
     
     def select_actions(self, states):
-        actions = []
-        for i, agent in enumerate(self.agents):
-            action = agent.select_action(states[i])
-            actions.append(action)
-        return actions
+        return [agent.select_action(s) for agent, s in zip(self.agents, states)]
+    
+    def update(self, experiences):
+        for agent, exp in zip(self.agents, experiences):
+            agent.update(exp)
 ```
 
-#### 2.3 集中训练分散执行（CTDE）
-训练时集中信息，执行时分散决策：
+**优点**：简单、可扩展  
+**缺点**：环境非平稳，收敛性无保证
 
-### 3. 集中训练分散执行框架
+### 集中训练分散执行（CTDE）
 
-#### 3.1 MADDPG算法
-多智能体深度确定性策略梯度：
+训练时利用全局信息，执行时只依赖局部观察：
+
+| 阶段 | 可用信息 |
+|------|----------|
+| 训练 | 全局状态、所有智能体动作 |
+| 执行 | 局部观察 |
+
+这是当前 MARL 的主流框架。
+
+## MADDPG
+
+多智能体深度确定性策略梯度（MADDPG）将 DDPG 扩展到多智能体场景。
+
+### 核心思想
+
+- **Actor**：只使用局部观察，分散执行
+- **Critic**：使用全局状态和所有动作，集中训练
+
 ```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
 class MADDPG:
-    """MADDPG算法"""
-    def __init__(self, n_agents, state_dims, action_dims, 
-                 actor_hidden=64, critic_hidden=64, lr=0.01, gamma=0.95):
+    """MADDPG 算法"""
+    def __init__(self, n_agents, obs_dims, action_dims, hidden_dim=64, 
+                 lr=0.01, gamma=0.95, tau=0.01):
         
         self.n_agents = n_agents
         self.gamma = gamma
+        self.tau = tau
         
-        # 每个智能体的Actor和Critic
+        # 每个智能体的网络
         self.actors = []
         self.critics = []
+        self.actor_targets = []
+        self.critic_targets = []
         self.actor_optimizers = []
         self.critic_optimizers = []
         
+        total_obs_dim = sum(obs_dims)
+        total_action_dim = sum(action_dims)
+        
         for i in range(n_agents):
-            # Actor（分散执行）
-            actor = ActorNetwork(state_dims[i], action_dims[i], actor_hidden)
+            # Actor 网络（分散，只用局部观察）
+            actor = nn.Sequential(
+                nn.Linear(obs_dims[i], hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, action_dims[i]),
+                nn.Tanh()
+            )
             self.actors.append(actor)
+            self.actor_targets.append(self._copy_network(actor))
             self.actor_optimizers.append(optim.Adam(actor.parameters(), lr=lr))
             
-            # Critic（集中训练，输入所有智能体的状态和动作）
-            critic_input_dim = sum(state_dims) + sum(action_dims)
-            critic = CriticNetwork(critic_input_dim, 1, critic_hidden)
+            # Critic 网络（集中，用全局状态和所有动作）
+            critic = nn.Sequential(
+                nn.Linear(total_obs_dim + total_action_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, 1)
+            )
             self.critics.append(critic)
+            self.critic_targets.append(self._copy_network(critic))
             self.critic_optimizers.append(optim.Adam(critic.parameters(), lr=lr))
     
-    def select_actions(self, states):
+    def _copy_network(self, network):
+        """复制网络"""
+        copy = type(network)()
+        copy.load_state_dict(network.state_dict())
+        return copy
+    
+    def select_actions(self, observations, noise_std=0.1):
         """分散执行：每个智能体独立决策"""
         actions = []
-        for i, actor in enumerate(self.actors):
-            state_tensor = torch.FloatTensor(states[i]).unsqueeze(0)
-            action = actor(state_tensor).detach().numpy()[0]
+        for i, (actor, obs) in enumerate(zip(self.actors, observations)):
+            obs_tensor = torch.FloatTensor(obs).unsqueeze(0)
+            action = actor(obs_tensor).detach().numpy()[0]
+            
+            # 添加探索噪声
+            noise = np.random.normal(0, noise_std, size=action.shape)
+            action = np.clip(action + noise, -1, 1)
             actions.append(action)
+        
         return actions
     
     def update(self, batch):
-        """集中训练：使用所有智能体的信息"""
-        states, actions, rewards, next_states, dones = batch
+        """集中训练"""
+        obs, actions, rewards, next_obs, dones = batch
+        
+        # 转换为张量
+        obs = [torch.FloatTensor(o) for o in obs]
+        actions = [torch.FloatTensor(a) for a in actions]
+        rewards = [torch.FloatTensor(r) for r in rewards]
+        next_obs = [torch.FloatTensor(o) for o in next_obs]
+        dones = [torch.FloatTensor(d) for d in dones]
+        
+        # 拼接全局状态和动作
+        global_obs = torch.cat(obs, dim=-1)
+        global_actions = torch.cat(actions, dim=-1)
+        global_next_obs = torch.cat(next_obs, dim=-1)
         
         for i in range(self.n_agents):
-            # 准备Critic输入（所有智能体的状态和动作）
-            critic_input = []
-            next_critic_input = []
+            # 计算目标 Q 值
+            with torch.no_grad():
+                next_actions = [
+                    self.actor_targets[j](next_obs[j]) 
+                    for j in range(self.n_agents)
+                ]
+                global_next_actions = torch.cat(next_actions, dim=-1)
+                target_q = self.critic_targets[i](
+                    torch.cat([global_next_obs, global_next_actions], dim=-1)
+                )
+                target_q = rewards[i] + self.gamma * target_q * (1 - dones[i])
             
-            for j in range(self.n_agents):
-                critic_input.extend(states[j])
-                critic_input.extend(actions[j])
-                
-                # 目标动作（使用目标策略）
-                next_state_tensor = torch.FloatTensor(next_states[j]).unsqueeze(0)
-                next_action = self.actors[j](next_state_tensor).detach().numpy()[0]
-                next_critic_input.extend(next_states[j])
-                next_critic_input.extend(next_action)
-            
-            # Critic更新
-            current_q = self.critics[i](torch.FloatTensor(critic_input).unsqueeze(0))
-            target_q = rewards[i] + self.gamma * self.critics[i](torch.FloatTensor(next_critic_input).unsqueeze(0))
-            critic_loss = nn.MSELoss()(current_q, target_q.detach())
+            # 更新 Critic
+            current_q = self.critics[i](
+                torch.cat([global_obs, global_actions], dim=-1)
+            )
+            critic_loss = nn.MSELoss()(current_q, target_q)
             
             self.critic_optimizers[i].zero_grad()
             critic_loss.backward()
             self.critic_optimizers[i].step()
             
-            # Actor更新
-            actor_loss = -self.critics[i](torch.FloatTensor(critic_input).unsqueeze(0)).mean()
+            # 更新 Actor
+            pred_actions = [
+                self.actors[j](obs[j]) if j == i else actions[j].detach()
+                for j in range(self.n_agents)
+            ]
+            global_pred_actions = torch.cat(pred_actions, dim=-1)
+            actor_loss = -self.critics[i](
+                torch.cat([global_obs, global_pred_actions], dim=-1)
+            ).mean()
+            
             self.actor_optimizers[i].zero_grad()
             actor_loss.backward()
             self.actor_optimizers[i].step()
+            
+            # 软更新目标网络
+            self._soft_update(self.actor_targets[i], self.actors[i])
+            self._soft_update(self.critic_targets[i], self.critics[i])
+    
+    def _soft_update(self, target, source):
+        for target_param, param in zip(target.parameters(), source.parameters()):
+            target_param.data.copy_(
+                self.tau * param.data + (1 - self.tau) * target_param.data
+            )
 ```
 
-#### 3.2 MAPPO算法
-多智能体近端策略优化：
+## MAPPO
+
+多智能体 PPO（MAPPO）是当前最流行的 MARL 算法之一。
+
+### 核心思想
+
+- 使用 PPO 作为基础算法
+- 中心化 Critic，分散化 Actor
+- 简单高效，效果优异
+
 ```python
 class MAPPO:
-    """多智能体PPO"""
-    def __init__(self, n_agents, state_dims, action_dims, 
-                 hidden_dim=64, lr=3e-4, gamma=0.99, clip_epsilon=0.2):
+    """多智能体 PPO"""
+    def __init__(self, n_agents, obs_dims, action_dim, hidden_dim=64,
+                 lr=3e-4, gamma=0.99, gae_lambda=0.95, clip_epsilon=0.2):
         
         self.n_agents = n_agents
         self.gamma = gamma
+        self.gae_lambda = gae_lambda
         self.clip_epsilon = clip_epsilon
         
-        # 每个智能体的Actor-Critic网络
-        self.actors = []
-        self.critics = []
-        self.optimizers = []
+        total_obs_dim = sum(obs_dims)
         
-        for i in range(n_agents):
-            # 中心化Critic，分散化Actor
-            actor = PolicyNetwork(state_dims[i], action_dims[i], hidden_dim)
-            critic = ValueNetwork(sum(state_dims), hidden_dim)  # 输入所有状态
+        # 每个智能体的 Actor（分散）
+        self.actors = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(obs_dims[i], hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, action_dim),
+                nn.Softmax(dim=-1)
+            ) for i in range(n_agents)
+        ])
+        
+        # 共享的中心化 Critic
+        self.critic = nn.Sequential(
+            nn.Linear(total_obs_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1)
+        )
+        
+        self.optimizer = optim.Adam(
+            list(self.actors.parameters()) + list(self.critic.parameters()),
+            lr=lr
+        )
+        
+        # 经验存储
+        self.storage = [[] for _ in range(n_agents)]
+    
+    def select_actions(self, observations):
+        """分散选择动作"""
+        actions = []
+        log_probs = []
+        
+        for i, (actor, obs) in enumerate(zip(self.actors, observations)):
+            obs_tensor = torch.FloatTensor(obs).unsqueeze(0)
+            probs = actor(obs_tensor)
             
-            self.actors.append(actor)
-            self.critics.append(critic)
+            dist = torch.distributions.Categorical(probs)
+            action = dist.sample()
+            log_prob = dist.log_prob(action)
             
-            # 组合优化器
-            params = list(actor.parameters()) + list(critic.parameters())
-            self.optimizers.append(optim.Adam(params, lr=lr))
+            actions.append(action.item())
+            log_probs.append(log_prob.item())
+        
+        return actions, log_probs
     
     def update(self, batch_data):
-        """MAPPO更新"""
-        for i in range(self.n_agents):
-            states, actions, old_log_probs, rewards, next_states, dones = batch_data[i]
-            
-            # 计算优势函数（使用中心化Critic）
-            joint_states = np.concatenate(states, axis=0)  # 所有智能体状态
-            advantages = self.compute_advantages(joint_states, rewards, dones, self.critics[i])
-            
-            # PPO更新（与单智能体PPO类似）
-            self.ppo_update(i, states, actions, old_log_probs, advantages)
+        """更新网络"""
+        # 计算 GAE 和 PPO 更新
+        # 实现类似单智能体 PPO，但 Critic 使用全局状态
+        pass
 ```
 
-### 4. 通信与协调
+## 通信机制
 
-#### 4.1 通信网络
-智能体间传递消息的机制：
+### 显式通信
+
+智能体间传递消息：
+
 ```python
 class CommNetwork(nn.Module):
     """通信网络"""
-    def __init__(self, input_dim, comm_dim, hidden_dim=64):
+    def __init__(self, obs_dim, msg_dim, hidden_dim=64):
         super(CommNetwork, self).__init__()
         
-        self.encoder = nn.Linear(input_dim, hidden_dim)
-        self.comm_layer = nn.Linear(hidden_dim, comm_dim)
-        self.decoder = nn.Linear(hidden_dim + comm_dim * 2, hidden_dim)  # 自身+邻居信息
+        self.encoder = nn.Sequential(
+            nn.Linear(obs_dim, hidden_dim),
+            nn.ReLU()
+        )
         
-    def forward(self, self_state, neighbor_states):
-        # 编码自身状态
-        self_encoded = torch.relu(self.encoder(self_state))
+        self.msg_layer = nn.Linear(hidden_dim, msg_dim)
         
-        # 生成通信消息
-        message = self.comm_layer(self_encoded)
+        self.decoder = nn.Sequential(
+            nn.Linear(hidden_dim + msg_dim, hidden_dim),
+            nn.ReLU()
+        )
+    
+    def forward(self, obs, neighbor_msgs):
+        # 编码自身观察
+        encoded = self.encoder(obs)
         
-        # 聚合邻居信息
-        neighbor_messages = []
-        for neighbor in neighbor_states:
-            neighbor_encoded = torch.relu(self.encoder(neighbor))
-            neighbor_msg = self.comm_layer(neighbor_encoded)
-            neighbor_messages.append(neighbor_msg)
+        # 生成消息
+        msg = self.msg_layer(encoded)
         
-        if neighbor_messages:
-            aggregated_msg = torch.mean(torch.stack(neighbor_messages), dim=0)
+        # 聚合邻居消息
+        if neighbor_msgs:
+            aggregated = torch.mean(torch.stack(neighbor_msgs), dim=0)
         else:
-            aggregated_msg = torch.zeros_like(message)
+            aggregated = torch.zeros_like(msg)
         
-        # 解码（自身信息+邻居信息）
-        combined = torch.cat([self_encoded, message, aggregated_msg], dim=-1)
-        output = torch.relu(self.decoder(combined))
+        # 解码
+        output = self.decoder(torch.cat([encoded, aggregated], dim=-1))
         
-        return output, message
+        return output, msg
 ```
 
-#### 4.2 基于注意力的通信
+### 注意力通信
+
 ```python
-class AttentionComm:
+class AttentionComm(nn.Module):
     """基于注意力的通信"""
     def __init__(self, input_dim, key_dim=64, value_dim=64):
-        self.key_net = nn.Linear(input_dim, key_dim)
-        self.query_net = nn.Linear(input_dim, key_dim)
-        self.value_net = nn.Linear(input_dim, value_dim)
+        super(AttentionComm, self).__init__()
+        
+        self.query = nn.Linear(input_dim, key_dim)
+        self.key = nn.Linear(input_dim, key_dim)
+        self.value = nn.Linear(input_dim, value_dim)
     
-    def forward(self, self_state, other_states):
-        # 生成query, key, value
-        query = self.query_net(self_state)
-        keys = [self.key_net(state) for state in other_states]
-        values = [self.value_net(state) for state in other_states]
+    def forward(self, self_feat, other_feats):
+        # 生成 query, key, value
+        q = self.query(self_feat)
+        keys = torch.stack([self.key(f) for f in other_feats])
+        values = torch.stack([self.value(f) for f in other_feats])
         
-        if keys:
-            keys = torch.stack(keys)
-            values = torch.stack(values)
-            
-            # 计算注意力权重
-            attention_weights = torch.softmax(torch.matmul(query, keys.transpose(0,1)) / np.sqrt(keys.size(-1)), dim=-1)
-            
-            # 加权聚合
-            aggregated = torch.matmul(attention_weights, values)
-        else:
-            aggregated = torch.zeros_like(query)
+        # 计算注意力权重
+        attn = torch.softmax(torch.matmul(q, keys.T) / (keys.size(-1) ** 0.5), dim=-1)
         
-        return aggregated
+        # 加权聚合
+        output = torch.matmul(attn, values)
+        
+        return output
 ```
 
-### 5. 实战应用：多智能体粒子环境
+## 实战：合作导航
 
-#### 5.1 合作导航任务
-多个智能体合作到达目标位置：
 ```python
+import numpy as np
+
 class CooperativeNavigation:
-    """合作导航环境"""
+    """合作导航环境
+    
+    多个智能体合作覆盖所有地标
+    """
     def __init__(self, n_agents=3, n_landmarks=3):
         self.n_agents = n_agents
         self.n_landmarks = n_landmarks
-        
-        # 初始化位置
-        self.agent_positions = np.random.uniform(-1, 1, (n_agents, 2))
-        self.landmark_positions = np.random.uniform(-1, 1, (n_landmarks, 2))
-        
-    def reset(self):
-        self.agent_positions = np.random.uniform(-1, 1, (self.n_agents, 2))
-        return self.get_states()
     
-    def get_states(self):
+    def reset(self):
+        # 随机初始化智能体和地标位置
+        self.agent_pos = np.random.uniform(-1, 1, (self.n_agents, 2))
+        self.landmark_pos = np.random.uniform(-1, 1, (self.n_landmarks, 2))
+        return self._get_obs()
+    
+    def _get_obs(self):
         """获取每个智能体的局部观察"""
-        states = []
+        obs = []
         for i in range(self.n_agents):
-            # 自身位置 + 相对地标位置 + 相对其他智能体位置
-            state = []
-            state.extend(self.agent_positions[i])  # 自身位置
-            
-            # 相对地标位置
-            for landmark in self.landmark_positions:
-                relative_pos = landmark - self.agent_positions[i]
-                state.extend(relative_pos)
-            
-            # 相对其他智能体位置
-            for j in range(self.n_agents):
-                if i != j:
-                    relative_pos = self.agent_positions[j] - self.agent_positions[i]
-                    state.extend(relative_pos)
-                else:
-                    state.extend([0, 0])  # 自身位置为0
-            
-            states.append(np.array(state))
-        return states
+            # 自身位置 + 相对地标位置
+            o = list(self.agent_pos[i])
+            for lm in self.landmark_pos:
+                o.extend(lm - self.agent_pos[i])
+            obs.append(np.array(o))
+        return obs
     
     def step(self, actions):
         """执行动作"""
-        rewards = []
-        
-        # 更新位置（简单的速度控制）
+        # 更新位置
         for i, action in enumerate(actions):
-            self.agent_positions[i] += action * 0.1
-            self.agent_positions[i] = np.clip(self.agent_positions[i], -1, 1)
+            self.agent_pos[i] += action * 0.1
+            self.agent_pos[i] = np.clip(self.agent_pos[i], -1, 1)
         
-        # 计算奖励（鼓励覆盖所有地标）
-        total_reward = 0
-        for landmark in self.landmark_positions:
-            # 找到最近智能体的距离
-            distances = [np.linalg.norm(agent - landmark) for agent in self.agent_positions]
-            min_distance = min(distances)
-            total_reward -= min_distance  # 距离越小奖励越大
+        # 计算奖励（鼓励覆盖地标）
+        reward = 0
+        for lm in self.landmark_pos:
+            distances = [np.linalg.norm(agent - lm) for agent in self.agent_pos]
+            reward -= min(distances)  # 最近智能体的距离
         
-        # 平均分配奖励
-        individual_reward = total_reward / self.n_agents
-        rewards = [individual_reward] * self.n_agents
+        rewards = [reward / self.n_agents] * self.n_agents
         
-        return self.get_states(), rewards, False, {}  # 简单环境，不设终止条件
+        return self._get_obs(), rewards, False, {}
 
-# 训练示例
-def train_marl_navigation():
-    """训练多智能体合作导航"""
-    env = CooperativeNavigation(n_agents=3)
+
+def train_cooperative_navigation():
+    """训练合作导航"""
+    env = CooperativeNavigation(n_agents=3, n_landmarks=3)
     
-    # 状态维度：自身(2) + 地标(3*2) + 其他智能体(2*2) = 12
-    state_dims = [12] * 3
-    action_dims = [2] * 3  # 2D移动
+    # 观察维度：自身(2) + 地标(3*2) = 8
+    obs_dims = [8, 8, 8]
+    action_dims = [2, 2, 2]  # 2D 移动
     
-    # 使用MADDPG
-    maddpg = MADDPG(n_agents=3, state_dims=state_dims, action_dims=action_dims)
+    maddpg = MADDPG(n_agents=3, obs_dims=obs_dims, action_dims=action_dims)
     
     episodes = 1000
     for episode in range(episodes):
-        states = env.reset()
-        total_rewards = [0] * 3
+        obs = env.reset()
+        episode_reward = 0
         
-        for step in range(100):  # 最大步数
-            # 选择动作
-            actions = maddpg.select_actions(states)
+        for step in range(50):
+            actions = maddpg.select_actions(obs, noise_std=0.1)
+            next_obs, rewards, done, _ = env.step(actions)
             
-            # 执行动作
-            next_states, rewards, done, _ = env.step(actions)
+            # 存储经验
+            # batch = (obs, actions, rewards, next_obs, dones)
+            # maddpg.update(batch)
             
-            # 存储经验并更新
-            # 这里简化了经验回放，实际需要更复杂的实现
-            
-            total_rewards = [r1 + r2 for r1, r2 in zip(total_rewards, rewards)]
-            states = next_states
+            episode_reward += sum(rewards)
+            obs = next_obs
         
         if episode % 100 == 0:
-            avg_reward = sum(total_rewards) / len(total_rewards)
-            print(f"Episode {episode}, Average Reward: {avg_reward:.3f}")
+            print(f"Episode {episode}: 平均奖励 {episode_reward / 3:.3f}")
 ```
 
-## 知识点间关联逻辑
+## 知识点关联
 
-### 算法演进关系
 ```
-独立Q学习（完全分布式）
-    ↓
-中心化Critic（CTDE框架）
-    ↓
-MADDPG（连续动作）
-    ↓
-MAPPO（策略优化）
-    ↓
-通信网络（智能协调）
+独立 Q 学习（基线）
+       ↓
+   CTDE 框架
+       ↓
+   ┌───┼───┐
+   ↓   ↓   ↓
+MADDPG MAPPO QMIX
+       ↓
+   通信机制
+       ↓
+  复杂协作任务
 ```
 
-## 章节核心考点汇总
+## 核心考点
 
-### 必须掌握的概念
-1. **CTDE框架**：集中训练分散执行的核心思想
-2. **非平稳性挑战**：多智能体环境的独特问题
-3. **信用分配**：联合奖励的分配机制
+### 必须掌握
 
-### 重要算法
-- **MADDPG**：多智能体DDPG
-- **MAPPO**：多智能体PPO
-- **独立Q学习**：基线方法
+| 概念 | 说明 |
+|------|------|
+| CTDE 框架 | 集中训练分散执行 |
+| 非平稳性 | 其他智能体策略变化导致环境不稳定 |
+| 信用分配 | 如何分配联合奖励 |
+| 通信机制 | 智能体间信息交换 |
 
-## 学习建议/后续延伸方向
+### 算法对比
 
-### 学习建议
-1. **理解CTDE框架**：掌握多智能体算法的核心思想
-2. **实现基础算法**：从独立Q学习开始
-3. **研究通信机制**：理解智能体间协调的关键
+| 算法 | 框架 | 适用场景 |
+|------|------|----------|
+| IQL | 分布式 | 简单任务基线 |
+| MADDPG | CTDE | 连续动作合作 |
+| MAPPO | CTDE | 通用首选 |
+| QMIX | CTDE | 离散动作合作 |
 
-### 后续学习方向
-1. **层次强化学习**：多时间尺度决策
-2. **博弈论基础**：纳什均衡等概念
-3. **大规模多智能体**：可扩展性技术
+## 学习建议
+
+### 实践要点
+
+1. **环境设计**：从简单合作任务开始
+2. **框架选择**：MAPPO 是当前首选
+3. **调试技巧**：检查中心化 Critic 是否正确使用全局信息
+
+### 后续方向
+
+- **博弈论**：纳什均衡、斯坦克尔伯格博弈
+- **零和博弈**：对抗性多智能体
+- **大规模系统**：百/千智能体协调
 
 ---
 
-**下一章预告**：接下来将进入重点章节——大模型强化学习，深入探讨RLHF等在大语言模型中的应用技术。
+**上一章**：[现代强化学习算法](./modern-algorithms.md)  
+**下一章**：[大模型强化学习](./llm-rl.md)
