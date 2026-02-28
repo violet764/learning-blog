@@ -249,9 +249,10 @@ export default withMermaid(
         { text: '特征工程',
           collapsible: true,
           items: [
-            { text: '特征选择', link: '/notes/machine-learning/feature-engineering/feature-selection.md' },
+            { text: '导览', link: '/notes/machine-learning/feature-engineering/index.md' },
+            { text: '数据预处理', link: '/notes/machine-learning/feature-engineering/preprocessing.md' },
             { text: '特征变换', link: '/notes/machine-learning/feature-engineering/feature-transformation.md' },
-            { text: '数据预处理', link: '/notes/machine-learning/feature-engineering/preprocessing.md' }
+            { text: '特征选择', link: '/notes/machine-learning/feature-engineering/feature-selection.md' }
           ]
         },
       
