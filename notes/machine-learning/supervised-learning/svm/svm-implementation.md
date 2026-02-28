@@ -1,506 +1,678 @@
-# 支持向量机实现细节
+# SVM 实现细节
 
-## 1. SVM优化算法
+理解 SVM 的实现细节对于实际应用至关重要。本文深入介绍 SVM 的优化算法、高效实现技巧以及工程实践要点。
 
-### 1.1 序列最小优化（SMO）算法
+## 优化问题回顾
 
-SMO算法是解决SVM对偶问题的高效算法，通过分解大规模优化问题为一系列小规模子问题。
+SVM 的对偶问题为：
 
-#### 1.1.1 算法思想
-
-将大规模QP问题分解为两个变量的子问题：
-$$ \min_{\alpha_i, \alpha_j} \frac{1}{2}K_{ii}\alpha_i^2 + \frac{1}{2}K_{jj}\alpha_j^2 + y_iy_jK_{ij}\alpha_i\alpha_j + \cdots $$
+$$
+\max_{\boldsymbol{\alpha}} \sum_{i=1}^n \alpha_i - \frac{1}{2}\sum_{i=1}^n\sum_{j=1}^n \alpha_i \alpha_j y_i y_j K(\mathbf{x}_i, \mathbf{x}_j)
+$$
 
 约束条件：
-$$ y_i\alpha_i + y_j\alpha_j = -\sum_{k \neq i,j} y_k\alpha_k = \zeta $$
-$$ 0 \leq \alpha_i, \alpha_j \leq C $$
 
-#### 1.1.2 算法步骤
+$$
+0 \leq \alpha_i \leq C, \quad \sum_{i=1}^n \alpha_i y_i = 0
+$$
 
-1. **启发式选择两个拉格朗日乘子**
-2. **解析求解两个变量的优化问题**
-3. **更新阈值b**
-4. **重复直到收敛**
+这是一个**二次规划（QP）问题**，理论上可以用通用 QP 求解器，但效率不高。专门针对 SVM 设计的算法更加高效。
 
-### 1.2 坐标下降法
+## SMO 算法
 
-对于线性SVM，可以使用坐标下降法进行优化：
+**序列最小优化（Sequential Minimal Optimization, SMO）** 是最流行的 SVM 训练算法，由 John Platt 于 1998 年提出。
 
-**对偶坐标下降（DCD）：**
-$$ \min_{\alpha} f(\alpha) = \frac{1}{2}\alpha^TQ\alpha - \mathbf{1}^T\alpha $$
+### 核心思想
 
-**坐标更新：**
-$$ \alpha_i^{new} = \min\left(\max\left(\alpha_i - \frac{\nabla_i f(\alpha)}{Q_{ii}}, 0\right), C\right) $$
+SMO 将大优化问题分解为多个**两个变量**的小优化问题：
 
-## 2. 线性SVM的高效实现
+1. 选择两个拉格朗日乘子 $\alpha_i$ 和 $\alpha_j$
+2. 固定其他参数，只优化这两个变量
+3. 解析求解这个小问题（有闭式解）
+4. 重复直到收敛
 
-### 2.1 PEGASOS算法
+### 为什么选择两个变量？
 
-**原始目标函数：**
-$$ \min_{\mathbf{w}} \frac{\lambda}{2}\|\mathbf{w}\|^2 + \frac{1}{n}\sum_{i=1}^n \max(0, 1 - y_i\mathbf{w}^T\mathbf{x}_i) $$
+约束条件 $\sum_i \alpha_i y_i = 0$ 意味着：
+- 如果只优化一个变量 $\alpha_i$，根据约束 $\alpha_i y_i = -\sum_{j \neq i} \alpha_j y_j$，该变量实际上被固定
+- 至少需要优化两个变量才能保持约束成立
 
-**随机梯度下降步骤：**
-1. 随机选择样本$(\mathbf{x}_t, y_t)$
-2. 计算梯度：$\nabla_t = \lambda\mathbf{w} - \mathbb{I}[y_t\mathbf{w}^T\mathbf{x}_t < 1]y_t\mathbf{x}_t$
-3. 更新权重：$\mathbf{w} \leftarrow \mathbf{w} - \eta_t\nabla_t$
-4. 投影到球面：$\mathbf{w} \leftarrow \min\left(1, \frac{1}{\sqrt{\lambda}\|\mathbf{w}\|}\right)\mathbf{w}$
+### 两变量优化问题
 
-### 2.2 LibLinear实现
+固定 $\alpha_3, \ldots, \alpha_n$，优化 $\alpha_1$ 和 $\alpha_2$：
 
-LibLinear是针对大规模线性分类问题的高效库，主要特点：
-- 使用坐标下降法
-- 支持L1和L2正则化
-- 优化的数据结构
-- 并行计算支持
+$$
+\min_{\alpha_1, \alpha_2} \frac{1}{2}K_{11}\alpha_1^2 + \frac{1}{2}K_{22}\alpha_2^2 + y_1 y_2 K_{12}\alpha_1\alpha_2 - (\alpha_1 + \alpha_2) + \text{常数}
+$$
 
-## 3. 核SVM的实现优化
+约束：
+- $0 \leq \alpha_1, \alpha_2 \leq C$
+- $\alpha_1 y_1 + \alpha_2 y_2 = \zeta$（常数，由其他 $\alpha$ 决定）
 
-### 3.1 缓存策略
+### 闭式解
 
-由于核矩阵计算昂贵，使用缓存存储常用核值：
-- **LRU缓存**：最近最少使用策略
-- **分块计算**：将核矩阵分块计算和存储
-- **近似方法**：使用低秩近似减少计算量
+定义：
+- $\eta = 2K_{12} - K_{11} - K_{22}$（二阶导数）
+- $E_i = f(\mathbf{x}_i) - y_i$（预测误差）
 
-### 3.2 收缩启发式
+更新公式：
 
-对于远离边界的样本，其拉格朗日乘子α不会改变，可以暂时从优化中移除：
-- **主动集方法**：只优化可能改变的变量
-- **收敛检测**：定期检查所有变量是否需要重新优化
+$$
+\alpha_2^{new} = \alpha_2^{old} - \frac{y_2(E_1 - E_2)}{\eta}
+$$
 
-## 4. 多类SVM实现
+然后裁剪到可行域 $[L, H]$：
 
-### 4.1 一对多（One-vs-Rest）
+$$
+\alpha_2^{new,clipped} = \begin{cases}
+H & \text{if } \alpha_2^{new} > H \\
+\alpha_2^{new} & \text{if } L \leq \alpha_2^{new} \leq H \\
+L & \text{if } \alpha_2^{new} < L
+\end{cases}
+$$
 
-对于K类问题，训练K个二分类器：
-$$ f_k(\mathbf{x}) = \mathbf{w}_k^T\mathbf{x} + b_k $$
-预测：$\hat{y} = \arg\max_{k} f_k(\mathbf{x})$
+其中边界 $L$ 和 $H$ 由约束条件确定：
 
-### 4.2 一对一（One-vs-One）
+当 $y_1 \neq y_2$ 时：
+$$L = \max(0, \alpha_2^{old} - \alpha_1^{old}), \quad H = \min(C, C + \alpha_2^{old} - \alpha_1^{old})$$
 
-训练$\binom{K}{2}$个二分类器，通过投票决定最终类别。
+当 $y_1 = y_2$ 时：
+$$L = \max(0, \alpha_1^{old} + \alpha_2^{old} - C), \quad H = \min(C, \alpha_1^{old} + \alpha_2^{old})$$
 
-### 4.3 直接多类SVM
+最后更新 $\alpha_1$：
 
-**Crammer-Singer多类SVM：**
-$$ \min_{\mathbf{w}_1,\dots,\mathbf{w}_K} \frac{1}{2}\sum_{k=1}^K \|\mathbf{w}_k\|^2 + C\sum_{i=1}^n \xi_i $$
-约束：$\mathbf{w}_{y_i}^T\mathbf{x}_i - \mathbf{w}_k^T\mathbf{x}_i \geq 1 - \xi_i, \quad \forall k \neq y_i$
+$$
+\alpha_1^{new} = \alpha_1^{old} + y_1 y_2(\alpha_2^{old} - \alpha_2^{new,clipped})
+$$
 
-## 5. Python实现示例
+### 变量选择启发式
+
+SMO 的效率很大程度上取决于如何选择要优化的变量对。
+
+**外层循环（选择第一个变量 $\alpha_1$）**：
+1. 优先选择违反 KKT 条件的样本
+2. 检查条件：$0 < \alpha_i < C$ 且 $y_i E_i \neq 0$，或 $\alpha_i = 0$ 且 $y_i E_i < 0$，或 $\alpha_i = C$ 且 $y_i E_i > 0$
+
+**内层循环（选择第二个变量 $\alpha_2$）**：
+1. 选择使 $|E_1 - E_2|$ 最大的样本（最大步长）
+2. 如果效果不好，遍历所有支持向量
+3. 如果仍不好，随机选择
+
+### 阈值 $b$ 的更新
+
+每次更新后，重新计算阈值：
+
+$$
+b = \begin{cases}
+b_1 = E_1 + y_1(\alpha_1^{new} - \alpha_1^{old})K_{11} + y_2(\alpha_2^{new} - \alpha_2^{old})K_{21} + b^{old} & \text{if } 0 < \alpha_1^{new} < C \\
+b_2 = E_2 + y_1(\alpha_1^{new} - \alpha_1^{old})K_{12} + y_2(\alpha_2^{new} - \alpha_2^{old})K_{22} + b^{old} & \text{if } 0 < \alpha_2^{new} < C \\
+(b_1 + b_2)/2 & \text{otherwise}
+\end{cases}
+$$
+
+## 简化 SMO 实现
+
+```python
+import numpy as np
+
+class SimplifiedSMO:
+    """简化的 SMO 算法实现"""
+    
+    def __init__(self, C=1.0, tol=1e-3, max_iter=100):
+        self.C = C
+        self.tol = tol
+        self.max_iter = max_iter
+    
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        
+        # 初始化
+        self.alpha = np.zeros(n_samples)
+        self.b = 0.0
+        self.X = X
+        self.y = y
+        
+        # 预计算核矩阵（线性核）
+        self.K = X @ X.T
+        
+        # SMO 主循环
+        for iteration in range(self.max_iter):
+            num_changed = 0
+            
+            for i in range(n_samples):
+                # 计算 Ei
+                Ei = self._decision_function(i) - y[i]
+                
+                # 检查是否违反 KKT 条件
+                if (y[i] * Ei < -self.tol and self.alpha[i] < self.C) or \
+                   (y[i] * Ei > self.tol and self.alpha[i] > 0):
+                    
+                    # 选择第二个变量
+                    j = self._select_j(i, Ei, n_samples)
+                    Ej = self._decision_function(j) - y[j]
+                    
+                    # 保存旧值
+                    alpha_i_old, alpha_j_old = self.alpha[i], self.alpha[j]
+                    
+                    # 计算边界 L 和 H
+                    if y[i] != y[j]:
+                        L = max(0, self.alpha[j] - self.alpha[i])
+                        H = min(self.C, self.C + self.alpha[j] - self.alpha[i])
+                    else:
+                        L = max(0, self.alpha[i] + self.alpha[j] - self.C)
+                        H = min(self.C, self.alpha[i] + self.alpha[j])
+                    
+                    if L == H:
+                        continue
+                    
+                    # 计算 eta
+                    eta = 2 * self.K[i, j] - self.K[i, i] - self.K[j, j]
+                    
+                    if eta >= 0:
+                        continue
+                    
+                    # 更新 alpha_j
+                    self.alpha[j] = alpha_j_old - y[j] * (Ei - Ej) / eta
+                    
+                    # 裁剪
+                    self.alpha[j] = np.clip(self.alpha[j], L, H)
+                    
+                    if abs(self.alpha[j] - alpha_j_old) < 1e-5:
+                        continue
+                    
+                    # 更新 alpha_i
+                    self.alpha[i] = alpha_i_old + y[i] * y[j] * (alpha_j_old - self.alpha[j])
+                    
+                    # 更新 b
+                    b1 = Ei + y[i] * (self.alpha[i] - alpha_i_old) * self.K[i, i] + \
+                         y[j] * (self.alpha[j] - alpha_j_old) * self.K[i, j] + self.b
+                    b2 = Ej + y[i] * (self.alpha[i] - alpha_i_old) * self.K[i, j] + \
+                         y[j] * (self.alpha[j] - alpha_j_old) * self.K[j, j] + self.b
+                    
+                    if 0 < self.alpha[i] < self.C:
+                        self.b = b1
+                    elif 0 < self.alpha[j] < self.C:
+                        self.b = b2
+                    else:
+                        self.b = (b1 + b2) / 2
+                    
+                    num_changed += 1
+            
+            if num_changed == 0:
+                break
+        
+        # 提取支持向量
+        sv_mask = self.alpha > 1e-5
+        self.support_vectors_ = X[sv_mask]
+        self.support_labels = y[sv_mask]
+        self.alpha_sv = self.alpha[sv_mask]
+        
+        return self
+    
+    def _decision_function(self, i):
+        """计算样本 i 的决策函数值"""
+        return np.sum(self.alpha * self.y * self.K[:, i]) + self.b
+    
+    def _select_j(self, i, Ei, n_samples):
+        """选择第二个变量"""
+        max_delta_E = 0
+        j = i
+        
+        # 简化：随机选择（完整实现应选择 |Ei - Ej| 最大的 j）
+        candidates = [k for k in range(n_samples) if k != i]
+        if len(candidates) > 0:
+            j = np.random.choice(candidates)
+        
+        return j
+    
+    def predict(self, X):
+        """预测"""
+        K_test = X @ self.support_vectors_.T
+        decision = np.sum(self.alpha_sv * self.support_labels * K_test, axis=1) + self.b
+        return np.sign(decision)
+
+# 测试
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import StandardScaler
+
+X, y = make_blobs(n_samples=100, centers=2, random_state=42)
+y = 2 * y - 1  # 转换为 -1, +1
+X = StandardScaler().fit_transform(X)
+
+svm = SimplifiedSMO(C=1.0)
+svm.fit(X, y)
+
+print(f"支持向量数量: {len(svm.support_vectors_)}")
+print(f"训练准确率: {np.mean(svm.predict(X) == y):.2%}")
+```
+
+## 线性 SVM 的优化算法
+
+对于线性核 SVM，可以利用问题的特殊结构设计更高效的算法。
+
+### 坐标下降法
+
+直接优化原始问题：
+
+$$
+\min_{\mathbf{w}, b} \frac{1}{2}\|\mathbf{w}\|^2 + C\sum_{i=1}^n \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b))
+$$
+
+**对偶坐标下降（DCD）**：逐个更新 $\alpha_i$
+
+$$
+\alpha_i^{new} = \min\left(\max\left(\alpha_i - \frac{\nabla_i f}{Q_{ii}}, 0\right), C\right)
+$$
+
+其中 $Q_{ii} = \mathbf{x}_i^T \mathbf{x}_i$，$\nabla_i f = y_i(\mathbf{w}^T\mathbf{x}_i) - 1 + b y_i$
+
+### Pegasos 算法
+
+**Primal Estimated sub-GrAdient SOlver for SVM**：使用随机梯度下降
+
+$$
+\mathbf{w}_{t+1} = (1 - \eta_t \lambda)\mathbf{w}_t + \eta_t y_t \mathbf{x}_t \cdot \mathbb{I}[y_t \mathbf{w}_t^T \mathbf{x}_t < 1]
+$$
+
+**算法步骤**：
+1. 选择随机样本 $(x_t, y_t)$
+2. 如果 $y_t \mathbf{w}^T \mathbf{x}_t < 1$，更新 $\mathbf{w}$
+3. 投影到球面：$\mathbf{w} \leftarrow \min(1, \frac{1/\sqrt{\lambda}}{\|\mathbf{w}\|})\mathbf{w}$
+
+```python
+class PegasosSVM:
+    """Pegasos 算法实现"""
+    
+    def __init__(self, lam=0.01, T=1000):
+        self.lam = lam
+        self.T = T
+    
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.w = np.zeros(n_features)
+        
+        for t in range(1, self.T + 1):
+            # 学习率
+            eta = 1.0 / (self.lam * t)
+            
+            # 随机选择样本
+            i = np.random.randint(n_samples)
+            
+            # 检查是否需要更新
+            if y[i] * np.dot(self.w, X[i]) < 1:
+                self.w = (1 - eta * self.lam) * self.w + eta * y[i] * X[i]
+            else:
+                self.w = (1 - eta * self.lam) * self.w
+        
+        return self
+    
+    def predict(self, X):
+        return np.sign(X @ self.w)
+
+# 测试
+svm = PegasosSVM(lam=0.01, T=5000)
+svm.fit(X, y)
+print(f"Pegasos 训练准确率: {np.mean(svm.predict(X) == y):.2%}")
+```
+
+### LibLinear
+
+**LibLinear** 是大规模线性分类的高效库：
+
+| 求解器 | 问题类型 | 适用场景 |
+|--------|---------|---------|
+| L2-regularized L2-loss | 原始问题 | 一般用途 |
+| L2-regularized L1-loss | 对偶问题 | 稀疏数据 |
+| L1-regularized L2-loss | 原始问题 | 特征选择 |
+| Dual coordinate descent | 对偶问题 | 样本数较少 |
+
+```python
+from sklearn.svm import LinearSVC
+
+# 不同求解器比较
+solvers = {
+    'liblinear (dual)': LinearSVC(dual=True, random_state=42),
+    'liblinear (primal)': LinearSVC(dual=False, random_state=42),
+    'sag': LinearSVC(loss='squared_hinge', dual=False, 
+                     solver='sag', random_state=42),
+    'saga': LinearSVC(loss='squared_hinge', dual=False, 
+                      solver='saga', random_state=42)
+}
+
+import time
+for name, model in solvers.items():
+    start = time.time()
+    model.fit(X, y)
+    elapsed = time.time() - start
+    acc = model.score(X, y)
+    print(f"{name}: 准确率={acc:.3f}, 时间={elapsed:.4f}s")
+```
+
+## 多类 SVM
+
+SVM 本质是二分类器，扩展到多类有两种策略。
+
+### 一对多（One-vs-Rest, OvR）
+
+训练 $K$ 个二分类器，第 $k$ 个分类器区分类别 $k$ 与其他所有类别：
+
+$$
+f_k(\mathbf{x}) = \mathbf{w}_k^T \mathbf{x} + b_k
+$$
+
+预测：$\hat{y} = \arg\max_k f_k(\mathbf{x})$
+
+**优点**：分类器数量少（$K$ 个）
+**缺点**：类别不平衡问题
+
+### 一对一（One-vs-One, OvO）
+
+训练 $\binom{K}{2} = \frac{K(K-1)}{2}$ 个二分类器，每对类别一个：
+
+**优点**：每个分类器训练数据少，速度快
+**缺点**：分类器数量多，预测时需投票
+
+### 直接多类 SVM（Crammer-Singer）
+
+$$
+\min_{\mathbf{w}_1,\ldots,\mathbf{w}_K} \frac{1}{2}\sum_{k=1}^K \|\mathbf{w}_k\|^2 + C\sum_{i=1}^n \xi_i
+$$
+
+约束：$\mathbf{w}_{y_i}^T \mathbf{x}_i - \mathbf{w}_k^T \mathbf{x}_i \geq 1 - \xi_i$，对 $\forall k \neq y_i$
+
+```python
+from sklearn.svm import SVC, LinearSVC
+from sklearn.datasets import load_iris
+
+# 加载多类数据
+X, y = load_iris(return_X_y=True)
+X = StandardScaler().fit_transform(X)
+
+# 比较不同策略
+strategies = {
+    'OvR': SVC(decision_function_shape='ovr', kernel='linear'),
+    'OvO': SVC(decision_function_shape='ovo', kernel='linear'),
+    'Crammer-Singer': LinearSVC(multi_class='crammer_singer')
+}
+
+for name, model in strategies.items():
+    model.fit(X, y)
+    acc = model.score(X, y)
+    print(f"{name}: 准确率 = {acc:.3f}")
+```
+
+## 实现优化技巧
+
+### 核缓存
+
+对于核 SVM，核矩阵计算和存储是主要瓶颈：
+
+```python
+# sklearn 的缓存机制
+from sklearn.svm import SVC
+
+# cache_size 参数控制缓存大小（MB）
+svm = SVC(kernel='rbf', cache_size=1000)  # 1GB 缓存
+```
+
+### 收缩（Shrinking）
+
+**收缩启发式**：某些样本在优化过程中不太可能成为支持向量，可以暂时从优化中移除：
+
+```python
+# sklearn 默认启用收缩
+svm = SVC(kernel='rbf', shrinking=True)
+```
+
+收缩通常能减少 20-50% 的训练时间。
+
+### 并行化
+
+对于多类问题和网格搜索，可以并行计算：
+
+```python
+from sklearn.model_selection import GridSearchCV
+
+# 并行网格搜索
+grid = GridSearchCV(SVC(), param_grid, cv=5, n_jobs=-1)  # 使用所有 CPU
+grid.fit(X, y)
+```
+
+### 核近似
+
+对于大规模数据，使用核近似方法：
+
+```python
+from sklearn.kernel_approximation import Nystroem
+from sklearn.linear_model import SGDClassifier
+from sklearn.pipeline import Pipeline
+
+# 核近似 + 线性模型
+pipeline = Pipeline([
+    ('nystroem', Nystroem(kernel='rbf', n_components=100)),
+    ('sgd', SGDClassifier(loss='hinge'))
+])
+
+pipeline.fit(X_train, y_train)
+```
+
+## 代码示例
+
+### 不同实现对比
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC, LinearSVC
-from sklearn.datasets import make_classification, make_blobs
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.linear_model import SGDClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import time
 
-# 1. 线性SVM与核SVM性能比较
-print("=== 线性SVM与核SVM性能比较 ===")
-
-# 生成不同复杂度的数据
-np.random.seed(42)
-
-# 线性可分数据
-X_linear, y_linear = make_blobs(n_samples=1000, centers=2, 
-                               cluster_std=0.8, random_state=42)
-
-# 非线性数据
-X_nonlinear, y_nonlinear = make_classification(n_samples=1000, n_features=2, 
-                                              n_redundant=0, n_informative=2,
-                                              n_clusters_per_class=1, 
-                                              class_sep=0.8, random_state=42)
-
-# 数据标准化
-scaler = StandardScaler()
-X_linear_scaled = scaler.fit_transform(X_linear)
-X_nonlinear_scaled = scaler.fit_transform(X_nonlinear)
-
-# 比较不同SVM变体
-svm_variants = {
-    '线性SVM': LinearSVC(random_state=42),
-    '线性核SVM': SVC(kernel='linear', random_state=42),
-    'RBF核SVM': SVC(kernel='rbf', random_state=42),
-    '多项式核SVM': SVC(kernel='poly', degree=3, random_state=42)
-}
-
-# 测试在两类数据上的性能
-datasets = [
-    (X_linear_scaled, y_linear, '线性可分数据'),
-    (X_nonlinear_scaled, y_nonlinear, '非线性数据')
-]
-
+# 生成不同规模的数据
+sizes = [100, 500, 1000, 2000, 5000]
 results = []
 
-for X, y, data_name in datasets:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, 
-                                                        random_state=42)
+for n in sizes:
+    X, y = make_classification(n_samples=n, n_features=20, 
+                               n_informative=10, random_state=42)
+    X = StandardScaler().fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
     
-    for name, svm in svm_variants.items():
-        start_time = time.time()
-        svm.fit(X_train, y_train)
-        train_time = time.time() - start_time
-        
-        y_pred = svm.predict(X_test)
-        accuracy = accuracy_score(y_test, y_pred)
+    # 测试不同实现
+    models = {
+        'LinearSVC': LinearSVC(dual='auto', random_state=42),
+        'SVC(linear)': SVC(kernel='linear', random_state=42),
+        'SVC(rbf)': SVC(kernel='rbf', random_state=42),
+        'SGD': SGDClassifier(loss='hinge', random_state=42)
+    }
+    
+    for name, model in models.items():
+        start = time.time()
+        model.fit(X_train, y_train)
+        train_time = time.time() - start
+        acc = model.score(X_test, y_test)
         
         results.append({
-            '数据集': data_name,
-            '模型': name,
-            '准确率': accuracy,
-            '训练时间': train_time
+            'n_samples': n,
+            'model': name,
+            'accuracy': acc,
+            'time': train_time
         })
 
-# 显示结果
+# 可视化
 import pandas as pd
-results_df = pd.DataFrame(results)
-print("\n性能比较结果:")
-print(results_df.to_string(index=False))
+df = pd.DataFrame(results)
 
-# 2. SMO算法原理演示
-print("\n=== SMO算法原理演示 ===")
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-def simple_smo_demo(X, y, C=1.0, max_iter=1000):
-    """简化的SMO算法演示"""
-    n_samples, n_features = X.shape
-    
-    # 初始化参数
-    alpha = np.zeros(n_samples)
-    b = 0.0
-    
-    # 预计算核矩阵（这里使用线性核）
-    K = X @ X.T
-    
-    for iteration in range(max_iter):
-        num_changed = 0
-        
-        for i in range(n_samples):
-            # 计算误差
-            E_i = np.sum(alpha * y * K[:, i]) + b - y[i]
-            
-            # 检查KKT条件
-            if (y[i] * E_i < -0.001 and alpha[i] < C) or (y[i] * E_i > 0.001 and alpha[i] > 0):
-                # 随机选择第二个变量
-                j = np.random.randint(0, n_samples)
-                while j == i:
-                    j = np.random.randint(0, n_samples)
-                
-                # 计算第二个变量的误差
-                E_j = np.sum(alpha * y * K[:, j]) + b - y[j]
-                
-                # 保存旧值
-                alpha_i_old, alpha_j_old = alpha[i], alpha[j]
-                
-                # 计算边界
-                if y[i] != y[j]:
-                    L = max(0, alpha[j] - alpha[i])
-                    H = min(C, C + alpha[j] - alpha[i])
-                else:
-                    L = max(0, alpha[i] + alpha[j] - C)
-                    H = min(C, alpha[i] + alpha[j])
-                
-                if L == H:
-                    continue
-                
-                # 计算eta
-                eta = 2 * K[i, j] - K[i, i] - K[j, j]
-                if eta >= 0:
-                    continue
-                
-                # 更新alpha_j
-                alpha[j] = alpha[j] - y[j] * (E_i - E_j) / eta
-                
-                # 剪辑alpha_j
-                if alpha[j] > H:
-                    alpha[j] = H
-                elif alpha[j] < L:
-                    alpha[j] = L
-                
-                if abs(alpha[j] - alpha_j_old) < 0.00001:
-                    continue
-                
-                # 更新alpha_i
-                alpha[i] = alpha[i] + y[i] * y[j] * (alpha_j_old - alpha[j])
-                
-                # 更新b
-                b1 = b - E_i - y[i] * (alpha[i] - alpha_i_old) * K[i, i] \
-                     - y[j] * (alpha[j] - alpha_j_old) * K[i, j]
-                b2 = b - E_j - y[i] * (alpha[i] - alpha_i_old) * K[i, j] \
-                     - y[j] * (alpha[j] - alpha_j_old) * K[j, j]
-                
-                if 0 < alpha[i] < C:
-                    b = b1
-                elif 0 < alpha[j] < C:
-                    b = b2
-                else:
-                    b = (b1 + b2) / 2
-                
-                num_changed += 1
-        
-        if num_changed == 0:
-            break
-    
-    # 计算权重向量
-    w = np.sum((alpha * y).reshape(-1, 1) * X, axis=0)
-    
-    return w, b, alpha, iteration
+for model in df['model'].unique():
+    subset = df[df['model'] == model]
+    ax1.plot(subset['n_samples'], subset['time'], 'o-', label=model)
+    ax2.plot(subset['n_samples'], subset['accuracy'], 'o-', label=model)
 
-# 在小数据集上演示
-X_small, y_small = make_blobs(n_samples=50, centers=2, random_state=42)
-X_small_scaled = scaler.fit_transform(X_small)
-
-w, b, alpha, iterations = simple_smo_demo(X_small_scaled, y_small)
-print(f"SMO算法收敛所需迭代次数: {iterations}")
-print(f"支持向量数量: {np.sum(alpha > 0.001)}")
-print(f"权重向量范数: {np.linalg.norm(w):.4f}")
-
-# 3. 大规模线性SVM优化
-print("\n=== 大规模线性SVM优化 ===")
-
-# 生成大规模数据
-X_large, y_large = make_classification(n_samples=10000, n_features=100, 
-                                      n_informative=50, random_state=42)
-X_large_scaled = scaler.fit_transform(X_large)
-
-# 比较不同优化算法的训练时间
-algorithms = {
-    'liblinear': LinearSVC(penalty='l2', loss='squared_hinge', 
-                          dual=True, random_state=42),
-    '坐标下降': LinearSVC(penalty='l1', loss='squared_hinge', 
-                        dual=False, random_state=42),
-    'SGD': LinearSVC(penalty='l2', loss='hinge', 
-                    dual=False, random_state=42)
-}
-
-# 使用数据子集进行快速比较
-X_subset = X_large_scaled[:1000]
-y_subset = y_large[:1000]
-
-X_train_large, X_test_large, y_train_large, y_test_large = train_test_split(
-    X_subset, y_subset, test_size=0.3, random_state=42)
-
-large_results = []
-
-for name, svm in algorithms.items():
-    start_time = time.time()
-    svm.fit(X_train_large, y_train_large)
-    train_time = time.time() - start_time
-    
-    y_pred = svm.predict(X_test_large)
-    accuracy = accuracy_score(y_test_large, y_pred)
-    
-    large_results.append({
-        '算法': name,
-        '准确率': accuracy,
-        '训练时间(秒)': train_time
-    })
-
-large_df = pd.DataFrame(large_results)
-print("\n大规模数据优化算法比较:")
-print(large_df.to_string(index=False))
-
-# 4. 多类SVM实现比较
-print("\n=== 多类SVM实现比较 ===")
-
-# 生成多类数据
-X_multi, y_multi = make_classification(n_samples=1000, n_features=20, 
-                                      n_classes=3, n_informative=15, 
-                                      random_state=42)
-X_multi_scaled = scaler.fit_transform(X_multi)
-
-X_train_multi, X_test_multi, y_train_multi, y_test_multi = train_test_split(
-    X_multi_scaled, y_multi, test_size=0.3, random_state=42)
-
-# 不同多类策略
-multi_class_strategies = {
-    '一对多 (OvR)': SVC(kernel='linear', decision_function_shape='ovr', 
-                       random_state=42),
-    '一对一 (OvO)': SVC(kernel='linear', decision_function_shape='ovo', 
-                       random_state=42),
-    'Crammer-Singer': LinearSVC(multi_class='crammer_singer', 
-                               random_state=42)
-}
-
-multi_results = []
-
-for name, svm in multi_class_strategies.items():
-    start_time = time.time()
-    svm.fit(X_train_multi, y_train_multi)
-    train_time = time.time() - start_time
-    
-    y_pred = svm.predict(X_test_multi)
-    accuracy = accuracy_score(y_test_multi, y_pred)
-    
-    multi_results.append({
-        '多类策略': name,
-        '准确率': accuracy,
-        '训练时间(秒)': train_time
-    })
-
-multi_df = pd.DataFrame(multi_results)
-print("\n多类SVM策略比较:")
-print(multi_df.to_string(index=False))
-
-# 5. 超参数调优实践
-print("\n=== 超参数调优实践 ===")
-
-# 使用网格搜索优化SVM参数
-param_grid = {
-    'C': [0.1, 1, 10, 100],
-    'gamma': [0.001, 0.01, 0.1, 1],
-    'kernel': ['rbf', 'poly', 'sigmoid']
-}
-
-# 在小数据集上进行调优（避免计算时间过长）
-X_tune, y_tune = make_classification(n_samples=500, n_features=10, 
-                                    random_state=42)
-X_tune_scaled = scaler.fit_transform(X_tune)
-
-X_train_tune, X_test_tune, y_train_tune, y_test_tune = train_test_split(
-    X_tune_scaled, y_tune, test_size=0.3, random_state=42)
-
-grid_search = GridSearchCV(SVC(), param_grid, cv=5, scoring='accuracy', 
-                          n_jobs=-1, verbose=1)
-
-grid_search.fit(X_train_tune, y_train_tune)
-
-print("\n最佳参数:", grid_search.best_params_)
-print("最佳交叉验证分数:", grid_search.best_score_)
-
-# 使用最佳参数训练最终模型
-best_svm = grid_search.best_estimator_
-y_pred_tune = best_svm.predict(X_test_tune)
-final_accuracy = accuracy_score(y_test_tune, y_pred_tune)
-print(f"测试集准确率: {final_accuracy:.4f}")
-
-# 6. 支持向量分析
-print("\n=== 支持向量分析 ===")
-
-# 训练一个RBF核SVM
-svm_rbf = SVC(kernel='rbf', C=1.0, gamma=0.1, random_state=42)
-svm_rbf.fit(X_train_tune, y_train_tune)
-
-# 分析支持向量
-support_vectors = svm_rbf.support_vectors_
-support_vector_indices = svm_rbf.support_
-alphas = np.abs(svm_rbf.dual_coef_[0])
-
-print(f"支持向量数量: {len(support_vectors)}")
-print(f"支持向量比例: {len(support_vectors) / len(X_train_tune):.2%}")
-print(f"最大拉格朗日乘子: {np.max(alphas):.4f}")
-print(f"最小拉格朗日乘子: {np.min(alphas):.4f}")
-
-# 可视化支持向量的分布
-plt.figure(figsize=(10, 6))
-
-# 使用PCA将高维数据降维到2D进行可视化
-from sklearn.decomposition import PCA
-pca = PCA(n_components=2)
-X_pca = pca.fit_transform(X_tune_scaled)
-X_train_pca = pca.transform(X_train_tune)
-
-# 绘制所有训练样本
-plt.scatter(X_train_pca[:, 0], X_train_pca[:, 1], c=y_train_tune, 
-           cmap='viridis', alpha=0.3, label='训练样本')
-
-# 突出显示支持向量
-sv_indices_pca = pca.transform(support_vectors)
-plt.scatter(sv_indices_pca[:, 0], sv_indices_pca[:, 1], 
-           s=100, facecolors='none', edgecolors='red', 
-           linewidths=2, label='支持向量')
-
-plt.xlabel('第一主成分')
-plt.ylabel('第二主成分')
-plt.title('支持向量分布')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# 7. 模型复杂度与泛化能力分析
-print("\n=== 模型复杂度与泛化能力分析 ===")
-
-# 分析不同C值对模型复杂度和性能的影响
-C_values = np.logspace(-3, 3, 20)
-train_scores = []
-test_scores = []
-sv_counts = []
-
-for C in C_values:
-    svm = SVC(kernel='linear', C=C, random_state=42)
-    svm.fit(X_train_tune, y_train_tune)
-    
-    # 训练集和测试集准确率
-    train_score = svm.score(X_train_tune, y_train_tune)
-    test_score = svm.score(X_test_tune, y_test_tune)
-    
-    train_scores.append(train_score)
-    test_scores.append(test_score)
-    sv_counts.append(len(svm.support_vectors_))
-
-# 绘制学习曲线
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
-
-ax1.semilogx(C_values, train_scores, 'b-', label='训练准确率')
-ax1.semilogx(C_values, test_scores, 'r-', label='测试准确率')
-ax1.set_xlabel('正则化参数 C')
-ax1.set_ylabel('准确率')
-ax1.set_title('准确率 vs 正则化参数')
+ax1.set_xlabel('样本数量')
+ax1.set_ylabel('训练时间 (秒)')
+ax1.set_title('训练时间 vs 数据规模')
 ax1.legend()
+ax1.set_yscale('log')
 ax1.grid(True)
 
-ax2.semilogx(C_values, sv_counts, 'g-')
-ax2.set_xlabel('正则化参数 C')
-ax2.set_ylabel('支持向量数量')
-ax2.set_title('模型复杂度 vs 正则化参数')
+ax2.set_xlabel('样本数量')
+ax2.set_ylabel('准确率')
+ax2.set_title('准确率 vs 数据规模')
+ax2.legend()
 ax2.grid(True)
 
 plt.tight_layout()
 plt.show()
 ```
 
-## 6. 实现优化技巧
+### 超参数调优可视化
 
-### 6.1 内存优化
+```python
+from sklearn.model_selection import validation_curve
 
-- **稀疏矩阵表示**：对于稀疏数据，使用稀疏矩阵格式
-- **核缓存策略**：实现高效的核值缓存机制
-- **分批处理**：对于超大规模数据，使用分批训练
+X, y = make_classification(n_samples=500, n_features=10, random_state=42)
+X = StandardScaler().fit_transform(X)
 
-### 6.2 计算优化
+# C 参数的影响
+param_range = np.logspace(-3, 3, 20)
+train_scores, test_scores = validation_curve(
+    SVC(kernel='rbf', gamma=0.1), X, y,
+    param_name='C', param_range=param_range,
+    cv=5, scoring='accuracy'
+)
 
-- **并行计算**：利用多核CPU进行并行优化
-- **GPU加速**：对于线性SVM，可以使用GPU进行矩阵运算
-- **近似方法**：使用随机特征或Nyström方法近似核矩阵
+train_mean = train_scores.mean(axis=1)
+train_std = train_scores.std(axis=1)
+test_mean = test_scores.mean(axis=1)
+test_std = test_scores.std(axis=1)
 
-### 6.3 数值稳定性
+plt.figure(figsize=(10, 6))
+plt.semilogx(param_range, train_mean, 'o-', label='训练分数')
+plt.fill_between(param_range, train_mean - train_std, train_mean + train_std, alpha=0.2)
+plt.semilogx(param_range, test_mean, 'o-', label='验证分数')
+plt.fill_between(param_range, test_mean - test_std, test_mean + test_std, alpha=0.2)
 
-- **正则化处理**：避免矩阵奇异性问题
-- **数值精度**：使用双精度浮点数提高数值稳定性
-- **收敛检测**：实现鲁棒的收敛判断条件
+plt.xlabel('C 参数')
+plt.ylabel('准确率')
+plt.title('验证曲线：C 参数对模型性能的影响')
+plt.legend()
+plt.grid(True)
+plt.show()
+```
 
-## 7. 实际应用考虑
+### 学习曲线分析
 
-### 7.1 数据预处理
+```python
+from sklearn.model_selection import learning_curve
 
-- **特征标准化**：SVM对特征尺度敏感，必须进行标准化
-- **异常值处理**：异常值可能影响决策边界
-- **类别平衡**：对于不平衡数据，考虑类别权重
+# 不同核函数的学习曲线
+kernels = ['linear', 'rbf']
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-### 7.2 模型选择
+for ax, kernel in zip(axes, kernels):
+    train_sizes, train_scores, test_scores = learning_curve(
+        SVC(kernel=kernel, C=1), X, y,
+        train_sizes=np.linspace(0.1, 1.0, 10),
+        cv=5, scoring='accuracy'
+    )
+    
+    train_mean = train_scores.mean(axis=1)
+    test_mean = test_scores.mean(axis=1)
+    
+    ax.plot(train_sizes, train_mean, 'o-', label='训练分数')
+    ax.plot(train_sizes, test_mean, 'o-', label='验证分数')
+    ax.set_xlabel('训练样本数')
+    ax.set_ylabel('准确率')
+    ax.set_title(f'{kernel} 核学习曲线')
+    ax.legend()
+    ax.grid(True)
 
-- **线性vs非线性**：根据数据特性选择合适的核函数
-- **参数调优**：使用交叉验证选择最优参数
-- **模型解释**：线性SVM更容易解释，核SVM需要特殊技术
+plt.tight_layout()
+plt.show()
+```
 
-### 7.3 部署考虑
+## 工程实践要点
 
-- **预测速度**：线性SVM预测速度快，适合实时应用
-- **模型大小**：支持向量数量影响模型存储大小
-- **增量学习**：考虑在线学习或增量更新需求
+### 数据预处理
 
----
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-[下一节：决策树算法](../tree-models/decision-trees.md)
+# 最佳实践：将预处理和模型封装为 Pipeline
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('svm', SVC(kernel='rbf', C=1, gamma='scale'))
+])
+
+pipeline.fit(X_train, y_train)
+predictions = pipeline.predict(X_test)
+```
+
+### 类别不平衡处理
+
+```python
+# 使用 class_weight 参数
+svm = SVC(kernel='rbf', class_weight='balanced')  # 自动平衡权重
+
+# 或手动设置权重
+svm = SVC(kernel='rbf', class_weight={0: 1, 1: 5})  # 类别 1 权重更高
+```
+
+### 概率输出
+
+SVM 本身不输出概率，但可以通过 Platt Scaling 或 Isotonic Regression 估计：
+
+```python
+# 启用概率估计（会显著增加训练时间）
+svm = SVC(kernel='rbf', probability=True)
+svm.fit(X_train, y_train)
+
+# 获取概率
+prob = svm.predict_proba(X_test)
+```
+
+### 在线学习
+
+对于流式数据或增量更新：
+
+```python
+from sklearn.linear_model import SGDClassifier
+
+# 使用 SGD 实现"在线"SVM
+svm_online = SGDClassifier(loss='hinge', penalty='l2')
+
+# 增量训练
+for batch_X, batch_y in data_stream:
+    svm_online.partial_fit(batch_X, batch_y, classes=[0, 1])
+```
+
+## 性能对比总结
+
+| 方法 | 时间复杂度 | 适用场景 | 优势 |
+|------|-----------|---------|------|
+| SMO | $O(n^2 \sim n^3)$ | 通用 | 核方法支持 |
+| 坐标下降 | $O(n \cdot d)$ | 线性核 | 高效 |
+| Pegasos | $O(T \cdot d)$ | 大规模线性 | 线性时间 |
+| 核近似 | $O(n \cdot m)$ | 大规模非线性 | $m$ 为近似维度 |
+
+## 注意事项
+
+⚠️ **线性核首选 LinearSVC**：对于线性核，LinearSVC 比 SVC(kernel='linear') 快很多。
+
+⚠️ **大数据用 SGD**：当样本数超过 10000 时，考虑使用 SGDClassifier。
+
+⚠️ **概率估计开销大**：probability=True 会显著增加训练时间，非必要不启用。
+
+⚠️ **内存管理**：核 SVM 需要存储 $O(n^2)$ 的核矩阵（或缓存），注意内存限制。
+
+## 参考资料
+
+- Platt, J. (1998). Sequential Minimal Optimization: A Fast Algorithm for Training Support Vector Machines
+- Joachims, T. (2006). Training Linear SVMs in Linear Time
+- Shalev-Shwartz, S., et al. (2011). Pegasos: Primal Estimated sub-GrAdient SOlver for SVM
+- LibLinear: https://www.csie.ntu.edu.tw/~cjlin/liblinear/

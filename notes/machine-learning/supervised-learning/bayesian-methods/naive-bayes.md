@@ -1,328 +1,465 @@
-# k近邻与朴素贝叶斯
+# 朴素贝叶斯分类器
 
-## 1. k近邻算法（KNN）
+朴素贝叶斯（Naive Bayes）是一类基于贝叶斯定理的概率分类算法，其核心假设是特征之间条件独立。尽管这个假设在现实中往往不成立，但朴素贝叶斯在文本分类、垃圾邮件过滤等任务中表现出色，是机器学习中最实用的分类算法之一。
 
-### 1.1 算法概述
+## 基本概念
 
-k近邻是一种基于实例的学习算法，其核心思想是"物以类聚"。新样本的类别由其k个最近邻居的多数投票决定。
+### 贝叶斯定理回顾
 
-### 1.2 数学原理
-
-#### 1.2.1 距离度量
-
-**欧氏距离：**
-$$ d(\mathbf{x}_i, \mathbf{x}_j) = \sqrt{\sum_{k=1}^p (x_{ik} - x_{jk})^2} $$
-
-**曼哈顿距离：**
-$$ d(\mathbf{x}_i, \mathbf{x}_j) = \sum_{k=1}^p |x_{ik} - x_{jk}| $$
-
-**闵可夫斯基距离：**
-$$ d(\mathbf{x}_i, \mathbf{x}_j) = \left(\sum_{k=1}^p |x_{ik} - x_{jk}|^q\right)^{1/q} $$
-
-**余弦相似度：**
-$$ \text{cosine}(\mathbf{x}_i, \mathbf{x}_j) = \frac{\mathbf{x}_i \cdot \mathbf{x}_j}{\|\mathbf{x}_i\|\|\mathbf{x}_j\|} $$
-
-#### 1.2.2 分类规则
-
-对于新样本$\mathbf{x}$，找到其k个最近邻居$N_k(\mathbf{x})$，然后：
-$$ \hat{y} = \arg\max_{c} \sum_{\mathbf{x}_i \in N_k(\mathbf{x})} I(y_i = c) $$
-
-#### 1.2.3 回归规则
-
-对于回归问题：
-$$ \hat{y} = \frac{1}{k} \sum_{\mathbf{x}_i \in N_k(\mathbf{x})} y_i $$
-
-或者加权平均：
-$$ \hat{y} = \frac{\sum_{\mathbf{x}_i \in N_k(\mathbf{x})} w_i y_i}{\sum_{\mathbf{x}_i \in N_k(\mathbf{x})} w_i} $$
-
-其中权重$w_i = \frac{1}{d(\mathbf{x}, \mathbf{x}_i)}$
-
-### 1.3 算法优化
-
-#### 1.3.1 KD树
-
-用于加速最近邻搜索的数据结构：
-- 构建时间复杂度：$O(n\log n)$
-- 查询时间复杂度：$O(\log n)$（平均情况）
-
-#### 1.3.2 Ball树
-
-另一种高效的空间分割数据结构，特别适用于高维数据。
-
-## 2. 朴素贝叶斯
-
-### 2.1 算法概述
-
-朴素贝叶斯基于贝叶斯定理，并假设特征之间条件独立。虽然这个假设在现实中往往不成立，但算法在实际应用中表现良好。
-
-### 2.2 数学原理
-
-#### 2.2.1 贝叶斯定理
+贝叶斯定理描述了在已知某些条件下，事件发生概率的更新方式：
 
 $$ P(y|\mathbf{x}) = \frac{P(\mathbf{x}|y)P(y)}{P(\mathbf{x})} $$
 
-#### 2.2.2 朴素贝叶斯分类器
+其中：
+- $P(y|\mathbf{x})$：**后验概率**，给定特征 $\mathbf{x}$ 时类别为 $y$ 的概率
+- $P(\mathbf{x}|y)$：**似然概率**，类别为 $y$ 时观测到特征 $\mathbf{x}$ 的概率
+- $P(y)$：**先验概率**，类别 $y$ 出现的概率
+- $P(\mathbf{x})$：**证据因子**，特征 $\mathbf{x}$ 出现的概率
 
-基于条件独立性假设：
-$$ P(\mathbf{x}|y) = \prod_{j=1}^p P(x_j|y) $$
+### 朴素贝叶斯的核心假设
 
-因此：
-$$ P(y|\mathbf{x}) \propto P(y) \prod_{j=1}^p P(x_j|y) $$
+📌 **条件独立性假设**：假设给定类别标签时，各特征之间相互独立。
 
-分类决策：
-$$ \hat{y} = \arg\max_{y} P(y) \prod_{j=1}^p P(x_j|y) $$
+$$ P(\mathbf{x}|y) = P(x_1, x_2, \ldots, x_p|y) = \prod_{j=1}^{p} P(x_j|y) $$
 
-### 2.3 不同数据类型的处理
+这个假设大大简化了计算，使得我们无需估计指数级的联合概率分布。
 
-#### 2.3.1 高斯朴素贝叶斯
+### 分类决策规则
 
-对于连续特征，假设$P(x_j|y) \sim \mathcal{N}(\mu_{yj}, \sigma_{yj}^2)$：
-$$ P(x_j|y) = \frac{1}{\sqrt{2\pi\sigma_{yj}^2}} \exp\left(-\frac{(x_j - \mu_{yj})^2}{2\sigma_{yj}^2}\right) $$
+基于贝叶斯定理和条件独立性假设，分类决策规则为：
 
-#### 2.3.2 多项式朴素贝叶斯
+$$ \hat{y} = \arg\max_{y} P(y) \prod_{j=1}^{p} P(x_j|y) $$
 
-用于文本分类等计数数据：
-$$ P(x_j|y) = \frac{N_{yj} + \alpha}{N_y + \alpha p} $$
+由于 $P(\mathbf{x})$ 对所有类别相同，可以忽略。实际计算中，为避免数值下溢，通常使用对数概率：
 
-其中$N_{yj}$是特征j在类别y中出现的次数，$N_y$是类别y的总词数。
+$$ \hat{y} = \arg\max_{y} \left[ \log P(y) + \sum_{j=1}^{p} \log P(x_j|y) \right] $$
 
-#### 2.3.3 伯努利朴素贝叶斯
+## 三种常见变体
 
-用于二值特征：
-$$ P(x_j|y) = \begin{cases} 
-P(x_j=1|y) & \text{if } x_j = 1 \\
-1 - P(x_j=1|y) & \text{if } x_j = 0 
-\end{cases} $$
+根据特征类型的不同，朴素贝叶斯有不同的变体：
 
-## 3. Python实现示例
+### 高斯朴素贝叶斯
+
+适用于**连续特征**，假设每个特征在给定类别下服从高斯分布：
+
+$$ P(x_j|y=c) = \frac{1}{\sqrt{2\pi\sigma_{c,j}^2}} \exp\left(-\frac{(x_j - \mu_{c,j})^2}{2\sigma_{c,j}^2}\right) $$
+
+参数估计：
+- 均值：$\mu_{c,j} = \frac{1}{n_c}\sum_{i: y_i=c} x_{ij}$
+- 方差：$\sigma_{c,j}^2 = \frac{1}{n_c}\sum_{i: y_i=c} (x_{ij} - \mu_{c,j})^2$
+
+### 多项式朴素贝叶斯
+
+适用于**离散计数特征**（如文本分类中的词频）：
+
+$$ P(x_j|y=c) = \frac{N_{c,j} + \alpha}{N_c + \alpha \cdot p} $$
+
+其中：
+- $N_{c,j}$：类别 $c$ 中特征 $j$ 的总计数
+- $N_c$：类别 $c$ 中所有特征的总计数
+- $\alpha$：平滑参数（拉普拉斯平滑）
+- $p$：特征维度
+
+### 伯努利朴素贝叶斯
+
+适用于**二值特征**（如文档中是否出现某词）：
+
+$$ P(x_j|y=c) = \begin{cases} \theta_{c,j} & \text{if } x_j = 1 \\ 1 - \theta_{c,j} & \text{if } x_j = 0 \end{cases} $$
+
+其中 $\theta_{c,j}$ 是类别 $c$ 中特征 $j$ 为 1 的概率。
+
+## 参数估计与拉普拉斯平滑
+
+### 最大似然估计
+
+对于离散特征，使用最大似然估计：
+
+$$ \hat{P}(x_j=v|y=c) = \frac{\text{count}(x_j=v, y=c)}{\text{count}(y=c)} $$
+
+### 拉普拉斯平滑
+
+⚠️ **零概率问题**：如果某个特征值在训练集中未出现，会导致概率为 0，进而使整个乘积为 0。
+
+**解决方案**：拉普拉斯平滑（加一平滑）
+
+$$ \hat{P}(x_j=v|y=c) = \frac{\text{count}(x_j=v, y=c) + \alpha}{\text{count}(y=c) + \alpha \cdot |V_j|} $$
+
+其中 $\alpha > 0$ 是平滑参数，$|V_j|$ 是特征 $j$ 的可能取值数。
+
+## 代码示例
+
+### 高斯朴素贝叶斯
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-from sklearn.datasets import load_iris, make_classification, make_blobs
+from sklearn.datasets import load_iris, make_classification
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-import pandas as pd
+from sklearn.preprocessing import StandardScaler
+import seaborn as sns
 
-# KNN分类示例
-print("=== KNN分类示例 ===")
-X, y = make_classification(n_samples=1000, n_features=4, n_redundant=0, 
-                          n_informative=4, n_clusters_per_class=1, random_state=42)
-
-# 数据标准化（KNN对特征尺度敏感）
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-
-# 不同k值的KNN比较
-k_values = range(1, 21)
-accuracy_scores = []
-
-for k in k_values:
-    knn = KNeighborsClassifier(n_neighbors=k)
-    scores = cross_val_score(knn, X_train, y_train, cv=5)
-    accuracy_scores.append(scores.mean())
-
-# 绘制k值与准确率的关系
-plt.figure(figsize=(10, 6))
-plt.plot(k_values, accuracy_scores, marker='o')
-plt.xlabel('k值')
-plt.ylabel('交叉验证准确率')
-plt.title('KNN中k值选择对性能的影响')
-plt.grid(True)
-plt.show()
-
-# 选择最佳k值
-best_k = k_values[np.argmax(accuracy_scores)]
-print(f"最佳k值: {best_k}")
-
-# 使用最佳k值训练模型
-best_knn = KNeighborsClassifier(n_neighbors=best_k)
-best_knn.fit(X_train, y_train)
-y_pred_knn = best_knn.predict(X_test)
-
-print("KNN准确率:", accuracy_score(y_test, y_pred_knn))
-
-# KNN回归示例
-print("\n=== KNN回归示例 ===")
-X_reg, y_reg = make_blobs(n_samples=300, centers=4, n_features=2, random_state=42)
-y_reg = np.sin(X_reg[:, 0]) + np.cos(X_reg[:, 1]) + np.random.normal(0, 0.1, 300)
-
-X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_reg, y_reg, test_size=0.3, random_state=42)
-
-knn_reg = KNeighborsRegressor(n_neighbors=5)
-knn_reg.fit(X_train_reg, y_train_reg)
-y_pred_knn_reg = knn_reg.predict(X_test_reg)
-
-mse = np.mean((y_test_reg - y_pred_knn_reg)**2)
-print("KNN回归MSE:", mse)
-
-# 朴素贝叶斯分类示例
-print("\n=== 朴素贝叶斯分类示例 ===")
-# 使用鸢尾花数据集
+# 加载鸢尾花数据集
 iris = load_iris()
-X_iris, y_iris = iris.data, iris.target
+X, y = iris.data, iris.target
+feature_names = iris.feature_names
+target_names = iris.target_names
 
-X_train_iris, X_test_iris, y_train_iris, y_test_iris = train_test_split(X_iris, y_iris, test_size=0.3, random_state=42)
+# 划分训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
 
-# 高斯朴素贝叶斯（适用于连续特征）
+# 训练高斯朴素贝叶斯模型
 gnb = GaussianNB()
-gnb.fit(X_train_iris, y_train_iris)
-y_pred_gnb = gnb.predict(X_test_iris)
+gnb.fit(X_train, y_train)
 
-print("高斯朴素贝叶斯准确率:", accuracy_score(y_test_iris, y_pred_gnb))
-print("\n分类报告:")
-print(classification_report(y_test_iris, y_pred_gnb, target_names=iris.target_names))
+# 预测
+y_pred = gnb.predict(X_test)
+y_prob = gnb.predict_proba(X_test)
 
-# 多项式朴素贝叶斯示例（文本数据）
-print("\n=== 多项式朴素贝叶斯（模拟文本数据） ===")
-# 模拟词频数据
-X_text = np.random.poisson(lam=2, size=(1000, 100))  # 1000个文档，100个特征（词）
-y_text = np.random.randint(0, 3, 1000)  # 3个类别
+# 评估模型
+print("=" * 50)
+print("高斯朴素贝叶斯 - 鸢尾花分类")
+print("=" * 50)
+print(f"准确率: {accuracy_score(y_test, y_pred):.4f}")
+print(f"\n分类报告:")
+print(classification_report(y_test, y_pred, target_names=target_names))
 
-X_train_text, X_test_text, y_train_text, y_test_text = train_test_split(X_text, y_text, test_size=0.3, random_state=42)
+# 查看学习到的参数
+print("\n各类别各特征的均值 (theta_):")
+for i, name in enumerate(target_names):
+    print(f"  {name}: {gnb.theta_[i]}")
 
-mnb = MultinomialNB()
-mnb.fit(X_train_text, y_train_text)
-y_pred_mnb = mnb.predict(X_test_text)
+print("\n各类别各特征的方差 (sigma_):")
+for i, name in enumerate(target_names):
+    print(f"  {name}: {gnb.sigma_[i]}")
 
-print("多项式朴素贝叶斯准确率:", accuracy_score(y_test_text, y_pred_mnb))
+# 可视化决策边界（使用前两个特征）
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-# 伯努利朴素贝叶斯示例（二值特征）
-print("\n=== 伯努利朴素贝叶斯（二值特征） ===")
-X_binary = (X_text > 0).astype(int)  # 转换为二值特征
-y_binary = y_text
+# 训练模型（仅使用前两个特征便于可视化）
+gnb_2d = GaussianNB()
+gnb_2d.fit(X_train[:, :2], y_train)
 
-X_train_binary, X_test_binary, y_train_binary, y_test_binary = train_test_split(X_binary, y_binary, test_size=0.3, random_state=42)
+# 创建网格
+x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200),
+                     np.linspace(y_min, y_max, 200))
 
-bnb = BernoulliNB()
-bnb.fit(X_train_binary, y_train_binary)
-y_pred_bnb = bnb.predict(X_test_binary)
+# 预测网格点
+Z = gnb_2d.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
 
-print("伯努利朴素贝叶斯准确率:", accuracy_score(y_test_binary, y_pred_bnb))
+# 绘制决策边界
+ax1 = axes[0]
+ax1.contourf(xx, yy, Z, alpha=0.3, cmap='viridis')
+scatter = ax1.scatter(X[:, 0], X[:, 1], c=y, cmap='viridis', edgecolors='k')
+ax1.set_xlabel(feature_names[0])
+ax1.set_ylabel(feature_names[1])
+ax1.set_title('高斯朴素贝叶斯决策边界')
+plt.colorbar(scatter, ax=ax1)
 
-# 模型比较
-models = {
-    'KNN': best_knn,
-    '高斯朴素贝叶斯': gnb,
-    '多项式朴素贝叶斯': mnb,
-    '伯努利朴素贝叶斯': bnb
-}
+# 混淆矩阵
+ax2 = axes[1]
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax2,
+            xticklabels=target_names, yticklabels=target_names)
+ax2.set_xlabel('预测标签')
+ax2.set_ylabel('真实标签')
+ax2.set_title('混淆矩阵')
 
-print("\n=== 模型性能比较 ===")
-for name, model in models.items():
-    if name == 'KNN':
-        y_pred = model.predict(X_test)
-        acc = accuracy_score(y_test, y_pred)
-    elif name == '高斯朴素贝叶斯':
-        y_pred = model.predict(X_test_iris)
-        acc = accuracy_score(y_test_iris, y_pred)
-    else:
-        if name == '多项式朴素贝叶斯':
-            y_pred = model.predict(X_test_text)
-            acc = accuracy_score(y_test_text, y_pred)
-        else:
-            y_pred = model.predict(X_test_binary)
-            acc = accuracy_score(y_test_binary, y_pred)
-    print(f"{name}: {acc:.4f}")
-
-# 特征重要性分析（朴素贝叶斯）
-print("\n=== 高斯朴素贝叶斯特征重要性 ===")
-# 计算每个特征在每个类别下的方差倒数（方差越小，特征越重要）
-feature_importance = 1 / np.array([gnb.theta_.var(axis=0), gnb.sigma_.var(axis=0)]).mean(axis=0)
-
-plt.figure(figsize=(10, 6))
-plt.bar(range(len(feature_importance)), feature_importance)
-plt.xlabel('特征索引')
-plt.ylabel('重要性得分')
-plt.title('朴素贝叶斯特征重要性（基于方差）')
+plt.tight_layout()
 plt.show()
 ```
 
-## 4. 数学推导详解
+### 多项式朴素贝叶斯 - 文本分类
 
-### 4.1 KNN的偏差-方差权衡
+```python
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.pipeline import Pipeline
 
-**偏差：** 随着k增大，模型变得简单，偏差增大
-**方差：** 随着k减小，模型变得复杂，方差增大
+# 模拟新闻文本数据
+documents = [
+    "股市大涨 投资者 乐观 经济 增长",           # 财经
+    "股票 下跌 市场 恐慌 抛售",                  # 财经
+    "银行 利率 贷款 理财 投资",                  # 财经
+    "足球 比赛 冠军 球队 胜利",                  # 体育
+    "运动员 奥运 金牌 训练 比赛",                # 体育
+    "篮球 NBA 球星 季后赛 总冠军",               # 体育
+    "科技 创新 人工智能 发展 未来",              # 科技
+    "手机 新品 发布 智能 功能",                  # 科技
+    "互联网 公司 软件 编程 技术",                # 科技
+]
 
-**泛化误差：**
-$$ \text{Error} = \text{Bias}^2 + \text{Variance} + \text{Noise} $$
+labels = [0, 0, 0, 1, 1, 1, 2, 2, 2]  # 0:财经, 1:体育, 2:科技
+label_names = ['财经', '体育', '科技']
 
-### 4.2 朴素贝叶斯的拉普拉斯平滑
+# 创建管道：词频统计 -> 多项式朴素贝叶斯
+pipeline = Pipeline([
+    ('vectorizer', CountVectorizer()),  # 将文本转换为词频向量
+    ('classifier', MultinomialNB(alpha=1.0))  # alpha=1.0 拉普拉斯平滑
+])
 
-为了避免零概率问题，使用拉普拉斯平滑：
-$$ P(x_j|y) = \frac{N_{yj} + \alpha}{N_y + \alpha d} $$
+# 训练模型
+pipeline.fit(documents, labels)
 
-其中$\alpha$是平滑参数，$d$是特征的可能取值数。
+# 测试新文档
+test_docs = [
+    "股票 投资 理财",
+    "足球 冠军 比赛",
+    "人工智能 科技 创新"
+]
 
-### 4.3 对数概率计算
+print("=" * 50)
+print("多项式朴素贝叶斯 - 文本分类")
+print("=" * 50)
 
-为避免数值下溢，使用对数概率：
-$$ \log P(y|\mathbf{x}) = \log P(y) + \sum_{j=1}^p \log P(x_j|y) - \log P(\mathbf{x}) $$
+test_vectors = pipeline.named_steps['vectorizer'].transform(test_docs)
+predictions = pipeline.predict(test_docs)
+probabilities = pipeline.predict_proba(test_docs)
 
-由于$P(\mathbf{x})$对所有类别相同，可以忽略：
-$$ \hat{y} = \arg\max_{y} \left[\log P(y) + \sum_{j=1}^p \log P(x_j|y)\right] $$
+for doc, pred, prob in zip(test_docs, predictions, probabilities):
+    print(f"\n文档: '{doc}'")
+    print(f"预测类别: {label_names[pred]}")
+    print(f"类别概率: {dict(zip(label_names, prob.round(4)))}")
 
-## 5. 应用场景
+# 可视化词频矩阵
+vectorizer = pipeline.named_steps['vectorizer']
+feature_names = vectorizer.get_feature_names_out()
 
-### 5.1 KNN应用
-- **推荐系统**：基于用户相似度的推荐
-- **图像识别**：手写数字识别
-- **医疗诊断**：基于病例相似度的诊断
-- **地理信息系统**：空间数据分类
+print(f"\n词汇表大小: {len(feature_names)}")
+print(f"词汇表: {feature_names[:10]}...")  # 显示前10个词
+```
 
-### 5.2 朴素贝叶斯应用
-- **垃圾邮件过滤**：文本分类的经典应用
-- **情感分析**：评论情感极性判断
-- **文档分类**：新闻分类、主题识别
-- **医疗诊断**：症状与疾病的概率关系
+### 伯努利朴素贝叶斯 - 二值特征
 
-## 6. 优缺点分析
+```python
+from sklearn.naive_bayes import BernoulliNB
 
-### 6.1 KNN优缺点
-**优点：**
-- 原理简单，易于理解
-- 对异常值不敏感
-- 无需训练阶段（惰性学习）
-- 能够处理多分类问题
+# 模拟文档-词项矩阵（二值：是否包含某词）
+# 每行代表一个文档，每列代表一个词是否出现
+X_binary = np.array([
+    # 股票, 投资, 足球, 比赛, 科技, 人工智能
+    [1, 1, 0, 0, 0, 0],  # 财经文档
+    [1, 0, 0, 0, 0, 0],  # 财经文档
+    [0, 0, 1, 1, 0, 0],  # 体育文档
+    [0, 0, 1, 0, 0, 0],  # 体育文档
+    [0, 0, 0, 0, 1, 1],  # 科技文档
+    [0, 0, 0, 0, 1, 0],  # 科技文档
+])
 
-**缺点：**
-- 计算复杂度高（需要存储所有训练数据）
-- 对特征尺度敏感
-- 高维数据效果差（维度灾难）
-- 需要选择合适的k值和距离度量
+y_binary = np.array([0, 0, 1, 1, 2, 2])  # 0:财经, 1:体育, 2:科技
 
-### 6.2 朴素贝叶斯优缺点
-**优点：**
-- 训练和预测速度快
-- 对缺失数据不敏感
-- 能够处理多分类问题
-- 适合高维数据
+# 训练伯努利朴素贝叶斯
+bnb = BernoulliNB(alpha=1.0)
+bnb.fit(X_binary, y_binary)
 
-**缺点：**
-- 特征独立性假设在现实中往往不成立
-- 对输入数据的分布形式敏感
-- 需要足够的训练数据来估计概率
+print("=" * 50)
+print("伯努利朴素贝叶斯 - 二值特征分类")
+print("=" * 50)
 
-## 7. 实践建议
+# 测试样本
+X_test_binary = np.array([
+    [1, 0, 0, 0, 0, 0],  # 只包含"股票" -> 财经
+    [0, 0, 1, 1, 0, 0],  # 包含"足球"和"比赛" -> 体育
+    [0, 0, 0, 0, 1, 1],  # 包含"科技"和"人工智能" -> 科技
+])
 
-### 7.1 KNN实践建议
-1. **数据预处理**：必须进行特征标准化
-2. **距离度量选择**：根据数据类型选择合适的距离函数
-3. **k值选择**：使用交叉验证选择最优k值
-4. **降维处理**：对高维数据考虑使用PCA等降维方法
+predictions = bnb.predict(X_test_binary)
+probabilities = bnb.predict_proba(X_test_binary)
 
-### 7.2 朴素贝叶斯实践建议
-1. **数据分布检查**：验证数据是否符合算法假设
-2. **平滑参数调整**：根据数据特点调整拉普拉斯平滑参数
-3. **特征选择**：移除相关性强的特征
-4. **模型选择**：根据特征类型选择合适的变体
+feature_names = ['股票', '投资', '足球', '比赛', '科技', '人工智能']
+for features, pred, prob in zip(X_test_binary, predictions, probabilities):
+    active_features = [feature_names[i] for i, v in enumerate(features) if v == 1]
+    print(f"\n特征: {active_features}")
+    print(f"预测类别: {label_names[pred]}")
+    print(f"类别概率: {dict(zip(label_names, prob.round(4)))}")
+
+# 查看特征对各类别的贡献
+print("\n特征 log 概率 (feature_log_prob_):")
+print("(数值越大，表示该特征对该类别越重要)")
+print(f"{'特征':<10}", end='')
+for name in label_names:
+    print(f"{name:<12}", end='')
+print()
+for i, fname in enumerate(feature_names):
+    print(f"{fname:<10}", end='')
+    for c in range(3):
+        print(f"{bnb.feature_log_prob_[c, i]:<12.4f}", end='')
+    print()
+```
+
+### 从零实现朴素贝叶斯
+
+```python
+class MyGaussianNB:
+    """从零实现高斯朴素贝叶斯分类器"""
+    
+    def fit(self, X, y):
+        """训练模型：计算各类别的先验概率和高斯参数"""
+        self.classes_ = np.unique(y)
+        n_samples, n_features = X.shape
+        
+        # 计算先验概率
+        self.priors_ = np.array([
+            np.sum(y == c) / n_samples for c in self.classes_
+        ])
+        
+        # 计算各类别各特征的均值和方差
+        self.means_ = np.array([
+            X[y == c].mean(axis=0) for c in self.classes_
+        ])
+        self.vars_ = np.array([
+            X[y == c].var(axis=0) for c in self.classes_
+        ])
+        
+        return self
+    
+    def _gaussian_pdf(self, X, mean, var):
+        """计算高斯概率密度函数"""
+        return np.exp(-0.5 * (X - mean)**2 / var) / np.sqrt(2 * np.pi * var)
+    
+    def predict_proba(self, X):
+        """预测后验概率"""
+        n_samples = X.shape[0]
+        n_classes = len(self.classes_)
+        
+        log_probs = np.zeros((n_samples, n_classes))
+        
+        for i, c in enumerate(self.classes_):
+            # log P(y=c)
+            log_prior = np.log(self.priors_[i])
+            
+            # log P(x|y=c) = sum log P(x_j|y=c)
+            log_likelihood = np.sum(
+                np.log(self._gaussian_pdf(X, self.means_[i], self.vars_[i]) + 1e-9),
+                axis=1
+            )
+            
+            log_probs[:, i] = log_prior + log_likelihood
+        
+        # 转换为概率（使用 softmax）
+        log_probs_max = log_probs.max(axis=1, keepdims=True)
+        probs = np.exp(log_probs - log_probs_max)
+        probs = probs / probs.sum(axis=1, keepdims=True)
+        
+        return probs
+    
+    def predict(self, X):
+        """预测类别"""
+        probs = self.predict_proba(X)
+        return self.classes_[np.argmax(probs, axis=1)]
+
+
+# 测试自己实现的分类器
+print("=" * 50)
+print("从零实现高斯朴素贝叶斯")
+print("=" * 50)
+
+my_gnb = MyGaussianNB()
+my_gnb.fit(X_train, y_train)
+my_pred = my_gnb.predict(X_test)
+
+print(f"自实现准确率: {accuracy_score(y_test, my_pred):.4f}")
+print(f"sklearn准确率: {accuracy_score(y_test, gnb.predict(X_test)):.4f}")
+```
+
+## 模型特点分析
+
+### 优点
+
+✅ **训练速度快**：只需计算各类别的统计量，无需迭代优化  
+✅ **预测效率高**：直接计算概率，时间复杂度为 $O(p \cdot |C|)$  
+✅ **对小样本友好**：即使训练数据较少也能取得不错效果  
+✅ **可处理多分类**：天然支持多分类问题  
+✅ **对缺失数据鲁棒**：训练时可以忽略缺失特征，预测时可以跳过缺失项  
+✅ **可解释性强**：概率输出直观反映分类置信度
+
+### 缺点
+
+⚠️ **独立性假设过强**：特征间往往存在相关性，假设不成立时性能受限  
+⚠️ **对输入数据形式敏感**：需要根据特征类型选择合适的变体  
+⚠️ **零频率问题**：需要平滑处理避免概率为零
+
+### 适用场景
+
+| 场景 | 推荐变体 | 说明 |
+|------|----------|------|
+| 文本分类（词频） | 多项式 NB | 词频特征天然符合多项分布 |
+| 垃圾邮件过滤 | 伯努利 NB / 多项式 NB | 基于词袋模型 |
+| 情感分析 | 多项式 NB | 词频或 TF-IDF 特征 |
+| 连续特征分类 | 高斯 NB | 假设特征服从高斯分布 |
+| 实时预测系统 | 任意变体 | 训练和预测速度快 |
+
+## 与其他算法的比较
+
+```python
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+
+# 生成分类数据
+X_comp, y_comp = make_classification(
+    n_samples=500, n_features=10, n_informative=5,
+    n_redundant=2, n_clusters_per_class=2, random_state=42
+)
+
+X_train_comp, X_test_comp, y_train_comp, y_test_comp = train_test_split(
+    X_comp, y_comp, test_size=0.3, random_state=42
+)
+
+# 标准化
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train_comp)
+X_test_scaled = scaler.transform(X_test_comp)
+
+# 定义多个分类器
+classifiers = {
+    '高斯朴素贝叶斯': GaussianNB(),
+    'K近邻': KNeighborsClassifier(n_neighbors=5),
+    '决策树': DecisionTreeClassifier(max_depth=5),
+    '支持向量机': SVC(kernel='rbf'),
+    '逻辑回归': LogisticRegression(max_iter=1000)
+}
+
+print("=" * 50)
+print("分类器性能比较")
+print("=" * 50)
+
+results = []
+for name, clf in classifiers.items():
+    # 交叉验证
+    cv_scores = cross_val_score(clf, X_train_scaled, y_train_comp, cv=5)
+    
+    # 测试集评估
+    clf.fit(X_train_scaled, y_train_comp)
+    test_score = clf.score(X_test_scaled, y_test_comp)
+    
+    results.append({
+        '算法': name,
+        '交叉验证均值': cv_scores.mean(),
+        '交叉验证标准差': cv_scores.std(),
+        '测试集准确率': test_score
+    })
+
+import pandas as pd
+results_df = pd.DataFrame(results)
+print(results_df.to_string(index=False))
+```
+
+## 实践建议
+
+1. **特征选择**：移除高度相关的特征，符合独立性假设
+2. **平滑参数调优**：通过交叉验证选择最佳的 $\alpha$ 值
+3. **特征工程**：对连续特征可尝试离散化后使用多项式 NB
+4. **概率校准**：朴素贝叶斯输出的概率可能不够准确，可使用 `CalibratedClassifierCV` 进行校准
+5. **集成学习**：可与其他分类器组合使用，如投票或堆叠
 
 ---
 
-[下一节：无监督学习算法](../unsupervised-learning/index.md)
+[上一节：梯度提升](../tree-models/gradient-boosting.md) | [下一节：EM算法](./em-algorithm.md)

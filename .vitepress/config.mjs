@@ -80,9 +80,9 @@ export default withMermaid(
         items: [
           { text: '总览', link: '/notes/machine-learning/index.md' },
           { text: '数学基础', link: '/notes/machine-learning/math-foundation/linear-algebra.md' },
-          { text: '有监督学习', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
-          { text: '无监督学习', link: '/notes/machine-learning/unsupervised-learning/framework/unsupervised-learning.md' },
           { text: '特征工程', link: '/notes/machine-learning/feature-engineering/index.md' },
+          { text: '有监督学习', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
+          { text: '无监督学习', link: '/notes/machine-learning/unsupervised-learning/index.md' },
           { text: '模型评估', link: '/notes/machine-learning/model-evaluation/cross-validation.md' }
         ]
       },
@@ -262,18 +262,20 @@ export default withMermaid(
           items: [
             { text: '交叉验证', link: '/notes/machine-learning/model-evaluation/cross-validation.md' },
             { text: '学习理论', link: '/notes/machine-learning/model-evaluation/learning-theory.md' },
-            { text: '统计验证', link: '/notes/machine-learning/model-evaluation/statistical-tests.md' },
+            { text: '统计检验', link: '/notes/machine-learning/model-evaluation/statistical-tests.md' },
 
           ]
         }
       ],
 
       '/notes/machine-learning/supervised-learning/':[
-        { text: '导览', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
+        { text: '导览', link: '/notes/machine-learning/supervised-learning/index.md' },
+        { text: '理论框架', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
         {
           text: '线性模型',
           collapsible: true,
           items: [
+            { text: '导览', link: '/notes/machine-learning/supervised-learning/linear-models/index.md' },
             { text: '线性回归', link: '/notes/machine-learning/supervised-learning/linear-models/linear-regression.md' },
             { text: '逻辑回归', link: '/notes/machine-learning/supervised-learning/linear-models/logistic-regression.md' },
             { text: '正则化', link: '/notes/machine-learning/supervised-learning/linear-models/regularization.md' },
@@ -281,13 +283,16 @@ export default withMermaid(
           ]
         },
         {
-          text: '决策树',
+          text: '树模型与集成',
           collapsible: true,
           items: [
+            { text: '导览', link: '/notes/machine-learning/supervised-learning/tree-models/index.md' },
             { text: '决策树', link: '/notes/machine-learning/supervised-learning/tree-models/decision-trees.md' },
             { text: '随机森林', link: '/notes/machine-learning/supervised-learning/tree-models/random-forest.md' },
+            { text: 'AdaBoost', link: '/notes/machine-learning/supervised-learning/tree-models/adaboost.md' },
             { text: 'GBDT', link: '/notes/machine-learning/supervised-learning/tree-models/gradient-boosting.md' },
             { text: 'XGBoost', link: '/notes/machine-learning/supervised-learning/tree-models/xgboost.md' },
+            { text: 'LightGBM', link: '/notes/machine-learning/supervised-learning/tree-models/lightgbm.md' },
 
           ]
         },
@@ -295,9 +300,10 @@ export default withMermaid(
           text: '支持向量机',
           collapsible: true,
           items: [
+            { text: '导览', link: '/notes/machine-learning/supervised-learning/svm/index.md' },
             { text: 'SVM理论', link: '/notes/machine-learning/supervised-learning/svm/svm-theory.md' },
             { text: '核方法', link: '/notes/machine-learning/supervised-learning/svm/kernel-methods.md' },
-            { text: 'SVM实践', link: '/notes/machine-learning/supervised-learning/svm/svm-implementation.md' }
+            { text: 'SVM实现', link: '/notes/machine-learning/supervised-learning/svm/svm-implementation.md' }
           ]
         },
 
@@ -305,42 +311,20 @@ export default withMermaid(
           text: '贝叶斯方法',
           collapsible: true,
           items: [
+            { text: '导览', link: '/notes/machine-learning/supervised-learning/bayesian-methods/index.md' },
+            { text: '朴素贝叶斯', link: '/notes/machine-learning/supervised-learning/bayesian-methods/naive-bayes.md' },
             { text: 'EM算法', link: '/notes/machine-learning/supervised-learning/bayesian-methods/em-algorithm.md' },
-            { text: '高斯过程', link: '/notes/machine-learning/supervised-learning/bayesian-methods/gaussian-processes.md' },
-            { text: '朴素贝叶斯', link: '/notes/machine-learning/supervised-learning/bayesian-methods/naive-bayes.md' }
+            { text: '高斯过程', link: '/notes/machine-learning/supervised-learning/bayesian-methods/gaussian-processes.md' }
           ]
         }
       ],
 
       '/notes/machine-learning/unsupervised-learning/':[
-        { text: '导览', link: '/notes/machine-learning/unsupervised-learning/framework/unsupervised-learning.md' },
-        {
-          text: '聚类',
-          collapsible: true,
-          items: [
-            { text: 'K-means', link: '/notes/machine-learning/unsupervised-learning/clustering/kmeans.md' },
-            { text: 'DBSCAN', link: '/notes/machine-learning/unsupervised-learning/clustering/dbscan.md' },
-            { text: '层次聚类', link: '/notes/machine-learning/unsupervised-learning/clustering/hierarchical.md' },
-            { text: 'KD-Tree', link: '/notes/machine-learning/unsupervised-learning/advanced-structures/kdtree.md' }
-          ]
-        },
-        {
-          text: '降维',
-          collapsible: true,
-          items: [
-            { text: 'PCA', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction/pca.md' },
-            { text: 'LDA', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction/lda.md' },
-            { text: '流行学习', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction/manifold-learning.md' }
-          ]
-        },
-        {
-          text: '关联规则',
-          collapsible: true,
-          items: [
-            { text: '异常检测', link: '/notes/machine-learning/unsupervised-learning/association-rules/anomaly-detection.md' },
-            { text: 'Apriori', link: '/notes/machine-learning/unsupervised-learning/association-rules/apriori.md' },
-          ]
-        }
+        { text: '导览', link: '/notes/machine-learning/unsupervised-learning/index.md' },
+        { text: '聚类分析', link: '/notes/machine-learning/unsupervised-learning/clustering.md' },
+        { text: '降维技术', link: '/notes/machine-learning/unsupervised-learning/dimensionality-reduction.md' },
+        { text: '关联规则与异常检测', link: '/notes/machine-learning/unsupervised-learning/association-anomaly.md' },
+        { text: '高级数据结构', link: '/notes/machine-learning/unsupervised-learning/advanced-structures.md' }
       ],
       // 深度学习分类侧边栏
       '/notes/deep-learning/': [

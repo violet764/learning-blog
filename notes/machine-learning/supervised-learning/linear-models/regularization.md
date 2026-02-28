@@ -1,430 +1,334 @@
-# 正则化理论
+# 正则化
 
-## 1. 正则化基本概念
+正则化是防止模型过拟合的核心技术。通过在损失函数中添加惩罚项，限制模型复杂度，从而提升泛化能力。
 
-### 1.1 过拟合问题
+📌 **核心思想**：在最小化训练误差的同时，控制模型复杂度，找到"最简"的有效模型。
 
-在机器学习中，当模型过于复杂时，可能会过度拟合训练数据中的噪声，导致在测试集上表现不佳。这种现象称为过拟合。
+## 基本概念
 
-**数学描述：**
-设训练误差为$E_{train}$，测试误差为$E_{test}$，过拟合表现为：
-$$ E_{train} \ll E_{test} $$
+### 过拟合问题
 
-### 1.2 正则化原理
+当模型过于复杂时，可能会"记住"训练数据中的噪声，导致在测试集上表现不佳。
 
-正则化通过在损失函数中添加惩罚项来限制模型复杂度：
-$$ J(\boldsymbol{\theta}) = L(\boldsymbol{\theta}) + \lambda R(\boldsymbol{\theta}) $$
+$$\text{泛化误差} = \text{偏差}^2 + \text{方差} + \text{噪声}$$
+
+- **高偏差（欠拟合）**：模型太简单，无法捕捉数据规律
+- **高方差（过拟合）**：模型太复杂，拟合了噪声
+
+### 正则化框架
+
+正则化后的目标函数：
+
+$$J(\boldsymbol{\theta}) = \underbrace{L(\boldsymbol{\theta})}_{\text{损失项}} + \underbrace{\lambda R(\boldsymbol{\theta})}_{\text{正则项}}$$
+
 其中：
-- $L(\boldsymbol{\theta})$：原始损失函数
-- $R(\boldsymbol{\theta})$：正则化项
-- $\lambda$：正则化参数，控制惩罚强度
+- $L(\boldsymbol{\theta})$：原始损失函数（如 MSE、交叉熵）
+- $R(\boldsymbol{\theta})$：正则化项，衡量模型复杂度
+- $\lambda$：正则化强度，控制惩罚程度
 
-## 2. L2正则化（岭回归）
+## L2 正则化（Ridge）
 
-### 2.1 数学模型
+### 数学模型
 
-对于线性回归问题，L2正则化的目标函数为：
-$$ J(\boldsymbol{\beta}) = \frac{1}{2n} \sum_{i=1}^n (y_i - \mathbf{x}_i^T\boldsymbol{\beta})^2 + \frac{\lambda}{2} \|\boldsymbol{\beta}\|_2^2 $$
+对于线性回归，L2 正则化的目标函数：
 
-### 2.2 解析解
+$$J(\boldsymbol{\beta}) = \frac{1}{2n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 + \frac{\lambda}{2}\|\boldsymbol{\beta}\|_2^2$$
 
-**矩阵形式：**
-$$ J(\boldsymbol{\beta}) = \frac{1}{2n} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 + \frac{\lambda}{2} \|\boldsymbol{\beta}\|_2^2 $$
+其中 $\|\boldsymbol{\beta}\|_2^2 = \sum_{j=1}^{p}\beta_j^2$ 是 L2 范数的平方。
 
-对$\boldsymbol{\beta}$求导并令导数为零：
-$$ \frac{\partial J}{\partial \boldsymbol{\beta}} = -\frac{1}{n}\mathbf{X}^T(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) + \lambda\boldsymbol{\beta} = 0 $$
+### 解析解
 
-解得：
-$$ \hat{\boldsymbol{\beta}}_{ridge} = (\mathbf{X}^T\mathbf{X} + n\lambda\mathbf{I})^{-1}\mathbf{X}^T\mathbf{y} $$
+对 $\boldsymbol{\beta}$ 求导并令其为零：
 
-### 2.3 几何解释
+$$\hat{\boldsymbol{\beta}}_{ridge} = (\mathbf{X}^T\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^T\mathbf{y}$$
 
-L2正则化等价于在参数空间中对参数向量施加球形约束：
-$$ \min_{\boldsymbol{\beta}} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 \quad \text{s.t.} \quad \|\boldsymbol{\beta}\|_2^2 \leq t $$
+📌 **关键特性**：添加 $\lambda\mathbf{I}$ 使矩阵总是可逆，解决了多重共线性问题！
 
-## 3. L1正则化（Lasso回归）
+### 几何解释
 
-### 3.1 数学模型
+L2 正则化等价于在参数空间施加球形约束：
 
-L1正则化的目标函数：
-$$ J(\boldsymbol{\beta}) = \frac{1}{2n} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 + \lambda \|\boldsymbol{\beta}\|_1 $$
+$$\min_{\boldsymbol{\beta}} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 \quad \text{s.t.} \quad \|\boldsymbol{\beta}\|_2^2 \leq t$$
 
-### 3.2 特征选择性质
+最优解是椭圆等高线与圆的切点，不会落在坐标轴上（系数不会精确为 0）。
 
-L1正则化具有特征选择能力，可以将不重要的特征的系数压缩为0。
+## L1 正则化（Lasso）
 
-**几何解释：** L1正则化在参数空间中施加菱形约束，使得最优解更容易落在坐标轴上。
+### 数学模型
 
-### 3.3 求解方法
+$$J(\boldsymbol{\beta}) = \frac{1}{2n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 + \lambda\|\boldsymbol{\beta}\|_1$$
 
-由于L1正则化不可导，需要使用特殊优化算法：
-- 坐标下降法
-- 近端梯度法
-- 最小角回归（LARS）
+其中 $\|\boldsymbol{\beta}\|_1 = \sum_{j=1}^{p}|\beta_j|$ 是 L1 范数。
 
-## 4. Elastic Net
+### 稀疏性解释
 
-### 4.1 混合正则化
+L1 正则化产生**稀疏解**——部分系数精确为零。
 
-Elastic Net结合了L1和L2正则化：
-$$ J(\boldsymbol{\beta}) = \frac{1}{2n} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 + \lambda_1 \|\boldsymbol{\beta}\|_1 + \lambda_2 \|\boldsymbol{\beta}\|_2^2 $$
+**几何理解**：L1 约束区域是菱形（超立方体），最优解更容易落在顶点上（坐标轴上），使某些系数为零。
 
-### 4.2 优势
+💡 **特征选择**：Lasso 自动进行特征选择，保留重要特征，剔除无关特征。
 
-- 继承了L1正则化的特征选择能力
-- 解决了L1正则化在高维数据中的局限性
-- 对于高度相关的特征，倾向于选择所有相关特征
+### 求解方法
 
-## 5. 贝叶斯解释
+由于 L1 范数在零点不可导，需要特殊优化算法：
 
-### 5.1 L2正则化的贝叶斯解释
+- **坐标下降法**：逐个坐标优化，适用于 Lasso
+- **近端梯度法（Proximal Gradient）**：处理非光滑正则项
+- **最小角回归（LARS）**：高效计算整个正则化路径
 
-从贝叶斯角度看，L2正则化等价于给参数施加高斯先验：
-$$ p(\boldsymbol{\beta}) = \mathcal{N}(\boldsymbol{\beta}|\mathbf{0}, \frac{1}{\lambda}\mathbf{I}) $$
+## Elastic Net
 
-后验分布：
-$$ p(\boldsymbol{\beta}|\mathbf{X},\mathbf{y}) \propto p(\mathbf{y}|\mathbf{X},\boldsymbol{\beta})p(\boldsymbol{\beta}) $$
+### 混合正则化
 
-最大后验估计（MAP）即为岭回归的解。
+Elastic Net 结合 L1 和 L2 的优势：
 
-### 5.2 L1正则化的贝叶斯解释
+$$J(\boldsymbol{\beta}) = \frac{1}{2n}\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2 + \lambda\left(\alpha\|\boldsymbol{\beta}\|_1 + \frac{1-\alpha}{2}\|\boldsymbol{\beta}\|_2^2\right)$$
 
-L1正则化等价于拉普拉斯先验：
-$$ p(\beta_j) = \frac{\lambda}{2} e^{-\lambda|\beta_j|} $$
+其中 $\alpha \in [0, 1]$ 控制 L1 和 L2 的混合比例：
+- $\alpha = 1$：纯 Lasso
+- $\alpha = 0$：纯 Ridge
+- $0 < \alpha < 1$：Elastic Net
 
-## 6. 正则化参数选择
+### 优势
 
-### 6.1 交叉验证
+| 特性 | Lasso | Ridge | Elastic Net |
+|------|-------|-------|-------------|
+| **特征选择** | ✅ | ❌ | ✅ |
+| **处理共线性** | ❌（随机选一个） | ✅ | ✅（选择组） |
+| **稳定性** | 较低 | 高 | 高 |
 
-使用k折交叉验证选择最优的$\lambda$值：
-$$ \hat{\lambda} = \arg\min_{\lambda} \frac{1}{k} \sum_{i=1}^k E_{test}^{(i)}(\lambda) $$
+## 贝叶斯解释
 
-### 6.2 信息准则
+### L2 正则化 ≈ 高斯先验
 
-**AIC（Akaike信息准则）：**
-$$ AIC = 2k - 2\ln(L) $$
+从贝叶斯角度，L2 正则化等价于参数的高斯先验：
 
-**BIC（贝叶斯信息准则）：**
-$$ BIC = k\ln(n) - 2\ln(L) $$
+$$p(\boldsymbol{\beta}) = \mathcal{N}(\mathbf{0}, \tau^2\mathbf{I}) = \prod_{j=1}^{p} \frac{1}{\sqrt{2\pi}\tau}\exp\left(-\frac{\beta_j^2}{2\tau^2}\right)$$
 
-其中k是参数个数，L是似然函数值。
+最大后验估计（MAP）：
+$$\hat{\boldsymbol{\beta}}_{MAP} = \arg\max_{\boldsymbol{\beta}} p(\boldsymbol{\beta}|\mathbf{X},\mathbf{y}) \propto p(\mathbf{y}|\mathbf{X},\boldsymbol{\beta})p(\boldsymbol{\beta})$$
 
-## 7. Python实现示例
+对应正则化参数 $\lambda = \sigma^2/\tau^2$。
+
+### L1 正则化 ≈ 拉普拉斯先验
+
+L1 正则化对应拉普拉斯先验：
+
+$$p(\beta_j) = \frac{\lambda}{2}\exp(-\lambda|\beta_j|)$$
+
+拉普拉斯分布在零点有尖峰，更倾向于产生零值（稀疏解）。
+
+## 正则化参数选择
+
+### 交叉验证
+
+使用 K 折交叉验证选择最优 $\lambda$：
+
+$$\hat{\lambda} = \arg\min_{\lambda} \frac{1}{K}\sum_{k=1}^{K} E_{valid}^{(k)}(\lambda)$$
+
+### 信息准则
+
+**AIC（Akaike 信息准则）**：
+$$AIC = 2k - 2\ln(L)$$
+
+**BIC（贝叶斯信息准则）**：
+$$BIC = k\ln(n) - 2\ln(L)$$
+
+其中 $k$ 是有效参数个数，$L$ 是似然函数值。
+
+## 代码示例
+
+### 示例1：正则化方法对比
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import Ridge, Lasso, ElasticNet
+from sklearn.linear_model import Ridge, Lasso, ElasticNet, LinearRegression
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.datasets import make_regression
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error
-import warnings
-warnings.filterwarnings('ignore')
 
-# 生成示例数据
-print("=== 正则化方法比较 ===")
-X, y, true_coef = make_regression(n_samples=100, n_features=20, n_informative=5, 
-                                 noise=0.1, coef=True, random_state=42)
+# 生成数据：20个特征，仅5个有用
+np.random.seed(42)
+X, y, true_coef = make_regression(
+    n_samples=100, n_features=20, n_informative=5,
+    noise=10, coef=True, random_state=42
+)
 
-# 数据标准化
+# 标准化
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-print("真实系数中有", np.sum(true_coef != 0), "个非零系数")
-print("真实系数中有", np.sum(true_coef == 0), "个零系数")
+print(f"真实非零系数数量: {np.sum(np.abs(true_coef) > 0.01)}")
 
-# 1. 不同正则化方法比较
-print("\n=== 不同正则化方法比较 ===")
+# 普通线性回归（无正则化）
+lr = LinearRegression()
+lr.fit(X_scaled, y)
+lr_nonzero = np.sum(np.abs(lr.coef_) > 0.01)
+print(f"普通回归非零系数: {lr_nonzero}")
 
-# 定义正则化参数范围
-alphas = np.logspace(-4, 4, 100)
-
-ridge_scores = []
-lasso_scores = []
-elasticnet_scores = []
-
-for alpha in alphas:
-    # 岭回归
-    ridge = Ridge(alpha=alpha)
-    ridge_scores.append(-cross_val_score(ridge, X_scaled, y, cv=5, 
-                                       scoring='neg_mean_squared_error').mean())
-    
-    # Lasso回归
-    lasso = Lasso(alpha=alpha)
-    lasso_scores.append(-cross_val_score(lasso, X_scaled, y, cv=5, 
-                                       scoring='neg_mean_squared_error').mean())
-    
-    # Elastic Net
-    elasticnet = ElasticNet(alpha=alpha, l1_ratio=0.5)
-    elasticnet_scores.append(-cross_val_score(elasticnet, X_scaled, y, cv=5, 
-                                            scoring='neg_mean_squared_error').mean())
-
-# 绘制正则化路径
-plt.figure(figsize=(12, 8))
-
-plt.subplot(2, 2, 1)
-plt.semilogx(alphas, ridge_scores)
-plt.xlabel('正则化参数 λ')
-plt.ylabel('MSE')
-plt.title('岭回归正则化路径')
-plt.grid(True)
-
-plt.subplot(2, 2, 2)
-plt.semilogx(alphas, lasso_scores)
-plt.xlabel('正则化参数 λ')
-plt.ylabel('MSE')
-plt.title('Lasso回归正则化路径')
-plt.grid(True)
-
-plt.subplot(2, 2, 3)
-plt.semilogx(alphas, elasticnet_scores)
-plt.xlabel('正则化参数 λ')
-plt.ylabel('MSE')
-plt.title('Elastic Net正则化路径')
-plt.grid(True)
-
-# 2. 系数路径分析
-print("\n=== 系数路径分析 ===")
-
-# 使用较大的alpha范围来观察系数压缩
-alphas_coef = np.logspace(-2, 2, 50)
-ridge_coefs = []
-lasso_coefs = []
-
-for alpha in alphas_coef:
-    ridge = Ridge(alpha=alpha)
-    ridge.fit(X_scaled, y)
-    ridge_coefs.append(ridge.coef_)
-    
-    lasso = Lasso(alpha=alpha)
-    lasso.fit(X_scaled, y)
-    lasso_coefs.append(lasso.coef_)
-
-ridge_coefs = np.array(ridge_coefs)
-lasso_coefs = np.array(lasso_coefs)
-
-plt.subplot(2, 2, 4)
-for i in range(ridge_coefs.shape[1]):
-    plt.semilogx(alphas_coef, ridge_coefs[:, i], alpha=0.7)
-plt.xlabel('正则化参数 λ')
-plt.ylabel('系数值')
-plt.title('岭回归系数路径')
-plt.grid(True)
-
-plt.tight_layout()
-plt.show()
-
-# 单独绘制Lasso系数路径
-plt.figure(figsize=(10, 6))
-for i in range(lasso_coefs.shape[1]):
-    plt.semilogx(alphas_coef, lasso_coefs[:, i], alpha=0.7)
-plt.xlabel('正则化参数 λ')
-plt.ylabel('系数值')
-plt.title('Lasso回归系数路径')
-plt.grid(True)
-plt.show()
-
-# 3. 最优参数选择
-print("\n=== 最优参数选择 ===")
-
-# 网格搜索寻找最优参数
-param_grid = {'alpha': np.logspace(-4, 2, 50)}
-
-# 岭回归
-ridge_grid = GridSearchCV(Ridge(), param_grid, cv=5, scoring='neg_mean_squared_error')
-ridge_grid.fit(X_scaled, y)
-print(f"岭回归最优参数: alpha={ridge_grid.best_params_['alpha']:.6f}")
-print(f"岭回归最佳分数: {-ridge_grid.best_score_:.6f}")
-
-# Lasso回归
-lasso_grid = GridSearchCV(Lasso(), param_grid, cv=5, scoring='neg_mean_squared_error')
-lasso_grid.fit(X_scaled, y)
-print(f"Lasso回归最优参数: alpha={lasso_grid.best_params_['alpha']:.6f}")
-print(f"Lasso回归最佳分数: {-lasso_grid.best_score_:.6f}")
-
-# Elastic Net参数网格
-param_grid_en = {
-    'alpha': np.logspace(-4, 2, 20),
-    'l1_ratio': [0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0]
+# 不同正则化方法
+models = {
+    'Ridge': Ridge(alpha=1.0),
+    'Lasso': Lasso(alpha=0.1),
+    'Elastic Net': ElasticNet(alpha=0.1, l1_ratio=0.5)
 }
 
-elasticnet_grid = GridSearchCV(ElasticNet(), param_grid_en, cv=5, 
-                              scoring='neg_mean_squared_error')
-elasticnet_grid.fit(X_scaled, y)
-print(f"Elastic Net最优参数: alpha={elasticnet_grid.best_params_['alpha']:.6f}, "
-      f"l1_ratio={elasticnet_grid.best_params_['l1_ratio']:.2f}")
-print(f"Elastic Net最佳分数: {-elasticnet_grid.best_score_:.6f}")
+for name, model in models.items():
+    model.fit(X_scaled, y)
+    nonzero = np.sum(np.abs(model.coef_) > 0.01)
+    print(f"{name} 非零系数: {nonzero}")
+```
 
-# 4. 特征选择效果比较
-print("\n=== 特征选择效果比较 ===")
+### 示例2：正则化路径
 
-# 使用最优参数训练模型
-best_ridge = Ridge(alpha=ridge_grid.best_params_['alpha'])
-best_ridge.fit(X_scaled, y)
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import lasso_path, enet_path
+from sklearn.datasets import make_regression
+from sklearn.preprocessing import StandardScaler
 
-best_lasso = Lasso(alpha=lasso_grid.best_params_['alpha'])
-best_lasso.fit(X_scaled, y)
+# 生成数据
+np.random.seed(42)
+X, y, _ = make_regression(n_samples=100, n_features=10, n_informative=3, noise=5, random_state=42)
+X = StandardScaler().fit_transform(X)
 
-best_elasticnet = ElasticNet(alpha=elasticnet_grid.best_params_['alpha'],
-                            l1_ratio=elasticnet_grid.best_params_['l1_ratio'])
-best_elasticnet.fit(X_scaled, y)
+# 计算正则化路径
+alphas_lasso, coefs_lasso, _ = lasso_path(X, y)
+alphas_enet, coefs_enet, _ = enet_path(X, y, l1_ratio=0.7)
 
-# 统计非零系数数量
-ridge_nonzero = np.sum(np.abs(best_ridge.coef_) > 1e-6)
-lasso_nonzero = np.sum(np.abs(best_lasso.coef_) > 1e-6)
-elasticnet_nonzero = np.sum(np.abs(best_elasticnet.coef_) > 1e-6)
+# 绘制系数路径
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-print(f"岭回归非零系数数量: {ridge_nonzero}/{len(true_coef)}")
-print(f"Lasso回归非零系数数量: {lasso_nonzero}/{len(true_coef)}")
-print(f"Elastic Net非零系数数量: {elasticnet_nonzero}/{len(true_coef)}")
-print(f"真实非零系数数量: {np.sum(true_coef != 0)}/{len(true_coef)}")
+# Lasso 路径
+ax1 = axes[0]
+for i in range(coefs_lasso.shape[0]):
+    ax1.plot(np.log10(alphas_lasso), coefs_lasso[i, :], alpha=0.7)
+ax1.set_xlabel('log10(λ)')
+ax1.set_ylabel('系数值')
+ax1.set_title('Lasso 正则化路径')
+ax1.grid(True, alpha=0.3)
+ax1.invert_xaxis()  # λ 从大到小
 
-# 5. 系数估计准确性比较
-print("\n=== 系数估计准确性比较 ===")
-
-# 计算系数估计的均方误差
-ridge_coef_error = np.mean((best_ridge.coef_ - true_coef)**2)
-lasso_coef_error = np.mean((best_lasso.coef_ - true_coef)**2)
-elasticnet_coef_error = np.mean((best_elasticnet.coef_ - true_coef)**2)
-
-print(f"岭回归系数估计MSE: {ridge_coef_error:.6f}")
-print(f"Lasso回归系数估计MSE: {lasso_coef_error:.6f}")
-print(f"Elastic Net系数估计MSE: {elasticnet_coef_error:.6f}")
-
-# 6. 可视化系数估计结果
-plt.figure(figsize=(15, 5))
-
-plt.subplot(1, 3, 1)
-plt.scatter(range(len(true_coef)), true_coef, alpha=0.7, label='真实系数')
-plt.scatter(range(len(true_coef)), best_ridge.coef_, alpha=0.7, label='岭回归估计')
-plt.xlabel('特征索引')
-plt.ylabel('系数值')
-plt.title('岭回归系数估计')
-plt.legend()
-plt.grid(True)
-
-plt.subplot(1, 3, 2)
-plt.scatter(range(len(true_coef)), true_coef, alpha=0.7, label='真实系数')
-plt.scatter(range(len(true_coef)), best_lasso.coef_, alpha=0.7, label='Lasso估计')
-plt.xlabel('特征索引')
-plt.ylabel('系数值')
-plt.title('Lasso回归系数估计')
-plt.legend()
-plt.grid(True)
-
-plt.subplot(1, 3, 3)
-plt.scatter(range(len(true_coef)), true_coef, alpha=0.7, label='真实系数')
-plt.scatter(range(len(true_coef)), best_elasticnet.coef_, alpha=0.7, label='Elastic Net估计')
-plt.xlabel('特征索引')
-plt.ylabel('系数值')
-plt.title('Elastic Net系数估计')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
-plt.show()
-
-# 7. 正则化在逻辑回归中的应用
-print("\n=== 逻辑回归中的正则化 ===")
-from sklearn.linear_model import LogisticRegression
-from sklearn.datasets import make_classification
-
-# 生成分类数据
-X_clf, y_clf = make_classification(n_samples=100, n_features=20, n_informative=5,
-                                  n_redundant=10, random_state=42)
-
-# 不同正则化方法的逻辑回归
-logistic_l2 = LogisticRegression(penalty='l2', C=1.0, random_state=42)
-logistic_l1 = LogisticRegression(penalty='l1', C=1.0, solver='liblinear', random_state=42)
-logistic_elastic = LogisticRegression(penalty='elasticnet', C=1.0, l1_ratio=0.5, 
-                                     solver='saga', random_state=42)
-
-models = [logistic_l2, logistic_l1, logistic_elastic]
-model_names = ['L2正则化', 'L1正则化', 'Elastic Net']
-
-for name, model in zip(model_names, models):
-    scores = cross_val_score(model, X_clf, y_clf, cv=5, scoring='accuracy')
-    print(f"{name} 平均准确率: {scores.mean():.3f} ± {scores.std():.3f}")
-
-# 8. 正则化参数的影响分析
-print("\n=== 正则化参数对模型复杂度的影响 ===")
-
-# 分析不同C值（正则化强度的倒数）对模型的影响
-C_values = np.logspace(-3, 3, 50)
-accuracy_scores = []
-nonzero_coefs = []
-
-for C in C_values:
-    logistic = LogisticRegression(penalty='l1', C=C, solver='liblinear', random_state=42)
-    scores = cross_val_score(logistic, X_clf, y_clf, cv=5, scoring='accuracy')
-    accuracy_scores.append(scores.mean())
-    
-    # 拟合模型并统计非零系数
-    logistic.fit(X_clf, y_clf)
-    nonzero_coefs.append(np.sum(np.abs(logistic.coef_) > 1e-6))
-
-plt.figure(figsize=(12, 5))
-
-plt.subplot(1, 2, 1)
-plt.semilogx(C_values, accuracy_scores)
-plt.xlabel('C值 (1/λ)')
-plt.ylabel('交叉验证准确率')
-plt.title('正则化强度对准确率的影响')
-plt.grid(True)
-
-plt.subplot(1, 2, 2)
-plt.semilogx(C_values, nonzero_coefs)
-plt.xlabel('C值 (1/λ)')
-plt.ylabel('非零系数数量')
-plt.title('正则化强度对模型复杂度的影响')
-plt.grid(True)
+# Elastic Net 路径
+ax2 = axes[1]
+for i in range(coefs_enet.shape[0]):
+    ax2.plot(np.log10(alphas_enet), coefs_enet[i, :], alpha=0.7)
+ax2.set_xlabel('log10(λ)')
+ax2.set_ylabel('系数值')
+ax2.set_title('Elastic Net 正则化路径')
+ax2.grid(True, alpha=0.3)
+ax2.invert_xaxis()
 
 plt.tight_layout()
 plt.show()
 ```
 
-## 8. 正则化理论深入
+### 示例3：交叉验证选择最优参数
 
-### 8.1 泛化误差分析
+```python
+import numpy as np
+from sklearn.linear_model import RidgeCV, LassoCV, ElasticNetCV
+from sklearn.datasets import make_regression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
-根据统计学习理论，泛化误差可以分解为：
-$$ \text{泛化误差} = \text{偏差}^2 + \text{方差} + \text{噪声} $$
+# 生成数据
+np.random.seed(42)
+X, y = make_regression(n_samples=200, n_features=30, n_informative=5, noise=10, random_state=42)
+X = StandardScaler().fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-正则化通过增加偏差来减少方差，从而优化泛化性能。
+# Ridge CV
+ridge_cv = RidgeCV(alphas=np.logspace(-3, 3, 100), cv=5)
+ridge_cv.fit(X_train, y_train)
+print(f"Ridge 最优 alpha: {ridge_cv.alpha_:.4f}")
+print(f"Ridge 测试 R²: {ridge_cv.score(X_test, y_test):.4f}")
 
-### 8.2 稳定性理论
+# Lasso CV
+lasso_cv = LassoCV(alphas=None, cv=5, max_iter=10000)
+lasso_cv.fit(X_train, y_train)
+print(f"\nLasso 最优 alpha: {lasso_cv.alpha_:.4f}")
+print(f"Lasso 测试 R²: {lasso_cv.score(X_test, y_test):.4f}")
+print(f"Lasso 选择的特征数: {np.sum(np.abs(lasso_cv.coef_) > 0.01)}")
 
-**定义：** 如果一个学习算法在训练数据的小扰动下产生的假设变化不大，则称该算法是稳定的。
+# Elastic Net CV
+enet_cv = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99], cv=5, max_iter=10000)
+enet_cv.fit(X_train, y_train)
+print(f"\nElastic Net 最优 alpha: {enet_cv.alpha_:.4f}")
+print(f"Elastic Net 最优 l1_ratio: {enet_cv.l1_ratio_:.2f}")
+print(f"Elastic Net 测试 R²: {enet_cv.score(X_test, y_test):.4f}")
+```
 
-**定理：** 正则化算法通常具有更好的稳定性。
+### 示例4：逻辑回归中的正则化
 
-### 8.3 正则化路径的数学性质
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import make_classification
+from sklearn.model_selection import cross_val_score
 
-**单调性：** 随着λ增大，系数向0收缩。
-**分段线性性：** Lasso的系数路径是分段线性的。
+# 生成分类数据
+X, y = make_classification(n_samples=200, n_features=50, n_informative=5, 
+                          n_redundant=10, random_state=42)
 
-## 9. 实践建议
+# 不同正则化设置
+configs = [
+    ('L2, C=1.0', LogisticRegression(penalty='l2', C=1.0, max_iter=1000)),
+    ('L2, C=0.1', LogisticRegression(penalty='l2', C=0.1, max_iter=1000)),
+    ('L1, C=1.0', LogisticRegression(penalty='l1', C=1.0, solver='liblinear', max_iter=1000)),
+    ('L1, C=0.1', LogisticRegression(penalty='l1', C=0.1, solver='liblinear', max_iter=1000)),
+]
 
-### 9.1 方法选择
+print("逻辑回归正则化效果对比:")
+print("-" * 50)
 
-- **特征数量远大于样本数量**：优先考虑L1或Elastic Net
-- **特征高度相关**：使用L2或Elastic Net
-- **需要特征选择**：使用L1正则化
-- **数值稳定性重要**：使用L2正则化
+for name, model in configs:
+    scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+    model.fit(X, y)
+    n_features = np.sum(np.abs(model.coef_) > 0.001)
+    print(f"{name}: 准确率={scores.mean():.3f}±{scores.std():.3f}, 使用特征数={n_features}")
+```
 
-### 9.2 参数调优
+## 方法选择指南
 
-- 使用交叉验证选择最优λ值
-- 对于Elastic Net，需要同时优化λ和l1_ratio
-- 考虑使用贝叶斯优化等高级调参方法
+| 场景 | 推荐方法 | 原因 |
+|------|----------|------|
+| 特征数 >> 样本数 | Lasso / Elastic Net | 特征选择，防止过拟合 |
+| 特征高度相关 | Ridge / Elastic Net | 系数稳定，不随机选择 |
+| 需要特征选择 | Lasso | 产生稀疏解 |
+| 数值稳定性优先 | Ridge | 始终有解 |
+| 不确定 | Elastic Net | 兼顾两者优点 |
 
-### 9.3 模型解释
+## 常见问题与注意事项
 
-- L1正则化产生的稀疏模型更容易解释
-- 可以通过系数大小评估特征重要性
-- 注意正则化对系数估计的压缩效应
+### ⚠️ 标准化重要性
 
----
+正则化对特征尺度敏感！使用正则化前必须标准化特征。
 
-[下一节：支持向量机理论](../svm/svm-theory.md)
+```python
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+# 推荐：使用 Pipeline 确保标准化
+model = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
+```
+
+### ⚠️ 截距项
+
+通常**不对截距项**进行正则化。sklearn 默认不惩罚截距。
+
+### ⚠️ 参数解释
+
+正则化后的系数**有偏估计**，解释时需注意：
+- 系数大小反映相对重要性，但被压缩
+- Lasso 系数为零的特征不一定完全无用
+
+### ✅ 实践建议
+
+1. **先尝试 Ridge**：稳定、计算快
+2. **特征选择用 Lasso**：自动选择特征
+3. **不确定用 Elastic Net**：通过交叉验证选择最优混合比例
+4. **必须标准化**：确保特征在同一尺度
+5. **使用交叉验证**：sklearn 提供 `*CV` 类自动调参

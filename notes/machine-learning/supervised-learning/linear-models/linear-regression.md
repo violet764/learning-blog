@@ -1,176 +1,317 @@
-# 线性回归算法
+# 线性回归
 
-## 1. 算法概述
+线性回归是监督学习中最基础、最重要的回归算法。它通过建立输入特征与连续目标变量之间的**线性关系**来进行预测，是理解更复杂模型的基石。
 
-线性回归是监督学习中最基础的回归算法，用于建立输入特征与连续目标变量之间的线性关系模型。
+📌 **核心思想**：假设目标变量与特征之间存在线性关系，通过最小化预测误差来估计模型参数。
+
+## 基本概念
 
 ### 数学模型
 
-**基本形式：**
-$$ y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \cdots + \beta_px_p + \epsilon $$
+**单变量线性回归**：
+
+$$y = \beta_0 + \beta_1 x + \epsilon$$
 
 其中：
 - $y$：目标变量（连续值）
-- $x_i$：第i个特征变量
-- $\beta_0$：截距项
-- $\beta_i$：第i个特征的系数
-- $\epsilon$：误差项（服从正态分布）
+- $x$：特征变量
+- $\beta_0$：截距项（偏置）
+- $\beta_1$：回归系数（斜率）
+- $\epsilon$：误差项，假设 $\epsilon \sim \mathcal{N}(0, \sigma^2)$
 
-### 矩阵表示
-$$ \mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon} $$
+**多变量线性回归**：
+
+$$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p + \epsilon$$
+
+**矩阵形式**：
+
+$$\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon}$$
 
 其中：
 - $\mathbf{y} \in \mathbb{R}^n$：目标向量
-- $\mathbf{X} \in \mathbb{R}^{n \times (p+1)}$：设计矩阵（包含截距项）
+- $\mathbf{X} \in \mathbb{R}^{n \times (p+1)}$：设计矩阵，第一列为全1（对应截距）
 - $\boldsymbol{\beta} \in \mathbb{R}^{p+1}$：参数向量
+- $\boldsymbol{\epsilon} \in \mathbb{R}^n$：误差向量
 
-## 2. 参数估计方法
+### 模型假设
 
-### 2.1 最小二乘法（OLS）
+线性回归的有效性依赖于以下假设：
 
-**目标函数：**
-$$ \min_{\boldsymbol{\beta}} \sum_{i=1}^n (y_i - \mathbf{x}_i^T\boldsymbol{\beta})^2 = \min_{\boldsymbol{\beta}} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 $$
+| 假设 | 描述 | 违反后果 |
+|------|------|----------|
+| **线性性** | 因变量与自变量呈线性关系 | 模型拟合不足 |
+| **独立性** | 误差项相互独立 | 标准误估计偏差 |
+| **同方差性** | 误差方差恒定 | 参数检验失效 |
+| **正态性** | 误差服从正态分布 | 置信区间不准确 |
+| **无多重共线性** | 特征之间不完全相关 | 参数估计不稳定 |
 
-**解析解：**
-$$ \hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y} $$
+## 参数估计
 
-### 2.2 梯度下降法
+### 最小二乘法（OLS）
 
-对于大规模数据，使用迭代优化方法：
+最小二乘法通过最小化残差平方和来估计参数：
 
-**梯度更新：**
-$$ \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \eta \nabla J(\boldsymbol{\beta}^{(t)}) $$
+**目标函数**：
 
-**梯度计算：**
-$$ \nabla J(\boldsymbol{\beta}) = -2\mathbf{X}^T(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) $$
+$$J(\boldsymbol{\beta}) = \sum_{i=1}^{n}(y_i - \hat{y}_i)^2 = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2$$
 
-## 3. 正则化方法
+**解析解推导**：
 
-### 3.1 岭回归（Ridge Regression）
+展开目标函数：
+$$J(\boldsymbol{\beta}) = (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^T(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) = \mathbf{y}^T\mathbf{y} - 2\boldsymbol{\beta}^T\mathbf{X}^T\mathbf{y} + \boldsymbol{\beta}^T\mathbf{X}^T\mathbf{X}\boldsymbol{\beta}$$
 
-**目标函数：**
-$$ \min_{\boldsymbol{\beta}} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \lambda \|\boldsymbol{\beta}\|_2^2 $$
+对 $\boldsymbol{\beta}$ 求导并令其为零：
+$$\frac{\partial J}{\partial \boldsymbol{\beta}} = -2\mathbf{X}^T\mathbf{y} + 2\mathbf{X}^T\mathbf{X}\boldsymbol{\beta} = 0$$
 
-**解析解：**
-$$ \hat{\boldsymbol{\beta}}_{ridge} = (\mathbf{X}^T\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^T\mathbf{y} $$
+解得**正规方程**：
+$$\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}$$
 
-### 3.2 Lasso回归
+💡 **几何解释**：OLS 解是目标向量 $\mathbf{y}$ 在由 $\mathbf{X}$ 的列向量张成的子空间上的正交投影。
 
-**目标函数：**
-$$ \min_{\boldsymbol{\beta}} \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \lambda \|\boldsymbol{\beta}\|_1 $$
+### 梯度下降法
 
-## 4. 模型评估
+当数据量大或矩阵不可逆时，使用迭代优化：
 
-### 4.1 评价指标
+**梯度计算**：
+$$\nabla J(\boldsymbol{\beta}) = \frac{2}{n}\mathbf{X}^T(\mathbf{X}\boldsymbol{\beta} - \mathbf{y})$$
 
-- **均方误差（MSE）：** $\frac{1}{n}\sum_{i=1}^n (y_i - \hat{y}_i)^2$
-- **均方根误差（RMSE）：** $\sqrt{MSE}$
-- **平均绝对误差（MAE）：** $\frac{1}{n}\sum_{i=1}^n |y_i - \hat{y}_i|$
-- **决定系数（R²）：** $1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$
+**参数更新**：
+$$\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \eta \nabla J(\boldsymbol{\beta}^{(t)})$$
 
-### 4.2 假设检验
+其中 $\eta$ 为学习率。
 
-- t检验：检验单个系数的显著性
-- F检验：检验模型整体显著性
+### 三种梯度下降变体
 
-## 5. Python实现示例
+| 方法 | 特点 | 适用场景 |
+|------|------|----------|
+| **批量梯度下降** | 每次使用全部数据 | 小数据集，稳定收敛 |
+| **随机梯度下降** | 每次使用一个样本 | 大数据集，快速迭代 |
+| **小批量梯度下降** | 每次使用一小批数据 | 平衡效率与稳定性 |
+
+## 模型评估
+
+### 回归评价指标
+
+**均方误差（MSE）**：
+$$MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$$
+
+**均方根误差（RMSE）**：
+$$RMSE = \sqrt{MSE}$$
+
+**平均绝对误差（MAE）**：
+$$MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|$$
+
+**决定系数（R²）**：
+$$R^2 = 1 - \frac{SS_{res}}{SS_{tot}} = 1 - \frac{\sum_i(y_i - \hat{y}_i)^2}{\sum_i(y_i - \bar{y})^2}$$
+
+📌 **R² 的解释**：模型解释的方差比例，取值范围 $[0, 1]$，越接近1表示拟合越好。
+
+### 统计检验
+
+**系数显著性检验（t检验）**：
+$$t = \frac{\hat{\beta}_j}{SE(\hat{\beta}_j)}$$
+
+**模型整体显著性检验（F检验）**：
+$$F = \frac{(SS_{tot} - SS_{res})/p}{SS_{res}/(n-p-1)}$$
+
+## 代码示例
+
+### 示例1：基本线性回归
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
 
 # 生成示例数据
 np.random.seed(42)
 n_samples = 100
-X = np.random.randn(n_samples, 3)
-true_coef = np.array([2.5, -1.2, 0.8])
-y = X.dot(true_coef) + np.random.randn(n_samples) * 0.5
+X = np.random.randn(n_samples, 1) * 2
+true_coef, true_intercept = 2.5, 1.0
+y = true_coef * X.ravel() + true_intercept + np.random.randn(n_samples) * 0.5
 
-# 数据标准化
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+# 创建并训练模型
+model = LinearRegression()
+model.fit(X, y)
 
-# 划分训练测试集
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+# 预测
+y_pred = model.predict(X)
 
-# 普通线性回归
-lr = LinearRegression()
-lr.fit(X_train, y_train)
-y_pred_lr = lr.predict(X_test)
+# 输出结果
+print(f"真实系数: {true_coef}, 估计系数: {model.coef_[0]:.4f}")
+print(f"真实截距: {true_intercept}, 估计截距: {model.intercept_:.4f}")
+print(f"MSE: {mean_squared_error(y, y_pred):.4f}")
+print(f"R²: {r2_score(y, y_pred):.4f}")
 
-# 岭回归
-ridge = Ridge(alpha=1.0)
-ridge.fit(X_train, y_train)
-y_pred_ridge = ridge.predict(X_test)
-
-# Lasso回归
-lasso = Lasso(alpha=0.1)
-lasso.fit(X_train, y_train)
-y_pred_lasso = lasso.predict(X_test)
-
-# 模型评估
-print("线性回归 - MSE:", mean_squared_error(y_test, y_pred_lr), "R²:", r2_score(y_test, y_pred_lr))
-print("岭回归 - MSE:", mean_squared_error(y_test, y_pred_ridge), "R²:", r2_score(y_test, y_pred_ridge))
-print("Lasso回归 - MSE:", mean_squared_error(y_test, y_pred_lasso), "R²:", r2_score(y_test, y_pred_lasso))
-
-# 系数比较
-print("\n真实系数:", true_coef)
-print("线性回归系数:", lr.coef_)
-print("岭回归系数:", ridge.coef_)
-print("Lasso回归系数:", lasso.coef_)
+# 可视化
+plt.figure(figsize=(10, 6))
+plt.scatter(X, y, alpha=0.6, label='数据点')
+plt.plot(X, y_pred, 'r-', linewidth=2, label='回归线')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.title('线性回归拟合结果')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
 ```
 
-## 6. 数学推导
+### 示例2：多元线性回归与特征分析
 
-### 6.1 最小二乘法的推导
+```python
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
 
-设损失函数：
-$$ J(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 $$
+# 生成多元数据
+np.random.seed(42)
+n_samples = 200
+n_features = 5
 
-展开得：
-$$ J(\boldsymbol{\beta}) = (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^T(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) $$
-$$ = \mathbf{y}^T\mathbf{y} - 2\boldsymbol{\beta}^T\mathbf{X}^T\mathbf{y} + \boldsymbol{\beta}^T\mathbf{X}^T\mathbf{X}\boldsymbol{\beta} $$
+X = np.random.randn(n_samples, n_features)
+true_coef = np.array([3.0, -2.0, 1.5, 0.0, 0.5])  # 第4个特征无影响
+y = X @ true_coef + np.random.randn(n_samples) * 0.5
 
-对$\boldsymbol{\beta}$求导并令导数为零：
-$$ \frac{\partial J}{\partial \boldsymbol{\beta}} = -2\mathbf{X}^T\mathbf{y} + 2\mathbf{X}^T\mathbf{X}\boldsymbol{\beta} = 0 $$
+# 数据划分
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-解得：
-$$ \mathbf{X}^T\mathbf{X}\boldsymbol{\beta} = \mathbf{X}^T\mathbf{y} $$
-$$ \hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y} $$
+# 标准化（可选，但对解释系数重要）
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-### 6.2 岭回归的贝叶斯解释
+# 训练模型
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
 
-从贝叶斯角度看，岭回归等价于给参数$\boldsymbol{\beta}$加上高斯先验：
-$$ p(\boldsymbol{\beta}) = \mathcal{N}(0, \frac{1}{\lambda}\mathbf{I}) $$
+# 预测与评估
+y_pred = model.predict(X_test_scaled)
+print(f"测试集 MSE: {mean_squared_error(y_test, y_pred):.4f}")
+print(f"测试集 R²: {r2_score(y_test, y_pred):.4f}")
 
-后验分布为：
-$$ p(\boldsymbol{\beta}|\mathbf{X},\mathbf{y}) \propto p(\mathbf{y}|\mathbf{X},\boldsymbol{\beta})p(\boldsymbol{\beta}) $$
+# 系数分析
+print("\n特征系数分析:")
+for i, coef in enumerate(model.coef_):
+    print(f"  特征 {i+1}: {coef:.4f} (真实值: {true_coef[i]})")
+```
 
-最大后验估计（MAP）即为岭回归的解。
+### 示例3：从零实现线性回归
 
-## 7. 应用场景
+```python
+import numpy as np
 
-1. **房价预测**：基于房屋特征预测价格
-2. **销量预测**：基于历史数据预测未来销量
-3. **金融风险评估**：基于客户特征预测信用风险
-4. **医疗诊断**：基于生理指标预测疾病风险
+class LinearRegressionManual:
+    """手写线性回归，支持OLS和梯度下降"""
+    
+    def __init__(self, method='ols', learning_rate=0.01, n_iterations=1000):
+        self.method = method
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.weights = None
+        self.bias = None
+        self.loss_history = []
+    
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        
+        # 初始化参数
+        self.weights = np.zeros(n_features)
+        self.bias = 0
+        
+        if self.method == 'ols':
+            # 使用正规方程
+            X_b = np.c_[np.ones(n_samples), X]  # 添加偏置列
+            theta = np.linalg.inv(X_b.T @ X_b) @ X_b.T @ y
+            self.bias = theta[0]
+            self.weights = theta[1:]
+            
+        else:  # 梯度下降
+            for _ in range(self.n_iterations):
+                # 预测
+                y_pred = X @ self.weights + self.bias
+                
+                # 计算损失
+                loss = np.mean((y_pred - y) ** 2)
+                self.loss_history.append(loss)
+                
+                # 计算梯度
+                dw = (2 / n_samples) * X.T @ (y_pred - y)
+                db = (2 / n_samples) * np.sum(y_pred - y)
+                
+                # 更新参数
+                self.weights -= self.learning_rate * dw
+                self.bias -= self.learning_rate * db
+        
+        return self
+    
+    def predict(self, X):
+        return X @ self.weights + self.bias
+    
+    def score(self, X, y):
+        """计算 R² 分数"""
+        y_pred = self.predict(X)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        return 1 - ss_res / ss_tot
 
-## 8. 优缺点分析
+# 使用示例
+np.random.seed(42)
+X = np.random.randn(100, 3)
+y = X @ np.array([1.5, -2.0, 0.5]) + 2.0 + np.random.randn(100) * 0.1
 
-### 优点：
-- 模型简单，解释性强
-- 计算效率高，有解析解
-- 理论基础完善
+# OLS 方法
+model_ols = LinearRegressionManual(method='ols')
+model_ols.fit(X, y)
+print(f"OLS - R²: {model_ols.score(X, y):.4f}")
 
-### 缺点：
-- 对非线性关系建模能力有限
-- 对异常值敏感
-- 需要满足线性回归的基本假设
+# 梯度下降方法
+model_gd = LinearRegressionManual(method='gd', learning_rate=0.1, n_iterations=1000)
+model_gd.fit(X, y)
+print(f"GD - R²: {model_gd.score(X, y):.4f}")
+print(f"GD - 最终损失: {model_gd.loss_history[-1]:.6f}")
+```
 
----
+## 常见问题与注意事项
 
-[下一节：逻辑回归算法](./logistic-regression.md)
+### ⚠️ 多重共线性问题
+
+当特征之间高度相关时，$(\mathbf{X}^T\mathbf{X})$ 接近奇异矩阵，导致参数估计不稳定。
+
+**解决方案**：
+- 移除相关性高的特征
+- 使用正则化方法（Ridge、Lasso）
+- 主成分分析（PCA）降维
+
+### ⚠️ 异常值敏感性
+
+线性回归对异常值敏感，单个异常点可能显著影响回归线。
+
+**解决方案**：
+- 使用 RANSAC 等鲁棒方法
+- 使用 MAE 代替 MSE 作为损失函数
+- 预处理时检测并处理异常值
+
+### ⚠️ 非线性关系
+
+线性回归假设线性关系，无法捕捉非线性模式。
+
+**解决方案**：
+- 多项式回归
+- 特征变换（如 log、sqrt）
+- 使用非线性模型
+
+### ✅ 实践建议
+
+1. **数据预处理**：标准化连续特征，处理缺失值
+2. **特征工程**：探索特征与目标的线性关系
+3. **残差分析**：检查模型假设是否满足
+4. **交叉验证**：评估模型泛化能力
+5. **正则化**：当特征多或共线性时使用
+
+## 参考资料
+
+- [最小二乘法的几何解释](https://en.wikipedia.org/wiki/Ordinary_least_squares)
+- [线性回归假设检验](https://en.wikipedia.org/wiki/Regression_validation)

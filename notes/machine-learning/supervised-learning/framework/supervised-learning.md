@@ -1,199 +1,167 @@
 # 监督学习数学理论框架
 
-## 1. 监督学习基本概念
+本文档聚焦监督学习的**数学理论基础**，涵盖统计学习理论、模型选择理论、优化理论等核心内容。各算法的详细推导请参考对应的子模块文档。
 
-### 1.1 问题定义
+## 1. 统计学习理论
 
-**监督学习**：给定训练数据集 $D = \{(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \dots, (\mathbf{x}_n, y_n)\}$，其中 $\mathbf{x}_i \in \mathcal{X}$ 是输入特征，$y_i \in \mathcal{Y}$ 是输出标签，学习一个映射函数 $f: \mathcal{X} \to \mathcal{Y}$，使得对新样本 $\mathbf{x}$ 能准确预测 $y$。
+### 1.1 问题形式化
 
-### 1.2 学习任务分类
+**监督学习问题**：给定训练数据集 $D = \{(\mathbf{x}_1, y_1), \dots, (\mathbf{x}_n, y_n)\}$，其中 $\mathbf{x}_i \in \mathcal{X}$ 是输入，$y_i \in \mathcal{Y}$ 是输出。假设数据由未知分布 $P(\mathbf{x}, y)$ 独立同分布地生成，目标是学习映射 $f: \mathcal{X} \to \mathcal{Y}$。
 
-**回归问题**：$\mathcal{Y} \subseteq \mathbb{R}$，预测连续值
-**分类问题**：$\mathcal{Y}$ 是离散集合，预测类别标签
+**任务类型**：
+- **回归**：$\mathcal{Y} \subseteq \mathbb{R}$
+- **分类**：$\mathcal{Y} = \{1, 2, \ldots, K\}$
 
-## 2. 统计学习理论
+### 1.2 风险与经验风险
 
-### 2.1 经验风险最小化（ERM）
-
-**风险函数**：衡量模型预测的期望损失
+**风险函数（期望风险）**：
 $$R(f) = \mathbb{E}_{(\mathbf{x},y) \sim P}[L(f(\mathbf{x}), y)]$$
 
-**经验风险**：在训练集上的平均损失
+**经验风险**：
 $$\hat{R}(f) = \frac{1}{n} \sum_{i=1}^n L(f(\mathbf{x}_i), y_i)$$
 
-**ERM原则**：选择使经验风险最小的模型
-$$\hat{f} = \arg\min_{f \in \mathcal{F}} \hat{R}(f)$$
+**ERM 原则**：$\hat{f} = \arg\min_{f \in \mathcal{F}} \hat{R}(f)$
 
-### 2.2 泛化误差分析
+### 1.3 泛化误差分解
 
-**泛化误差**：$R(\hat{f}) - \inf_{f \in \mathcal{F}} R(f)$
+泛化误差可分解为：
 
-可以分解为：
-- **估计误差**：$R(\hat{f}) - \inf_{f \in \mathcal{F}} \hat{R}(f)$
-- **近似误差**：$\inf_{f \in \mathcal{F}} \hat{R}(f) - \inf_{f \in \mathcal{F}} R(f)$
+$$R(\hat{f}) - R(f^*) = \underbrace{R(\hat{f}) - R(f_{\mathcal{F}})}_{\text{估计误差}} + \underbrace{R(f_{\mathcal{F}}) - R(f^*)}_{\text{近似误差}}$$
 
-### 2.3 VC维理论
+- **估计误差**：有限样本导致的误差，与假设空间复杂度相关
+- **近似误差**：假设空间表达能力有限导致的误差
 
-**VC维**：衡量假设空间的复杂度，定义为能被该假设空间打散的最大样本数。
+### 1.4 VC 维与泛化界
+
+**VC 维**：假设空间 $\mathcal{F}$ 能打散的最大样本数，衡量假设空间复杂度。
 
 **泛化误差界**：以概率至少 $1-\delta$，有
-$$R(f) \leq \hat{R}(f) + \sqrt{\frac{VC(\mathcal{F}) \log(n/VC(\mathcal{F})) + \log(1/\delta)}{n}}$$
 
-## 3. 模型选择理论
+$$R(f) \leq \hat{R}(f) + \mathcal{O}\left(\sqrt{\frac{VC(\mathcal{F}) \log n + \log(1/\delta)}{n}}\right)$$
 
-### 3.1 偏差-方差权衡
+**核心洞察**：模型复杂度（VC 维）与样本量的权衡决定了泛化能力。
 
-**偏差**：模型预测值与真实值的平均差异
-$$\text{Bias}(f) = \mathbb{E}[f(\mathbf{x})] - y$$
+## 2. 模型选择理论
 
-**方差**：模型预测值的波动程度
-$$\text{Var}(f) = \mathbb{E}[(f(\mathbf{x}) - \mathbb{E}[f(\mathbf{x})])^2]$$
+### 2.1 偏差-方差权衡
 
 **误差分解**：
-$$\mathbb{E}[(f(\mathbf{x}) - y)^2] = \text{Bias}^2(f) + \text{Var}(f) + \sigma^2$$
+$$\mathbb{E}[(\hat{y} - y)^2] = \text{Bias}^2(\hat{y}) + \text{Var}(\hat{y}) + \sigma^2$$
 
-其中 $\sigma^2$ 是噪声方差。
+| 误差来源 | 定义 | 与模型复杂度关系 |
+|----------|------|------------------|
+| 偏差 | $\mathbb{E}[\hat{y}] - y$ | 复杂度↑ → 偏差↓ |
+| 方差 | $\mathbb{E}[(\hat{y} - \mathbb{E}[\hat{y}])^2]$ | 复杂度↑ → 方差↑ |
+| 噪声 | $\sigma^2$ | 不可约减 |
 
-### 3.2 正则化理论
+**实践意义**：需要在偏差和方差之间寻找平衡点。
 
-**结构风险最小化**：在经验风险基础上加入正则化项
+### 2.2 结构风险最小化
+
+在经验风险基础上加入正则化项：
+
 $$\min_{f \in \mathcal{F}} \hat{R}(f) + \lambda \Omega(f)$$
 
-常见正则化项：
-- L2正则化：$\Omega(f) = \|\mathbf{w}\|_2^2$
-- L1正则化：$\Omega(f) = \|\mathbf{w}\|_1$
+常见正则化：
+- **L2 正则化**：$\Omega(f) = \|\mathbf{w}\|_2^2$（Ridge）
+- **L1 正则化**：$\Omega(f) = \|\mathbf{w}\|_1$（Lasso）
 
-## 4. 评估指标与检验
+### 2.3 模型选择准则
 
-### 4.1 分类评估指标
+| 准则 | 公式 | 特点 |
+|------|------|------|
+| AIC | $-2\ln L + 2k$ | 偏向选择更复杂模型 |
+| BIC | $-2\ln L + k\ln n$ | 样本量大时惩罚更强 |
+| 交叉验证 | $CV_k$ 误差 | 直接估计泛化误差 |
 
-**准确率**：$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$
+## 3. 优化理论
 
-**精确率**：$\text{Precision} = \frac{TP}{TP + FP}$
+### 3.1 凸优化基础
 
-**召回率**：$\text{Recall} = \frac{TP}{TP + FN}$
+**凸集**：对任意 $\mathbf{x}, \mathbf{y} \in C$，有 $\lambda \mathbf{x} + (1-\lambda)\mathbf{y} \in C$，$\lambda \in [0,1]$
 
-**F1分数**：$F1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$
+**凸函数**：$f(\lambda \mathbf{x} + (1-\lambda)\mathbf{y}) \leq \lambda f(\mathbf{x}) + (1-\lambda)f(\mathbf{y})$
 
-### 4.2 回归评估指标
+**重要性质**：凸函数的局部最优即全局最优。
 
-**均方误差**：$MSE = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2$
-
-**平均绝对误差**：$MAE = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i|$
-
-**决定系数**：$R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$
-
-### 4.3 统计检验
-
-**t检验**：检验模型系数的显著性
-**F检验**：检验模型整体的显著性
-**交叉验证**：评估模型泛化能力
-
-## 5. 监督学习算法家族
-
-### 5.1 线性模型
-
-**线性回归**：$f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$
-
-**逻辑回归**：$P(y=1|\mathbf{x}) = \sigma(\mathbf{w}^T\mathbf{x} + b)$
-
-**支持向量机**：$f(\mathbf{x}) = \text{sign}(\mathbf{w}^T\phi(\mathbf{x}) + b)$
-
-### 5.2 树模型
-
-**决策树**：基于特征阈值进行递归划分
-
-**随机森林**：多个决策树的集成
-
-**梯度提升树**：逐步改进的树模型集成
-
-### 5.3 神经网络
-
-**前馈神经网络**：多层感知机结构
-
-**卷积神经网络**：专用于图像处理的网络结构
-
-**循环神经网络**：处理序列数据的网络结构
-
-## 6. 优化算法理论
-
-### 6.1 梯度下降法
+### 3.2 梯度下降
 
 **批量梯度下降**：
 $$\mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} - \eta \nabla \hat{R}(\mathbf{w}^{(t)})$$
 
-**随机梯度下降**：
+**随机梯度下降（SGD）**：
 $$\mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} - \eta \nabla L(f(\mathbf{x}_i), y_i)$$
 
-### 6.2 收敛性分析
+**收敛性**：
+- 凸函数：$O(1/\sqrt{T})$
+- 强凸函数：$O(1/T)$
+- 强凸+光滑：线性收敛
 
-**凸函数收敛**：对于凸函数，梯度下降以 $O(1/t)$ 速率收敛
+### 3.3 约束优化与 KKT 条件
 
-**强凸函数收敛**：对于强凸函数，梯度下降以线性速率收敛
+**原始问题**：
+$$\min_{\mathbf{x}} f(\mathbf{x}) \quad \text{s.t.} \quad g_i(\mathbf{x}) \leq 0, \; h_j(\mathbf{x}) = 0$$
 
-### 6.3 自适应优化算法
+**KKT 条件**（最优解的必要条件）：
+1. $\nabla f(\mathbf{x}^*) + \sum_i \lambda_i \nabla g_i(\mathbf{x}^*) + \sum_j \nu_j \nabla h_j(\mathbf{x}^*) = 0$
+2. $g_i(\mathbf{x}^*) \leq 0$
+3. $h_j(\mathbf{x}^*) = 0$
+4. $\lambda_i \geq 0$
+5. $\lambda_i g_i(\mathbf{x}^*) = 0$（互补松弛）
 
-**动量法**：$\mathbf{v}^{(t+1)} = \gamma \mathbf{v}^{(t)} + \eta \nabla L$
+## 4. 评估与检验
 
-**Adam算法**：结合动量和自适应学习率
+### 4.1 评估指标
 
-## 7. 监督学习的数学挑战
+**分类指标**：
 
-### 7.1 过拟合与欠拟合
+| 指标 | 公式 | 适用场景 |
+|------|------|----------|
+| 准确率 | $\frac{TP+TN}{TP+TN+FP+FN}$ | 类别均衡 |
+| 精确率 | $\frac{TP}{TP+FP}$ | 关注误报 |
+| 召回率 | $\frac{TP}{TP+FN}$ | 关注漏报 |
+| F1 | $2 \cdot \frac{P \cdot R}{P + R}$ | 精确率与召回率平衡 |
 
-**过拟合**：模型在训练集上表现好，但泛化能力差
-**欠拟合**：模型无法捕捉数据的基本模式
+**回归指标**：
 
-### 7.2 维度灾难
+| 指标 | 公式 | 特点 |
+|------|------|------|
+| MSE | $\frac{1}{n}\sum(y_i - \hat{y}_i)^2$ | 对异常值敏感 |
+| MAE | $\frac{1}{n}\sum|y_i - \hat{y}_i|$ | 鲁棒性更好 |
+| $R^2$ | $1 - \frac{\sum(y_i-\hat{y}_i)^2}{\sum(y_i-\bar{y})^2}$ | 可解释性强 |
 
-高维空间中，数据变得稀疏，距离度量失效，模型复杂度急剧增加。
+### 4.2 统计检验
 
-### 7.3 数据不平衡
+详见 [统计检验理论](../../model-evaluation/statistical-tests.md)。
 
-某些类别的样本数量远多于其他类别，导致模型偏向多数类。
+### 4.3 交叉验证
 
-## 8. 前沿研究方向
+详见 [交叉验证方法](../../model-evaluation/cross-validation.md)。
 
-### 8.1 深度学习理论
+## 5. 核心挑战
 
-- 神经网络的表示能力
-- 深度学习的泛化理论
-- 对抗样本与鲁棒性
+| 挑战 | 描述 | 应对策略 |
+|------|------|----------|
+| 过拟合 | 模型在训练集表现好、测试集差 | 正则化、交叉验证、早停 |
+| 欠拟合 | 模型无法捕捉数据规律 | 增加模型复杂度、特征工程 |
+| 维度灾难 | 高维数据稀疏、距离失效 | 降维、特征选择 |
+| 数据不平衡 | 类别样本数差异大 | 重采样、代价敏感学习 |
 
-### 8.2 可解释性机器学习
+## 6. 相关资源
 
-- 模型决策的透明化
-- 特征重要性分析
-- 因果推理与机器学习
+### 各算法详细文档
 
-### 8.3 联邦学习
+- **线性模型**：[linear-models](../linear-models/index.md)
+- **支持向量机**：[svm](../svm/index.md)
+- **树模型与集成**：[tree-models](../tree-models/index.md)
+- **贝叶斯方法**：[bayesian-methods](../bayesian-methods/index.md)
 
-- 分布式数据下的模型训练
-- 隐私保护机器学习
-- 异构数据融合
+### 延伸阅读
 
-## 9. 实践指导原则
-
-### 9.1 数据预处理
-
-- 特征标准化
-- 缺失值处理
-- 类别特征编码
-
-### 9.2 模型选择流程
-
-1. 探索性数据分析
-2. 基准模型建立
-3. 特征工程
-4. 模型调优
-5. 模型评估
-
-### 9.3 部署与监控
-
-- 模型版本控制
-- 性能监控
-- 概念漂移检测
+- [模型评估与选择](../../model-evaluation/cross-validation.md)
+- [学习理论](../../model-evaluation/learning-theory.md)
+- [特征工程](../../feature-engineering/feature-selection.md)
 
 ---
 
-监督学习作为机器学习的核心领域，其理论基础深厚，应用广泛。深入理解其数学原理，有助于在实际项目中做出更好的技术决策。
+[返回监督学习](../index.md)

@@ -1,218 +1,112 @@
 # 机器学习知识体系
 
-## 概述
-
 本知识体系专注于**传统机器学习算法**的深度解析，强调**数学基础**和**算法原理**的严谨推导。按照系统性学习路径分为四大模块，从数学基础到实际应用，构建完整的机器学习知识框架。
 
-## 🎯 核心特色
+## 📚 知识结构
 
-- **数学深度**：每个算法包含完整的数学推导和理论证明
-- **代码实现**：提供完整的Python实现和性能实验
-- **实践指导**：包含算法选择、参数调优等实用建议
-- **传统算法**：专注于监督学习、无监督学习等经典机器学习方法
+### 第一阶段：数学基础
 
-## 📚 完整知识结构
+| 模块 | 文档 | 核心内容 |
+|------|------|----------|
+| 线性代数 | [linear-algebra.md](./math-foundation/linear-algebra.md) | 向量空间、特征值分解、SVD、协方差矩阵 |
+| 概率统计 | [probability-statistics.md](./math-foundation/probability-statistics.md) | 概率分布、参数估计、假设检验 |
+| 优化理论 | [optimization-theory.md](./math-foundation/optimization-theory.md) | 凸优化、梯度方法、KKT 条件 |
 
-### 第一阶段：数学基础（深度解析）
+### 第二阶段：监督学习
 
-**1. 线性代数与矩阵论** 📐
-- [线性代数基础](./math-foundation/linear-algebra.md)
-  - 向量空间、基、维度、线性变换
-  - 特征值分解、奇异值分解(SVD)
-  - 矩阵运算与应用
-  - **新增**：协方差矩阵、马氏距离、数值稳定性
+**[监督学习模块](./supervised-learning/index.md)** 包含五个子模块：
 
-**2. 概率论与统计学** 📊
-- [概率论与统计学](./math-foundation/probability-statistics.md)
-  - 概率分布：高斯分布、伯努利分布
-  - 统计推断：最大似然估计、贝叶斯估计
-  - 假设检验与置信区间
+| 子模块 | 核心算法 | 文档入口 |
+|--------|----------|----------|
+| 线性模型 | 线性回归、逻辑回归、正则化 | [linear-models](./supervised-learning/linear-models/index.md) |
+| 支持向量机 | SVM 理论、核方法、SMO 实现 | [svm](./supervised-learning/svm/index.md) |
+| 树模型与集成 | 决策树、随机森林、AdaBoost、GBDT、XGBoost、LightGBM | [tree-models](./supervised-learning/tree-models/index.md) |
+| 贝叶斯方法 | 朴素贝叶斯、EM 算法、高斯过程 | [bayesian-methods](./supervised-learning/bayesian-methods/index.md) |
+| 理论框架 | ERM 原则、泛化误差、偏差-方差 | [framework](./supervised-learning/framework/supervised-learning.md) |
 
-**3. 优化理论** 📈
-- [优化理论基础](./math-foundation/optimization-theory.md)
-  - 凸优化：凸集、凸函数、KKT条件
-  - 梯度方法：批量梯度下降、随机梯度下降
-  - 约束优化与对偶问题
+### 第三阶段：无监督学习
 
-### 第二阶段：监督学习算法（深度详解）
+**[无监督学习模块](./unsupervised-learning/index.md)**：
 
-**4. 线性模型家族** 📉
-- [线性回归](./supervised-learning/linear-models/linear-regression.md)
-  - **增强**：最小二乘法解析解、梯度下降推导、正则化方法
-- [逻辑回归](./supervised-learning/linear-models/logistic-regression.md)
-  - **增强**：交叉熵损失函数详细推导、梯度计算证明
-- [普通最小二乘法(OLS)](./supervised-learning/linear-models/regularization.md)
-  - **新增**：OLS的数学基础与性质
+| 文档 | 核心内容 |
+|------|----------|
+| [clustering.md](./unsupervised-learning/clustering.md) | K-means、层次聚类、DBSCAN、GMM |
+| [dimensionality-reduction.md](./unsupervised-learning/dimensionality-reduction.md) | PCA、LDA、流形学习、自编码器 |
+| [association-anomaly.md](./unsupervised-learning/association-anomaly.md) | Apriori 算法、孤立森林、LOF |
+| [advanced-structures.md](./unsupervised-learning/advanced-structures.md) | KD 树原理与应用 |
 
-**5. 支持向量机** ⚔️
-- [SVM理论基础](./supervised-learning/svm/svm-theory.md)
-- [核方法](./supervised-learning/svm/kernel-methods.md)
-- [SVM实现细节](./supervised-learning/svm/svm-implementation.md)
+### 第四阶段：评估与工程
 
-**6. 决策树与集成学习** 🌳
-- [决策树算法](./supervised-learning/tree-models/decision-trees.md)
-  - **重大增强**：完整信息熵计算、信息增益推导、基尼系数证明
-  - **新增**：ID3、C4.5、CART算法数学原理对比
-- [随机森林](./supervised-learning/tree-models/random-forest.md)
-- [梯度提升](./supervised-learning/tree-models/gradient-boosting.md)
-
-**7. 贝叶斯方法** 🔮
-- [朴素贝叶斯](./supervised-learning/bayesian-methods/naive-bayes.md)
-- [高斯过程](./supervised-learning/bayesian-methods/gaussian-processes.md)
-- [EM算法](./supervised-learning/bayesian-methods/em-algorithm.md)
-
-### 第三阶段：无监督学习算法（深度详解）
-
-**8. 聚类分析** 🔍
-- [K-means聚类](./unsupervised-learning/clustering/kmeans.md)
-  - **重大增强**：完整数学推导、收敛性证明、目标函数分解
-  - **新增**：K-means++初始化、时间复杂度分析、优化技巧
-- [层次聚类](./unsupervised-learning/clustering/hierarchical.md)
-- [DBSCAN聚类](./unsupervised-learning/clustering/dbscan.md)
-
-**9. 降维技术** 📉
-- [主成分分析(PCA)](./unsupervised-learning/dimensionality-reduction/pca.md)
-  - **重大增强**：方差最大化视角、最小重建误差视角、SVD分解
-  - **新增**：特征值分解、方差解释率、数学性质证明
-- [线性判别分析(LDA)](./unsupervised-learning/dimensionality-reduction/lda.md)
-- [流形学习](./unsupervised-learning/dimensionality-reduction/manifold-learning.md)
-
-**10. 高级数据结构与算法** 🔬
-- [KD树算法](./unsupervised-learning/advanced-structures/kdtree.md)
-  - **新增**：空间划分、最近邻搜索、复杂度分析
-- [监督学习理论框架](./supervised-learning/framework/supervised-learning.md)
-  - **新增**：监督学习数学基础、模型选择理论
-- [无监督学习理论框架](./unsupervised-learning/framework/unsupervised-learning.md)
-  - **新增**：聚类评价、降维理论、异常检测数学
-
-### 第四阶段：模型评估与特征工程
-
-**11. 模型评估理论** 📋
-- [交叉验证方法](./model-evaluation/cross-validation.md)
-- [统计检验理论](./model-evaluation/statistical-tests.md)
-- [机器学习理论](./model-evaluation/learning-theory.md)
-
-**12. 特征工程** 🔧
-- [特征选择方法](./feature-engineering/feature-selection.md)
-- [特征变换技术](./feature-engineering/feature-transformation.md)
-- [数据预处理](./feature-engineering/preprocessing.md)
+| 模块 | 文档 | 核心内容 |
+|------|------|----------|
+| 交叉验证 | [cross-validation.md](./model-evaluation/cross-validation.md) | K-Fold、留一法、分层抽样 |
+| 统计检验 | [statistical-tests.md](./model-evaluation/statistical-tests.md) | t 检验、McNemar 检验、Wilcoxon 检验 |
+| 学习理论 | [learning-theory.md](./model-evaluation/learning-theory.md) | PAC 学习、VC 维、泛化界 |
+| 特征工程 | [index.md](./feature-engineering/index.md) | 特征选择、特征变换、数据预处理 |
 
 ## 🚀 快速导航
 
-### 按学习阶段导航
+### 按学习阶段
 
-- **🎓 初学者路径**：数学基础 → 线性模型 → 模型评估
-- **💼 实践者路径**：直接进入算法实现，边学边用
-- **🔬 研究者路径**：数学基础 → 算法理论 → 前沿扩展
+- **初学者**：数学基础 → 线性模型 → 模型评估
+- **实践者**：线性模型 → 树模型（XGBoost）→ 项目实践
+- **研究者**：理论框架 → SVM → 学习理论
 
-### 按算法类型导航
+### 按算法类型
 
-**监督学习算法**：
-- [线性模型](./supervised-learning/linear-models/linear-regression.md)
-- [支持向量机](./supervised-learning/svm/svm-theory.md)
-- [决策树与集成](./supervised-learning/tree-models/decision-trees.md)
-- [贝叶斯方法](./supervised-learning/bayesian-methods/naive-bayes.md)
+**监督学习**：
+- [线性回归](./supervised-learning/linear-models/linear-regression.md) - 回归任务基础
+- [逻辑回归](./supervised-learning/linear-models/logistic-regression.md) - 二分类经典
+- [SVM](./supervised-learning/svm/svm-theory.md) - 最大间隔分类器
+- [决策树](./supervised-learning/tree-models/decision-trees.md) - 可解释性强
+- [XGBoost](./supervised-learning/tree-models/xgboost.md) - 表格数据利器
+- [朴素贝叶斯](./supervised-learning/bayesian-methods/naive-bayes.md) - 文本分类首选
 
-**无监督学习算法**：
-- [聚类算法](./unsupervised-learning/clustering/kmeans.md)
-- [降维技术](./unsupervised-learning/dimensionality-reduction/pca.md)
-- [关联规则](./unsupervised-learning/association-rules/apriori.md)
+**无监督学习**：
+- [聚类分析](./unsupervised-learning/clustering.md) - K-means、DBSCAN、GMM
+- [降维技术](./unsupervised-learning/dimensionality-reduction.md) - PCA、LDA、流形学习
+- [异常检测](./unsupervised-learning/association-anomaly.md) - 孤立森林、LOF
 
-**评估与工程**：
-- [模型评估](./model-evaluation/cross-validation.md)
-- [特征工程](./feature-engineering/feature-selection.md)
+## 📖 学习路径
 
-## 📖 学习建议
+```
+数学基础              监督学习              无监督学习           评估工程
+    │                    │                      │                   │
+    ▼                    ▼                      ▼                   ▼
+线性代数 ──────→ 线性模型 ──────→ 聚类分析 ──────→ 交叉验证
+概率统计 ──────→ SVM ────────────→ 降维技术 ──────→ 统计检验
+优化理论 ──────→ 树模型 ──────────→ 异常检测 ──────→ 特征工程
+                 贝叶斯方法 ────────→
+```
 
-### 推荐学习路径
+## 🎯 核心特色
 
-1. **基础阶段**（1-2周）
-   - 线性代数基础
-   - 概率统计概念
-   - 优化理论基础
+| 特色 | 说明 |
+|------|------|
+| 数学深度 | 完整推导、收敛性证明、误差分析 |
+| 代码实现 | 核心算法手写实现、sklearn 应用示例 |
+| 实践指导 | 算法选择、参数调优、常见问题 |
+| 结构清晰 | 模块化组织、循序渐进、前后衔接 |
 
-2. **算法学习**（3-4周）
-   - 线性模型家族
-   - 支持向量机
-   - 决策树与集成
-   - 贝叶斯方法
+## 💡 算法选择速查
 
-3. **无监督学习**（2-3周）
-   - 聚类分析
-   - 降维技术
-   - 关联规则
+| 数据特点 | 推荐算法 |
+|----------|----------|
+| 小样本、线性关系 | 线性回归/逻辑回归 |
+| 小样本、非线性 | SVM + 核函数 |
+| 表格数据、追求精度 | XGBoost / LightGBM |
+| 大规模数据 | LightGBM / 线性模型 |
+| 需要可解释性 | 决策树 / 线性模型 |
+| 需要不确定性估计 | 贝叶斯方法 |
+| 无标签数据 | K-means / PCA |
 
-4. **实践应用**（2-3周）
-   - 模型评估
-   - 特征工程
-   - 项目实践
+## 🔧 相关资源
 
-### 学习方法
-
-- **理论结合实践**：每个算法都包含数学推导和代码实现
-- **循序渐进**：建议按顺序学习，确保基础知识牢固
-- **动手实验**：运行提供的代码示例，理解算法细节
-- **项目驱动**：通过实际项目巩固所学知识
-
-## 🔧 技术特色详解
-
-### 数学深度
-
-每个算法文档都包含：
-- **完整的数学推导**：从基本公式到高级优化
-- **收敛性证明**：算法的理论保证
-- **误差分析**：性能评估的数学基础
-- **统计理论**：假设检验和置信区间
-
-### 代码实现质量
-
-- **算法核心逻辑**：手写实现理解原理
-- **性能比较实验**：不同算法的对比分析
-- **参数调优示例**：超参数优化的最佳实践
-- **可视化分析**：结果的可视化展示
-
-### 实践指导
-
-- **算法选择指南**：不同场景下的算法推荐
-- **参数调优策略**：系统化的超参数优化方法
-- **常见问题解决**：实践中遇到的典型问题及解决方案
-- **性能优化技巧**：提升模型性能的实用技巧
-
-## 📈 知识体系特点
-
-### 系统性
-- 完整的知识链条，从基础到应用
-- 相互关联的概念，形成知识网络
-- 渐进式的学习难度，适合不同水平的学习者
-
-### 深度性
-- 每个主题都有深入的数学分析
-- 算法原理的完整推导过程
-- 理论证明和实际应用的结合
-
-### 实用性
-- 可以直接用于实际项目的代码
-- 真实数据集的实验示例
-- 工业界的最佳实践分享
-
-## 🎓 适合人群
-
-- **机器学习初学者**：希望系统学习传统机器学习算法
-- **数据科学家**：需要深入理解算法原理和数学基础
-- **软件工程师**：想要将机器学习算法应用到实际项目中
-- **研究人员**：需要了解机器学习算法的理论基础
-
-## 📚 扩展阅读
-
-在学习完本知识体系后，建议继续学习：
-- 深度学习理论基础
-- 强化学习算法
-- 自然语言处理
-- 计算机视觉
-- 推荐系统
+- [深度学习笔记](../deep-learning/index.md)
+- [强化学习笔记](../reinforcement-learning/index.md)
+- [PyTorch 教程](../deep-learning/pytorch/index.md)
 
 ---
 
-**最后更新**：2026年1月12日  
-**版本**：v2.0 - 重构版  
-**特色**：完整的四阶段学习体系，深度数学分析，实用代码实现
+**版本**：v2.2  
+**更新日期**：2026年3月1日
