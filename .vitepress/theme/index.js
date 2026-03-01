@@ -21,6 +21,9 @@ import BITAnimation from './components/BITAnimation.vue'
 import SegmentTreeAnimation from './components/SegmentTreeAnimation.vue'
 import UnionFindAnimation from './components/UnionFindAnimation.vue'
 import FloydAnimation from './components/FloydAnimation.vue'
+import SelfAttentionAnimation from './components/SelfAttentionAnimation.vue'
+import MultiHeadAttentionAnimation from './components/MultiHeadAttentionAnimation.vue'
+import PositionalEncodingAnimation from './components/PositionalEncodingAnimation.vue'
 import './style.css'
 
 /** @type {import('vitepress').Theme} */
@@ -59,6 +62,9 @@ export default {
     ctx.app.component('SegmentTreeAnimation', SegmentTreeAnimation)
     ctx.app.component('UnionFindAnimation', UnionFindAnimation)
     ctx.app.component('FloydAnimation', FloydAnimation)
+    ctx.app.component('SelfAttentionAnimation', SelfAttentionAnimation)
+    ctx.app.component('MultiHeadAttentionAnimation', MultiHeadAttentionAnimation)
+    ctx.app.component('PositionalEncodingAnimation', PositionalEncodingAnimation)
     // 可以在所有页面中添加点击效果
     if (typeof window !== 'undefined') {
       window.addEventListener('DOMContentLoaded', () => {

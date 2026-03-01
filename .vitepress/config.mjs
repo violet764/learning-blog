@@ -91,20 +91,23 @@ export default withMermaid(
       // 深度学习
       { text: '深度学习', 
         items: [
-          { text: '深度学习', link: '/notes/deep-learning/basic.md' },
-          { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
-          { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
-        
-        {items:[
+          { text: '导览', link: '/notes/deep-learning/index.md' },
+          { text: '神经网络基础', link: '/notes/deep-learning/01-neural-network-basics.md' },
+          { text: 'CNN', link: '/notes/deep-learning/05-cnn.md' },
+          { text: 'Transformer', link: '/notes/deep-learning/07-transformer.md' },
+          { text: '生成模型', link: '/notes/deep-learning/08-generative-models.md' },
           { text: 'PyTorch', link: '/notes/deep-learning/pytorch/index.md' },
-        ]},
-        {items:[
-          { text: 'AI模型', link: '/notes/ai-model/index.md' },
-        ]},
-        {items:[
-          { text: '实践', link: '/notes/practice/index.md' },
-        ]},
-      ]
+        ]
+      },
+      // AI大模型
+      { text: 'AI大模型', 
+        items: [
+          { text: '导览', link: '/notes/ai-model/index.md' },
+          { text: 'LLM', link: '/notes/ai-model/llm/index.md' },
+          { text: '视觉模型', link: '/notes/ai-model/cv/index.md' },
+          { text: '多模态', link: '/notes/ai-model/multimodal/index.md' },
+          { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
+        ]
       },
 
       // 强化学习
@@ -332,13 +335,27 @@ export default withMermaid(
       // 深度学习分类侧边栏
       '/notes/deep-learning/': [
         { text: '导览', link: '/notes/deep-learning/index.md' },
-        { text: '深度学习', link: '/notes/deep-learning/basic.md' },
-        { text: '神经网络', link: '/notes/deep-learning/nn.md' },
-        { text: '优化器', link: '/notes/deep-learning/optim.md' },
-        { text: '卷积神经网络', link: '/notes/deep-learning/cnn.md' },
-        { text: '循环神经网络', link: '/notes/deep-learning/rnn.md' },
-        { text: '实战', link: '/notes/deep-learning/practical.md' },
-        
+        {
+          text: '基础理论',
+          collapsible: true,
+          items: [
+            { text: '神经网络基础', link: '/notes/deep-learning/01-neural-network-basics.md' },
+            { text: '优化算法', link: '/notes/deep-learning/02-optimizers.md' },
+            { text: '激活函数', link: '/notes/deep-learning/03-activations.md' },
+            { text: '正则化与归一化', link: '/notes/deep-learning/04-regularization.md' },
+          ]
+        },
+        {
+          text: '网络架构',
+          collapsible: true,
+          items: [
+            { text: '卷积神经网络', link: '/notes/deep-learning/05-cnn.md' },
+            { text: '循环神经网络', link: '/notes/deep-learning/06-rnn-family.md' },
+            { text: 'Transformer', link: '/notes/deep-learning/07-transformer.md' },
+            { text: '生成模型', link: '/notes/deep-learning/08-generative-models.md' },
+          ]
+        },
+        { text: 'PyTorch实战', link: '/notes/deep-learning/pytorch/index.md' },
       ],
 
       '/notes/deep-learning/pytorch/': [
@@ -369,11 +386,48 @@ export default withMermaid(
 
       '/notes/ai-model/': [
         { text: '导览', link: '/notes/ai-model/index.md' },
-        { text: '基础模型', link: '/notes/ai-model/ai-model-basics.md' },
-        { text: '预训练原理', link: '/notes/ai-model/pretraining-principles.md' },
-        { text: '微调', link: '/notes/ai-model/finetuning-alignment.md' },
-        { text: '推理优化', link: '/notes/ai-model/inference-optimization.md' },
-        { text: '前言应用', link: '/notes/ai-model/applications-trends.md' },
+        {
+          text: '大语言模型',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/llm/index.md' },
+            { text: '分词技术', link: '/notes/ai-model/llm/tokenization.md' },
+            { text: '嵌入层', link: '/notes/ai-model/llm/embedding.md' },
+            { text: '注意力机制', link: '/notes/ai-model/llm/attention-mechanisms.md' },
+            { text: '模型架构', link: '/notes/ai-model/llm/model-architecture.md' },
+            { text: '预训练技术', link: '/notes/ai-model/llm/pretraining.md' },
+            { text: '微调与对齐', link: '/notes/ai-model/llm/finetuning-alignment.md' },
+            { text: '推理优化', link: '/notes/ai-model/llm/inference-optimization.md' },
+          ]
+        },
+        {
+          text: '视觉模型',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/cv/index.md' },
+            { text: '视觉模型演进', link: '/notes/ai-model/cv/vision-models.md' },
+            { text: '目标检测', link: '/notes/ai-model/cv/object-detection.md' },
+            { text: '图像生成', link: '/notes/ai-model/cv/image-generation.md' },
+          ]
+        },
+        {
+          text: '多模态模型',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/multimodal/index.md' },
+            { text: '视觉语言模型', link: '/notes/ai-model/multimodal/vision-language.md' },
+            { text: '多模态生成', link: '/notes/ai-model/multimodal/multimodal-generation.md' },
+          ]
+        },
+        {
+          text: '应用与前沿',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/applications/index.md' },
+            { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
+            { text: '未来趋势', link: '/notes/ai-model/applications/future-trends.md' },
+          ]
+        },
       ],
 
 
