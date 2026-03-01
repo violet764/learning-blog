@@ -121,26 +121,28 @@
     <!-- 参数对比 -->
     <div class="params-table" v-if="step >= 4">
       <table>
-        <tr>
-          <th>配置</th>
-          <th>单头</th>
-          <th>多头 (h={{ numHeads }})</th>
-        </tr>
-        <tr>
-          <td>每头维度 dₖ</td>
-          <td>512</td>
-          <td>{{ 512/numHeads }}</td>
-        </tr>
-        <tr>
-          <td>注意力模式</td>
-          <td>1种</td>
-          <td>{{ numHeads }}种</td>
-        </tr>
-        <tr>
-          <td>表达能力</td>
-          <td>有限</td>
-          <td>丰富</td>
-        </tr>
+        <tbody>
+          <tr>
+            <th>配置</th>
+            <th>单头</th>
+            <th>多头 (h={{ numHeads }})</th>
+          </tr>
+          <tr>
+            <td>每头维度 dₖ</td>
+            <td>512</td>
+            <td>{{ 512/numHeads }}</td>
+          </tr>
+          <tr>
+            <td>注意力模式</td>
+            <td>1种</td>
+            <td>{{ numHeads }}种</td>
+          </tr>
+          <tr>
+            <td>表达能力</td>
+            <td>有限</td>
+            <td>丰富</td>
+          </tr>
+        </tbody>
       </table>
     </div>
 

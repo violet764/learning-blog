@@ -78,7 +78,7 @@ export default withMermaid(
       },
       { text: '机器学习',
         items: [
-          { text: '总览', link: '/notes/machine-learning/index.md' },
+          { text: '导览', link: '/notes/machine-learning/index.md' },
           { text: '数学基础', link: '/notes/machine-learning/math-foundation/linear-algebra.md' },
           { text: '特征工程', link: '/notes/machine-learning/feature-engineering/index.md' },
           { text: '有监督学习', link: '/notes/machine-learning/supervised-learning/framework/supervised-learning.md' },
@@ -124,15 +124,11 @@ export default withMermaid(
       // 算法刷题
       { text: '算法',
         items:[
-        { text: '数据结构', link: '/notes/algorithm/数据结构基础.md' },
-        { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
-
-        {items:[
-        { text: '搜索', link: '/notes/algorithm/搜索.md' },
-        { text: '动态规划', link: '/notes/algorithm/动态规划.md' },
-        { text: '字符串', link: '/notes/algorithm/字符串.md' },
-
-        ]}
+        { text: '导览', link: '/notes/algorithm/index.md' },
+        { text: '数据结构', link: '/notes/algorithm/linear-structures.md' },
+        { text: '搜索算法', link: '/notes/algorithm/search-dfs.md' },
+        { text: '动态规划', link: '/notes/algorithm/dp-basics.md' },
+        { text: '图论算法', link: '/notes/algorithm/graph-basics.md' },
         ]
       },
       
@@ -469,15 +465,64 @@ export default withMermaid(
         },
       ],
 
-      // 算法与刷题侧边栏（对齐首页Feature）
+      // 算法与刷题侧边栏
       '/notes/algorithm/': [
         { text: '导览', link: '/notes/algorithm/index.md' },
-        { text: '基础数据结构', link: '/notes/algorithm/数据结构基础.md' },
-        { text: '高级数据结构', link: '/notes/algorithm/数据结构高级.md' },
-        { text: '算法基础', link: '/notes/algorithm/算法应用.md' },
-        { text: '搜索', link: '/notes/algorithm/搜索.md' },
-        { text: '动态规划', link: '/notes/algorithm/动态规划.md' },
-        { text: '字符串', link: '/notes/algorithm/字符串.md' },
+        {
+          text: '算法基础',
+          collapsible: true,
+          items: [
+            { text: '复杂度与二分', link: '/notes/algorithm/basics.md' },
+            { text: '排序算法', link: '/notes/algorithm/sorting.md' },
+            { text: '贪心算法', link: '/notes/algorithm/greedy.md' },
+          ]
+        },
+        {
+          text: '数据结构',
+          collapsible: true,
+          items: [
+            { text: '线性结构', link: '/notes/algorithm/linear-structures.md' },
+            { text: '哈希表与位集', link: '/notes/algorithm/hashing.md' },
+            { text: '树基础', link: '/notes/algorithm/tree-basics.md' },
+            { text: '高级树结构', link: '/notes/algorithm/tree-advanced.md' },
+            { text: '并查集', link: '/notes/algorithm/union-find.md' },
+          ]
+        },
+        {
+          text: '图论算法',
+          collapsible: true,
+          items: [
+            { text: '图基础', link: '/notes/algorithm/graph-basics.md' },
+            { text: '最短路径', link: '/notes/algorithm/graph-shortest-path.md' },
+            { text: '最小生成树', link: '/notes/algorithm/graph-spanning-tree.md' },
+          ]
+        },
+        {
+          text: '搜索算法',
+          collapsible: true,
+          items: [
+            { text: 'DFS', link: '/notes/algorithm/search-dfs.md' },
+            { text: 'BFS', link: '/notes/algorithm/search-bfs.md' },
+            { text: '高级搜索', link: '/notes/algorithm/search-advanced.md' },
+          ]
+        },
+        {
+          text: '动态规划',
+          collapsible: true,
+          items: [
+            { text: 'DP基础', link: '/notes/algorithm/dp-basics.md' },
+            { text: '背包问题', link: '/notes/algorithm/dp-knapsack.md' },
+            { text: '高级DP', link: '/notes/algorithm/dp-advanced.md' },
+          ]
+        },
+        {
+          text: '字符串算法',
+          collapsible: true,
+          items: [
+            { text: '字符串基础', link: '/notes/algorithm/string-basics.md' },
+            { text: '高级字符串', link: '/notes/algorithm/string-advanced.md' },
+          ]
+        },
       ],
 
       // 工具与环境侧边栏（对齐首页Feature）

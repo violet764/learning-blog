@@ -160,31 +160,33 @@
       <div class="learned-compare" v-if="step >= 1">
         <div class="compare-title">对比分析</div>
         <table class="compare-table">
-          <tr>
-            <th>特性</th>
-            <th>正弦余弦</th>
-            <th>学习式</th>
-          </tr>
-          <tr>
-            <td>参数量</td>
-            <td>0</td>
-            <td>max_len × d</td>
-          </tr>
-          <tr>
-            <td>长度泛化</td>
-            <td>✓ 支持</td>
-            <td>✗ 固定长度</td>
-          </tr>
-          <tr>
-            <td>灵活性</td>
-            <td>固定模式</td>
-            <td>可学习</td>
-          </tr>
-          <tr>
-            <td>代表模型</td>
-            <td>原始Transformer</td>
-            <td>BERT、GPT-2</td>
-          </tr>
+          <tbody>
+            <tr>
+              <th>特性</th>
+              <th>正弦余弦</th>
+              <th>学习式</th>
+            </tr>
+            <tr>
+              <td>参数量</td>
+              <td>0</td>
+              <td>max_len × d</td>
+            </tr>
+            <tr>
+              <td>长度泛化</td>
+              <td>✓ 支持</td>
+              <td>✗ 固定长度</td>
+            </tr>
+            <tr>
+              <td>灵活性</td>
+              <td>固定模式</td>
+              <td>可学习</td>
+            </tr>
+            <tr>
+              <td>代表模型</td>
+              <td>原始Transformer</td>
+              <td>BERT、GPT-2</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
