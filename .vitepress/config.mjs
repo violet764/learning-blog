@@ -437,7 +437,20 @@ export default withMermaid(
           items: [
             { text: '导览', link: '/notes/ai-model/applications/index.md' },
             { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
+
             { text: '未来趋势', link: '/notes/ai-model/applications/future-trends.md' },
+          ]
+        },
+        {
+          text: 'Agent 学习指南',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/agent/index.md' },
+            { text: 'Agent 基础概念', link: '/notes/ai-model/agent/agent-basics.md' },
+            { text: 'ReAct与工具调用', link: '/notes/ai-model/agent/agent-react-tools.md' },
+            { text: 'CLI Agent实战', link: '/notes/ai-model/agent/agent-cli-tutorial.md' },
+            { text: '多Agent编排模式', link: '/notes/ai-model/agent/agent-orchestration.md' },
+            { text: 'OpenClaw', link: '/notes/ai-model/applications/openclaw-intro.md' }
           ]
         },
         {
@@ -561,6 +574,7 @@ export default withMermaid(
         { text: 'Git', link: '/notes/tools/tools_Git.md' },
         { text: 'Conda', link: '/notes/tools/tools_conda.md' },
         { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
+        { text: 'OpenClaw', link: '/notes/tools/openclaw-intro.md' },
 
         
       ],

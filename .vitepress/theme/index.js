@@ -10,6 +10,8 @@ import ArticleMeta from './components/ArticleMeta.vue' // 自定义元信息组�
 import TagCloud from './components/TagCloud.vue'     // 自定义标签云组件
 import ImageZoom from './components/ImageZoom.vue'
 import RssReader from './components/RssReader.vue'
+import HeroBackground from './components/HeroBackground.vue'
+import CursorEffect from './components/CursorEffect.vue'
 import BFSAnimation from './components/BFSAnimation.vue'
 import BidirectionalSearch from './components/BidirectionalSearch.vue'
 import AStarSearch from './components/AStarSearch.vue'
@@ -33,13 +35,15 @@ export default {
     return h(DefaultTheme.Layout, null, {
       'layout-top': () => [
         h(PageProgressBar),
+        h(HeroBackground),
         // h(ReadingProgress)
       ],
       // 'doc-before': () => h(DocMeta),
-      // 使用布局插槽添加返回顶部按钮
+      // 使用布局插槽添加全局组件
       'layout-bottom': () => [
         h(BackToTop), 
-        h(ImageZoom)
+        h(ImageZoom),
+        h(CursorEffect)
       ]
     })
   },

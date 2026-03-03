@@ -737,3 +737,418 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 }
+
+/**
+ * 动画效果
+ * -------------------------------------------------------------------------- */
+
+/* 1. Feature 卡片悬浮发光动画 */
+.VPFeature {
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.VPFeature::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(114, 46, 209, 0.3),
+    rgba(71, 202, 255, 0.3)
+  );
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.VPFeature:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(114, 46, 209, 0.15);
+}
+
+.VPFeature:hover::before {
+  opacity: 1;
+}
+
+/* 暗色模式下 Feature 卡片发光增强 */
+html.dark .VPFeature:hover {
+  box-shadow: 0 12px 32px rgba(114, 46, 209, 0.3);
+}
+
+/* 2. 页面切换过渡动画 */
+.VPContent {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 3. Hero 区域动画 */
+/* 标题渐入 */
+.VPHero .name {
+  animation: heroNameFade 0.8s ease-out;
+}
+
+.VPHero .text {
+  animation: heroTextFade 0.8s ease-out 0.2s both;
+}
+
+.VPHero .tagline {
+  animation: heroTextFade 0.8s ease-out 0.4s both;
+}
+
+.VPHero .image {
+  animation: heroImageFade 0.8s ease-out 0.3s both;
+}
+
+.VPHero .actions {
+  animation: heroTextFade 0.8s ease-out 0.5s both;
+}
+
+@keyframes heroNameFade {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes heroTextFade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroImageFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hero 图片浮动动画 */
+.VPHero .image-img {
+  animation: heroFloat 6s ease-in-out infinite;
+}
+
+@keyframes heroFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* 4. 链接下划线动画 */
+.vp-doc a,
+.VPLink a {
+  position: relative;
+  text-decoration: none !important;
+}
+
+.vp-doc a::after,
+.VPLink a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--vp-c-brand-1), var(--vp-c-brand-2));
+  transition: width 0.3s ease;
+}
+
+.vp-doc a:hover::after,
+.VPLink a:hover::after {
+  width: 100%;
+}
+
+/* 导航链接特殊处理 */
+.VPNavBarMenuLink:hover::after {
+  width: 100%;
+}
+
+/* 侧边栏链接动画 */
+.VPSidebarItem .link:hover::after {
+  width: 100%;
+}
+
+/* 5. 按钮涟漪效果 */
+.VPButton {
+  position: relative;
+  overflow: hidden;
+}
+
+.VPButton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.VPButton:active::before {
+  width: 200px;
+  height: 200px;
+}
+
+/* 6. 代码块复制按钮动画 */
+.vp-code-group .tabs label {
+  transition: all 0.2s ease;
+}
+
+.vp-code-group .tabs label:hover {
+  color: var(--vp-c-brand-1);
+}
+
+/* 7. 目录高亮动画 */
+.VPDocOutlineItem a {
+  transition: all 0.2s ease;
+}
+
+.VPDocOutlineItem a:hover {
+  transform: translateX(4px);
+  color: var(--vp-c-brand-1);
+}
+
+/* 8. 图片悬停增强 */
+.vp-doc img:not(a img):hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* 9. Feature 图标动画 */
+.VPFeature .icon {
+  transition: transform 0.3s ease;
+}
+
+.VPFeature:hover .icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+/* 10. 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-c-divider);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-brand-soft);
+}
+
+/* 11. 暗色模式过渡 */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 12. 提示框动画 */
+.custom-block {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-block:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+html.dark .custom-block:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/**
+ * Hero 背景增强动画
+ * -------------------------------------------------------------------------- */
+
+/* Hero 区域容器 */
+.VPHero {
+  position: relative;
+}
+
+/* 背景图片容器增强 */
+.VPHero .image {
+  position: relative;
+  z-index: 1;
+}
+
+/* 背景图片多重动画 */
+.VPHero .image-img {
+  animation: 
+    heroFloat 6s ease-in-out infinite,
+    heroGlow 4s ease-in-out infinite,
+    heroRotate 20s linear infinite;
+  filter: drop-shadow(0 20px 40px rgba(114, 46, 209, 0.3));
+}
+
+/* 浮动动画 */
+@keyframes heroFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-6px) rotate(-1deg);
+  }
+}
+
+/* 发光脉冲动画 */
+@keyframes heroGlow {
+  0%, 100% {
+    filter: drop-shadow(0 20px 40px rgba(114, 46, 209, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 25px 50px rgba(114, 46, 209, 0.5));
+  }
+}
+
+/* 轻微旋转动画 */
+@keyframes heroRotate {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(0.5deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-6px) rotate(-0.5deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* 图片悬停增强 */
+.VPHero .image-img:hover {
+  animation-play-state: paused;
+  transform: scale(1.05) translateY(-5px);
+  filter: drop-shadow(0 30px 60px rgba(114, 46, 209, 0.4));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* Hero 区域背景光效 */
+.VPHero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(114, 46, 209, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(71, 202, 255, 0.06) 0%, transparent 50%);
+  animation: bgPulse 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes bgPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* 首页整体背景 */
+.VPHome {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 首页底部渐变 */
+.VPHome::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to top, var(--vp-c-bg), transparent);
+  pointer-events: none;
+}
+
+/* 暗色模式调整 */
+html.dark .VPHero .image-img {
+  filter: drop-shadow(0 20px 40px rgba(114, 46, 209, 0.4));
+}
+
+html.dark .VPHero::before {
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(114, 46, 209, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(71, 202, 255, 0.08) 0%, transparent 50%);
+}
+
+/* 响应式调整 */
+@media (max-width: 960px) {
+  .VPHero .image-img {
+    animation: 
+      heroFloat 6s ease-in-out infinite,
+      heroGlow 4s ease-in-out infinite;
+  }
+}
+
+@media (max-width: 768px) {
+  .VPHero .image-img {
+    animation: heroFloat 6s ease-in-out infinite;
+  }
+  
+  .VPHero::before {
+    display: none;
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .VPHero .image-img,
+  .VPHero::before {
+    animation: none;
+  }
+}
