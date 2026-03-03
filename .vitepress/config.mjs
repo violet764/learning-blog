@@ -203,6 +203,13 @@ export default withMermaid(
             { text: '多文件编程', link: '/notes/language/c++/多文件.md' },
             { text: '现代特性', link: '/notes/language/c++/现代特性.md' },
           ]
+        },
+        {
+          text: '面试指南',
+          collapsible: true,
+          items: [
+            { text: '核心面试题', link: '/notes/language/c++/interview/index.md' },
+          ]
         }],
 
 
@@ -234,6 +241,13 @@ export default withMermaid(
             { text: '模块与并发', link: '/notes/language/rust/模块与并发.md' },
             { text: '实战与优化', link: '/notes/language/rust/实战与优化.md' },
             { text: '不安全Rust', link: '/notes/language/rust/不安全Rust.md' },
+          ]
+        },
+        {
+          text: '面试指南',
+          collapsible: true,
+          items: [
+            { text: '核心面试题', link: '/notes/language/rust/interview/index.md' },
           ]
         },
       ],
@@ -392,7 +406,9 @@ export default withMermaid(
             { text: '注意力机制', link: '/notes/ai-model/llm/attention-mechanisms.md' },
             { text: '模型架构', link: '/notes/ai-model/llm/model-architecture.md' },
             { text: '预训练技术', link: '/notes/ai-model/llm/pretraining.md' },
+            { text: 'Bert', link: '/notes/ai-model/llm/bert-models.md' },
             { text: '微调与对齐', link: '/notes/ai-model/llm/finetuning-alignment.md' },
+            { text: '经典模型', link: '/notes/ai-model/llm/llm-models.md' },
             { text: '推理优化', link: '/notes/ai-model/llm/inference-optimization.md' },
           ]
         },
@@ -422,6 +438,18 @@ export default withMermaid(
             { text: '导览', link: '/notes/ai-model/applications/index.md' },
             { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
             { text: '未来趋势', link: '/notes/ai-model/applications/future-trends.md' },
+          ]
+        },
+        {
+          text: '面试指南',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/interview/index.md' },
+            { text: '深度学习基础', link: '/notes/ai-model/interview/dl-basics.md' },
+            { text: 'Transformer架构', link: '/notes/ai-model/interview/transformer.md' },
+            { text: '大模型核心原理', link: '/notes/ai-model/interview/llm-advanced.md' },
+            { text: '微调与优化', link: '/notes/ai-model/interview/finetuning-optimization.md' },
+            { text: '实战场景', link: '/notes/ai-model/interview/practical-scenarios.md' },
           ]
         },
       ],

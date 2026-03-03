@@ -68,6 +68,13 @@
 | [注意力机制](./attention-mechanisms.md) | MHA、MQA、GQA、FlashAttention 等核心机制详解 | ⭐⭐⭐ | ✅ 已完成 |
 | [模型架构](./model-architecture.md) | Decoder-only架构、Pre-Norm、FFN设计、主流LLM对比 | ⭐⭐⭐ | ✅ 已完成 |
 
+### 经典模型章节
+
+| 章节 | 内容概要 | 难度 | 状态 |
+|------|----------|------|------|
+| [BERT模型与变体](./bert-models.md) | BERT架构、MLM/NSP预训练、RoBERTa/ALBERT/DistilBERT/ELECTRA/DeBERTa变体、中文BERT | ⭐⭐⭐ | ✅ 已完成 |
+| [主流大语言模型](./llm-models.md) | GPT系列架构演进、LLaMA系列设计、ChatGLM/Qwen/Baichuan/DeepSeek国产大模型 | ⭐⭐⭐⭐ | ✅ 已完成 |
+
 ### 进阶技术章节
 
 以下章节位于 AI 模型总目录，涵盖 LLM 训练与部署的关键技术：
@@ -195,12 +202,12 @@ pip install flash-attn --no-build-isolation
 
 | 论文 | 年份 | 核心贡献 | 阅读优先级 |
 |------|------|----------|------------|
-| Attention Is All You Need | 2017 | Transformer 架构 | ⭐⭐⭐⭐⭐ |
-| BERT: Pre-training of Deep Bidirectional Transformers | 2018 | 预训练语言模型 | ⭐⭐⭐⭐⭐ |
-| Language Models are Few-Shot Learners (GPT-3) | 2020 | 涌现能力、In-context Learning | ⭐⭐⭐⭐⭐ |
-| Training language models to follow instructions (InstructGPT) | 2022 | RLHF 对齐 | ⭐⭐⭐⭐ |
-| LLaMA: Open and Efficient Foundation Language Models | 2023 | 开源大模型 | ⭐⭐⭐⭐ |
-| FlashAttention: Fast and Memory-Efficient Exact Attention | 2022 | 高效注意力计算 | ⭐⭐⭐ |
+| [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | 2017 | Transformer 架构 | ⭐⭐⭐⭐⭐ |
+| [BERT: Pre-training of Deep Bidirectional Transformers](https://arxiv.org/abs/1810.04805) | 2018 | 预训练语言模型 | ⭐⭐⭐⭐⭐ |
+| [Language Models are Few-Shot Learners (GPT-3)](https://arxiv.org/abs/2005.14165) | 2020 | 涌现能力、In-context Learning | ⭐⭐⭐⭐⭐ |
+| [Training language models to follow instructions (InstructGPT)](https://arxiv.org/abs/2203.02155) | 2022 | RLHF 对齐 | ⭐⭐⭐⭐ |
+| [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971) | 2023 | 开源大模型 | ⭐⭐⭐⭐ |
+| [FlashAttention: Fast and Memory-Efficient Exact Attention](https://arxiv.org/abs/2205.14135) | 2022 | 高效注意力计算 | ⭐⭐⭐ |
 
 ### 开源项目
 
@@ -216,18 +223,18 @@ pip install flash-attn --no-build-isolation
 
 | 课程 | 平台 | 特点 |
 |------|------|------|
-| CS224N: NLP with Deep Learning | Stanford | NLP 基础理论 |
-| CS25: Transformers United | Stanford | Transformer 前沿研究 |
-| Hugging Face Course | Hugging Face | 实践导向，动手学习 |
-| Andrej Karpathy: Neural Networks: Zero to Hero | YouTube | 从零构建 GPT |
+| [CS224N: NLP with Deep Learning](https://web.stanford.edu/class/cs224n/) | Stanford | NLP 基础理论 |
+| [CS25: Transformers United](https://web.stanford.edu/class/cs25/) | Stanford | Transformer 前沿研究 |
+| [Hugging Face Course](https://huggingface.co/learn) | Hugging Face | 实践导向，动手学习 |
+| [Neural Networks: Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ) | YouTube | 从零构建 GPT |
 
 ### 参考书籍
 
 | 书籍 | 作者 | 内容侧重 |
 |------|------|----------|
-| 《自然语言处理：基于预训练模型的方法》 | 车万翔等 | NLP 预训练技术 |
-| Speech and Language Processing | Dan Jurafsky | NLP 经典教材 |
-| Deep Learning | Goodfellow et al. | 深度学习理论基础 |
+| [《自然语言处理：基于预训练模型的方法》](https://book.douban.com/subject/35441852/) | 车万翔等 | NLP 预训练技术 |
+| [Speech and Language Processing](https://web.stanford.edu/~jurafsky/slp3/) | Dan Jurafsky | NLP 经典教材 |
+| [Deep Learning](https://www.deeplearningbook.org/) | Goodfellow et al. | 深度学习理论基础 |
 
 ---
 

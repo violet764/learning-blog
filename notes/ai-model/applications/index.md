@@ -125,10 +125,10 @@ AI能力边界 → 应用场景 → 未来趋势 → 产品规划
 
 ### 经典论文
 
-- **ReAct**: Reasoning and Acting in Language Models
-- **Chain-of-Thought Prompting**: Elicits Reasoning in Large Language Models
-- **Toolformer**: Language Models Can Teach Themselves to Use Tools
-- **Constitutional AI**: Harmlessness from AI Feedback
+- [**ReAct**: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)
+- [**Chain-of-Thought Prompting**: Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903)
+- [**Toolformer**: Language Models Can Teach Themselves to Use Tools](https://arxiv.org/abs/2302.02525)
+- [**Constitutional AI**: Harmlessness from AI Feedback](https://arxiv.org/abs/2212.08073)
 
 ### 实践项目推荐
 

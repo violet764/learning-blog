@@ -202,9 +202,9 @@
 
 ### 在线课程
 
-- **Stanford CS231n**：计算机视觉基础
-- **Stanford CS224n**：自然语言处理
-- **Fast.ai**：实用深度学习课程
+- [Stanford CS231n](http://cs231n.stanford.edu/)：计算机视觉基础
+- [Stanford CS224n](https://web.stanford.edu/class/cs224n/)：自然语言处理
+- [Fast.ai Practical Deep Learning](https://course.fast.ai/)：实用深度学习课程
 
 ---
 

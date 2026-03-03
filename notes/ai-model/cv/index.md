@@ -189,14 +189,14 @@ pip install diffusers transformers accelerate
 
 | 论文 | 年份 | 核心贡献 | 阅读优先级 |
 |------|------|----------|------------|
-| AlexNet | 2012 | 开启深度学习时代 | ⭐⭐⭐⭐⭐ |
-| Very Deep Convolutional Networks (VGG) | 2014 | 小卷积核堆叠 | ⭐⭐⭐⭐ |
-| Deep Residual Learning (ResNet) | 2016 | 残差连接 | ⭐⭐⭐⭐⭐ |
-| You Only Look Once (YOLO) | 2016 | 单阶段检测 | ⭐⭐⭐⭐⭐ |
-| An Image is Worth 16x16 Words (ViT) | 2020 | Transformer 用于视觉 | ⭐⭐⭐⭐⭐ |
-| Learning Transferable Visual Models (CLIP) | 2021 | 视觉-语言对齐 | ⭐⭐⭐⭐ |
-| High-Resolution Image Synthesis (扩散模型) | 2021 | 扩散模型基础 | ⭐⭐⭐⭐ |
-| Segment Anything (SAM) | 2023 | 通用分割 | ⭐⭐⭐ |
+| [AlexNet](https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html) | 2012 | 开启深度学习时代 | ⭐⭐⭐⭐⭐ |
+| [Very Deep Convolutional Networks (VGG)](https://arxiv.org/abs/1409.1556) | 2014 | 小卷积核堆叠 | ⭐⭐⭐⭐ |
+| [Deep Residual Learning (ResNet)](https://arxiv.org/abs/1512.03385) | 2016 | 残差连接 | ⭐⭐⭐⭐⭐ |
+| [You Only Look Once (YOLO)](https://arxiv.org/abs/1506.02640) | 2016 | 单阶段检测 | ⭐⭐⭐⭐⭐ |
+| [An Image is Worth 16x16 Words (ViT)](https://arxiv.org/abs/2010.11929) | 2020 | Transformer 用于视觉 | ⭐⭐⭐⭐⭐ |
+| [Learning Transferable Visual Models (CLIP)](https://arxiv.org/abs/2103.00020) | 2021 | 视觉-语言对齐 | ⭐⭐⭐⭐ |
+| [High-Resolution Image Synthesis (扩散模型)](https://arxiv.org/abs/2112.10752) | 2021 | 扩散模型基础 | ⭐⭐⭐⭐ |
+| [Segment Anything (SAM)](https://arxiv.org/abs/2304.02643) | 2023 | 通用分割 | ⭐⭐⭐ |
 
 ### 开源项目
 
@@ -212,18 +212,18 @@ pip install diffusers transformers accelerate
 
 | 课程 | 平台 | 特点 |
 |------|------|------|
-| CS231n: CNN for Visual Recognition | Stanford | CV 经典入门课程 |
-| Deep Learning for Computer Vision | Michigan | 系统全面 |
-| 李沐《动手学深度学习》 | d2l.ai | 中文，实践导向 |
-| Fast.ai Practical Deep Learning | fast.ai | 快速上手，应用导向 |
+| [CS231n: CNN for Visual Recognition](http://cs231n.stanford.edu/) | Stanford | CV 经典入门课程 |
+| [Deep Learning for Computer Vision](https://web.eecs.umich.edu/~justincj/teaching/eecs498/) | Michigan | 系统全面 |
+| [《动手学深度学习》](https://zh.d2l.ai/) | d2l.ai | 中文，实践导向 |
+| [Practical Deep Learning](https://course.fast.ai/) | fast.ai | 快速上手，应用导向 |
 
 ### 参考书籍
 
 | 书籍 | 作者 | 内容侧重 |
 |------|------|----------|
-| 《计算机视觉：算法与应用》 | Szeliski | CV 全景概览 |
-| 《深度学习》（花书） | Goodfellow | 理论基础 |
-| 《动手学深度学习》 | 李沐等 | 实践导向 |
+| [《计算机视觉：算法与应用》](http://szeliski.org/Book/) | Szeliski | CV 全景概览 |
+| [《深度学习》（花书）](https://www.deeplearningbook.org/) | Goodfellow | 理论基础 |
+| [《动手学深度学习》](https://zh.d2l.ai/) | 李沐等 | 实践导向 |
 
 ---
 

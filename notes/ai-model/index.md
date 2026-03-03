@@ -231,44 +231,44 @@ AI应用技术正在从实验室走向实际场景，智能体、工具调用等
 
 | 论文 | 年份 | 核心贡献 | 优先级 |
 |------|------|----------|--------|
-| Attention Is All You Need | 2017 | Transformer架构 | ⭐⭐⭐⭐⭐ |
-| BERT: Pre-training of Deep Bidirectional Transformers | 2018 | 预训练语言模型 | ⭐⭐⭐⭐⭐ |
-| Language Models are Few-Shot Learners (GPT-3) | 2020 | 涌现能力、In-context Learning | ⭐⭐⭐⭐⭐ |
-| Deep Residual Learning (ResNet) | 2016 | 残差连接 | ⭐⭐⭐⭐⭐ |
-| An Image is Worth 16x16 Words (ViT) | 2020 | Transformer用于视觉 | ⭐⭐⭐⭐ |
-| Learning Transferable Visual Models (CLIP) | 2021 | 视觉-语言对齐 | ⭐⭐⭐⭐ |
-| High-Resolution Image Synthesis (扩散模型) | 2021 | 扩散模型基础 | ⭐⭐⭐⭐ |
-| LLaMA: Open and Efficient Foundation Language Models | 2023 | 开源大模型 | ⭐⭐⭐⭐ |
+| [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | 2017 | Transformer架构 | ⭐⭐⭐⭐⭐ |
+| [BERT: Pre-training of Deep Bidirectional Transformers](https://arxiv.org/abs/1810.04805) | 2018 | 预训练语言模型 | ⭐⭐⭐⭐⭐ |
+| [Language Models are Few-Shot Learners (GPT-3)](https://arxiv.org/abs/2005.14165) | 2020 | 涌现能力、In-context Learning | ⭐⭐⭐⭐⭐ |
+| [Deep Residual Learning (ResNet)](https://arxiv.org/abs/1512.03385) | 2016 | 残差连接 | ⭐⭐⭐⭐⭐ |
+| [An Image is Worth 16x16 Words (ViT)](https://arxiv.org/abs/2010.11929) | 2020 | Transformer用于视觉 | ⭐⭐⭐⭐ |
+| [Learning Transferable Visual Models (CLIP)](https://arxiv.org/abs/2103.00020) | 2021 | 视觉-语言对齐 | ⭐⭐⭐⭐ |
+| [High-Resolution Image Synthesis (扩散模型)](https://arxiv.org/abs/2108.03038) | 2021 | 扩散模型基础 | ⭐⭐⭐⭐ |
+| [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971) | 2023 | 开源大模型 | ⭐⭐⭐⭐ |
 
 ### 开源项目
 
 | 项目 | 描述 | 用途 |
 |------|------|------|
-| **Hugging Face Transformers** | 最流行的模型库 | 模型加载、训练、推理 |
-| **vLLM** | 高效LLM推理引擎 | 生产部署 |
-| **DeepSpeed** | 分布式训练框架 | 大规模训练 |
-| **Diffusers** | 扩散模型库 | 图像生成 |
-| **LangChain** | LLM应用开发框架 | 智能体开发 |
+| [Hugging Face Transformers](https://github.com/huggingface/transformers) | 最流行的模型库 | 模型加载、训练、推理 |
+| [vLLM](https://github.com/vllm-project/vllm) | 高效LLM推理引擎 | 生产部署 |
+| [DeepSpeed](https://github.com/microsoft/DeepSpeed) | 分布式训练框架 | 大规模训练 |
+| [Diffusers](https://github.com/huggingface/diffusers) | 扩散模型库 | 图像生成 |
+| [LangChain](https://github.com/langchain-ai/langchain) | LLM应用开发框架 | 智能体开发 |
 
 ### 推荐课程
 
 | 课程 | 平台 | 特点 |
 |------|------|------|
-| CS224N: NLP with Deep Learning | Stanford | NLP基础理论 |
-| CS231n: CNN for Visual Recognition | Stanford | CV经典入门 |
-| CS25: Transformers United | Stanford | Transformer前沿研究 |
-| 李沐《动手学深度学习》 | d2l.ai | 中文，实践导向 |
-| Andrej Karpathy: Neural Networks: Zero to Hero | YouTube | 从零构建GPT |
-| Hugging Face Course | Hugging Face | 实践导向，动手学习 |
+| [CS224N: NLP with Deep Learning](https://web.stanford.edu/class/cs224n/) | Stanford | NLP基础理论 |
+| [CS231n: CNN for Visual Recognition](http://cs231n.stanford.edu/) | Stanford | CV经典入门 |
+| [CS25: Transformers United](https://web.stanford.edu/class/cs25/) | Stanford | Transformer前沿研究 |
+| [李沐《动手学深度学习》](https://zh.d2l.ai/) | d2l.ai | 中文，实践导向 |
+| [Andrej Karpathy: Neural Networks: Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ) | YouTube | 从零构建GPT |
+| [Hugging Face Course](https://huggingface.co/learn) | Hugging Face | 实践导向，动手学习 |
 
 ### 参考书籍
 
 | 书籍 | 作者 | 内容侧重 |
 |------|------|----------|
-| 《深度学习》（花书） | Goodfellow et al. | 理论基础 |
-| 《动手学深度学习》 | 李沐等 | 实践导向 |
-| 《自然语言处理：基于预训练模型的方法》 | 车万翔等 | NLP预训练技术 |
-| Speech and Language Processing | Dan Jurafsky | NLP经典教材 |
+| [《深度学习》（花书）](https://www.deeplearningbook.org/) | Goodfellow et al. | 理论基础 |
+| [《动手学深度学习》](https://zh.d2l.ai/) | 李沐等 | 实践导向 |
+| [《自然语言处理：基于预训练模型的方法》](https://book.douban.com/subject/35104698/) | 车万翔等 | NLP预训练技术 |
+| [Speech and Language Processing](https://web.stanford.edu/~jurafsky/slp3/) | Dan Jurafsky | NLP经典教材 |
 
 ---
 
