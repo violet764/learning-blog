@@ -33,6 +33,21 @@
 | [大模型核心原理](./llm-advanced.md) | 预训练、涌现能力、上下文学习、推理能力 | ⭐⭐⭐⭐ | 25+ |
 | [微调与优化](./finetuning-optimization.md) | SFT、RLHF、LoRA、量化、推理加速 | ⭐⭐⭐⭐ | 30+ |
 
+### 高级部分
+
+| 章节 | 内容概要 | 难度 | 题目数量 |
+|------|----------|------|----------|
+| [多模态模型](./multimodal.md) | CLIP、Stable Diffusion、视觉语言模型、图像生成 | ⭐⭐⭐⭐ | 25+ |
+| [Prompt工程](./prompt-engineering.md) | 提示设计、CoT、ToT、Self-Consistency、Agent提示 | ⭐⭐⭐ | 25+ |
+| [RAG与知识增强](./rag-knowledge.md) | 向量数据库、检索优化、GraphRAG、企业级RAG | ⭐⭐⭐⭐ | 30+ |
+
+### 工程部分
+
+| 章节 | 内容概要 | 难度 | 题目数量 |
+|------|----------|------|----------|
+| [模型部署与工程化](./deployment-engineering.md) | vLLM、TensorRT-LLM、分布式推理、性能优化 | ⭐⭐⭐⭐ | 25+ |
+| [安全与伦理](./safety-ethics.md) | 安全对齐、红队测试、幻觉问题、AI伦理 | ⭐⭐⭐ | 20+ |
+
 ### 实战部分
 
 | 章节 | 内容概要 | 难度 | 题目数量 |
@@ -66,9 +81,16 @@ Week 3: 大模型原理
 ├── LoRA 原理与实现
 └── 推理优化技术
 
-Week 4: 实战准备
+Week 4: 高级主题
+├── Prompt 工程技术
+├── RAG 系统设计
+├── 多模态模型基础
+└── 安全与对齐
+
+Week 5: 实战准备
 ├── 项目经验梳理
 ├── 场景题目练习
+├── 模型部署基础
 └── 模拟面试
 ```
 
@@ -81,7 +103,33 @@ Week 4: 实战准备
 ├── 深入理解原理（为什么这样设计）
 ├── 性能优化经验（实际做过什么优化）
 ├── 问题排查能力（遇到过什么问题，如何解决）
-└── 系统设计能力（如何设计一个大模型应用）
+├── 系统设计能力（如何设计一个大模型应用）
+├── 工程实践能力（部署、监控、运维）
+└── 前沿技术跟进（多模态、Agent、RAG）
+```
+
+### 路径三：专项突破
+
+针对特定技术领域进行深入学习。
+
+```
+多模态方向:
+├── CLIP 模型原理
+├── Stable Diffusion 架构
+├── 视觉语言模型（LLaVA、GPT-4V）
+└── 多模态应用开发
+
+RAG 方向:
+├── 向量数据库原理
+├── 检索优化技术
+├── GraphRAG 设计
+└── 企业级 RAG 架构
+
+部署优化方向:
+├── 模型量化技术
+├── vLLM / TensorRT-LLM
+├── 分布式推理
+└── 性能调优
 ```
 
 ---
@@ -100,7 +148,29 @@ Week 4: 实战准备
 
 ---
 
-## 💡 答题技巧
+## 📝 知识点速查
+
+### 核心知识点汇总
+
+| 领域 | 核心主题 | 关键词 |
+|------|----------|--------|
+| **深度学习基础** | 神经网络、优化、正则化 | BP、梯度、Adam、Dropout、BN |
+| **Transformer** | Attention、位置编码、架构 | Self-Attention、RoPE、Pre-Norm |
+| **大模型原理** | 预训练、涌现、Scaling Laws | CLM、In-Context Learning、CoT |
+| **微调优化** | SFT、RLHF、LoRA、量化 | PPO、DPO、QLoRA、GPTQ |
+| **多模态** | 视觉语言、图像生成 | CLIP、Diffusion、ViT、LLaVA |
+| **Prompt工程** | 提示设计、高级技术 | Zero-shot、CoT、ToT、Agent |
+| **RAG** | 检索增强、向量数据库 | Embedding、Reranking、GraphRAG |
+| **部署工程** | 推理优化、分布式 | vLLM、KV Cache、TP、量化 |
+| **安全伦理** | 对齐、红队、幻觉 | RLHF、Jailbreak、Bias |
+
+### 常见追问方向
+
+1. **原理层面**：为什么这样设计？数学推导？
+2. **对比层面**：A 和 B 有什么区别？什么场景用哪个？
+3. **实践层面**：实际项目中怎么用？遇到过什么问题？
+4. **代码层面**：能手写实现吗？有哪些细节？
+5. **系统层面**：如何设计整体架构？怎么优化性能？
 
 ### 回答结构化
 
@@ -158,7 +228,22 @@ Attention 机制是一种让模型关注输入序列中重要部分的技术。
 ### 参考项目
 
 - [llm_interview_note](https://github.com/wdndev/llm_interview_note) - 大模型面试笔记
+- [LLMs_interview_notes](https://github.com/km1994/LLMs_interview_notes) - LLM 面试题汇总
+- [LLMForEverybody](https://github.com/luhengshiwo/LLMForEverybody) - 大模型知识分享
 - [transformer-interview](https://github.com/DA-southampton/NLP_ability) - Transformer 面试题
+
+### 推荐论文
+
+| 论文 | 主题 | 年份 |
+|------|------|------|
+| Attention Is All You Need | Transformer 架构 | 2017 |
+| BERT | 预训练语言模型 | 2019 |
+| GPT-3 | 大规模语言模型 | 2020 |
+| LoRA | 参数高效微调 | 2021 |
+| InstructGPT | RLHF 对齐 | 2022 |
+| LLaMA | 开源大模型 | 2023 |
+| Mistral | 高效架构 | 2023 |
+| Mixtral | MoE 架构 | 2024 |
 
 ---
 

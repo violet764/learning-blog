@@ -11,3 +11,4 @@ prompt.txt
 .gitignore
 *everything-claude-code
 a.py
+.iflow

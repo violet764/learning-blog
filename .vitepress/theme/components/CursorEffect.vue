@@ -1,11 +1,6 @@
 <template>
   <Teleport to="body">
     <div class="cursor-effects" v-if="!isMobile">
-      <!-- 细长光标 -->
-      <div class="line-cursor" :style="cursorStyle">
-        <div class="cursor-vertical"></div>
-      </div>
-      
       <!-- 光带尾迹 -->
       <svg class="trail-container" ref="trailContainer">
         <defs>
@@ -39,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 
 const isMobile = ref(true)
 
@@ -59,12 +54,6 @@ let rippleId = 0
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768 || 'ontouchstart' in window
 }
-
-// 光标样式
-const cursorStyle = computed(() => ({
-  left: `${position.x}px`,
-  top: `${position.y}px`
-}))
 
 // 鼠标移动
 const handleMouseMove = (e) => {
@@ -125,15 +114,6 @@ const handleClick = (e) => {
   }, 600)
 }
 
-// 隐藏默认光标
-const updateCursor = () => {
-  if (!isMobile.value) {
-    document.body.style.cursor = 'none'
-  } else {
-    document.body.style.cursor = ''
-  }
-}
-
 let cleanupInterval = null
 
 onMounted(() => {
@@ -143,7 +123,6 @@ onMounted(() => {
   if (!isMobile.value) {
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('click', handleClick)
-    updateCursor()
     
     // 定期清理尾迹
     cleanupInterval = setInterval(cleanupTrail, 50)
@@ -154,14 +133,11 @@ onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('click', handleClick)
-  document.body.style.cursor = ''
   
   if (cleanupInterval) {
     clearInterval(cleanupInterval)
   }
 })
-
-watch(isMobile, updateCursor)
 </script>
 
 <style scoped>
@@ -170,40 +146,6 @@ watch(isMobile, updateCursor)
   inset: 0;
   pointer-events: none;
   z-index: 99999;
-}
-
-/* 小圆圈光标 */
-.line-cursor {
-  position: fixed;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 99999;
-}
-
-.cursor-vertical {
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid rgba(139, 92, 246, 0.9);
-  border-radius: 50%;
-  background: transparent;
-  animation: pulse-ring 2s ease-in-out infinite;
-}
-
-.cursor-vertical::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 2px;
-  height: 2px;
-  background: rgba(139, 92, 246, 0.8);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-@keyframes pulse-ring {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.7; }
 }
 
 /* 光带尾迹 */
@@ -258,21 +200,8 @@ watch(isMobile, updateCursor)
   transition: all 0.3s ease;
 }
 
-/* 暗色模式 */
-html.dark .cursor-vertical {
-  border-color: rgba(167, 139, 250, 0.95);
-}
-
-html.dark .cursor-vertical::after {
-  background: rgba(167, 139, 250, 0.9);
-}
-
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
-  .cursor-vertical {
-    animation: none;
-  }
-  
   .trail-container {
     display: none;
   }

@@ -71,7 +71,7 @@
 
 ---
 
-#### [🎨 多模态生成](./multimodal-generation.md)
+#### [🎨 多模态生成](./multimodal-generation.md)  
 
 多模态生成模型实现从文本、图像等模态生成其他模态内容的能力。
 

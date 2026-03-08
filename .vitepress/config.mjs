@@ -462,6 +462,11 @@ export default withMermaid(
             { text: 'Transformer架构', link: '/notes/ai-model/interview/transformer.md' },
             { text: '大模型核心原理', link: '/notes/ai-model/interview/llm-advanced.md' },
             { text: '微调与优化', link: '/notes/ai-model/interview/finetuning-optimization.md' },
+            { text: '多模态模型', link: '/notes/ai-model/interview/multimodal.md' },
+            { text: 'Prompt工程', link: '/notes/ai-model/interview/prompt-engineering.md' },
+            { text: 'RAG与知识增强', link: '/notes/ai-model/interview/rag-knowledge.md' },
+            { text: '模型部署与工程化', link: '/notes/ai-model/interview/deployment-engineering.md' },
+            { text: '安全与伦理', link: '/notes/ai-model/interview/safety-ethics.md' },
             { text: '实战场景', link: '/notes/ai-model/interview/practical-scenarios.md' },
           ]
         },
@@ -574,7 +579,8 @@ export default withMermaid(
         { text: 'Git', link: '/notes/tools/tools_Git.md' },
         { text: 'Conda', link: '/notes/tools/tools_conda.md' },
         { text: 'IDE', link: '/notes/tools/IDE_introduce.md' },
-        { text: 'OpenClaw', link: '/notes/tools/openclaw-intro.md' },
+        { text: 'Claude', link: '/notes/tools/claude-code-guide.md' },
+        { text: 'iflow', link: '/notes/tools/iflow-cli-guide.md' },
 
         
       ],
