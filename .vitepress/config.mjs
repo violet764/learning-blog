@@ -71,6 +71,7 @@ export default withMermaid(
         text: '编程语言', 
         items: [
           { text: 'Python', link: '/notes/language/python/' },
+          { text: 'Java', link: '/notes/language/java/' },
           { text: 'C++', link: '/notes/language/c++/' },
           { text: 'Rust', link: '/notes/language/rust/' },
           { text: 'Markdown', link: '/notes/language/markdown/' }
@@ -118,6 +119,7 @@ export default withMermaid(
         { text: 'DQN与函数逼近', link: '/notes/reinforcement-learning/function-approximation.md' },
         { text: 'PPO/SAC/TD3', link: '/notes/reinforcement-learning/modern-algorithms.md' },
         { text: 'RLHF与大模型', link: '/notes/reinforcement-learning/llm-rl.md' },
+        { text: 'DPO偏好优化', link: '/notes/reinforcement-learning/dpo-preference-optimization.md' },
         ]
       },
 
@@ -209,6 +211,32 @@ export default withMermaid(
           collapsible: true,
           items: [
             { text: '核心面试题', link: '/notes/language/c++/interview/index.md' },
+          ]
+        }],
+      
+      '/notes/language/java/': [
+        {
+          text: 'Java',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/language/java/index.md' },
+            { text: '基础语法', link: '/notes/language/java/basics.md' },
+            { text: '面向对象', link: '/notes/language/java/oop.md' },
+            { text: '集合框架', link: '/notes/language/java/collections.md' },
+            { text: '泛型', link: '/notes/language/java/generics.md' },
+            { text: '异常处理', link: '/notes/language/java/exception.md' },
+            { text: 'Lambda与Stream', link: '/notes/language/java/lambda-stream.md' },
+          ]
+        },
+        {
+          text: '开发框架',
+          collapsible: true,
+          items: [
+            { text: 'Spring 核心', link: '/notes/language/java/spring.md' },
+            { text: 'Spring Boot', link: '/notes/language/java/springboot.md' },
+            { text: 'Spring MVC', link: '/notes/language/java/springmvc.md' },
+            { text: 'MyBatis', link: '/notes/language/java/mybatis.md' },
+            { text: 'Spring Security', link: '/notes/language/java/spring-security.md' },
           ]
         }],
 
@@ -494,11 +522,19 @@ export default withMermaid(
           ]
         },
         {
+          text: '大模型RL',
+          collapsible: true,
+          items: [
+            { text: 'RLHF原理与实践', link: '/notes/reinforcement-learning/llm-rl.md' },
+            { text: 'DPO直接偏好优化', link: '/notes/reinforcement-learning/dpo-preference-optimization.md' },
+            { text: '大模型对齐技术', link: '/notes/reinforcement-learning/llm-alignment.md' },
+          ]
+        },
+        {
           text: '前沿应用',
           collapsible: true,
           items: [
             { text: '多智能体RL', link: '/notes/reinforcement-learning/multi-agent-rl.md' },
-            { text: '大模型RL(RLHF)', link: '/notes/reinforcement-learning/llm-rl.md' },
           ]
         },
         {

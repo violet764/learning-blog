@@ -25,6 +25,8 @@
 |------|------|------|------|
 | [多智能体强化学习](./multi-agent-rl.md) | CTDE框架、MADDPG、MAPPO、通信机制 | ⭐⭐⭐⭐ | 4-5h |
 | [大模型强化学习](./llm-rl.md) | RLHF、奖励模型、PPO对齐、安全对齐 | ⭐⭐⭐⭐ | 4-5h |
+| [直接偏好优化（DPO）](./dpo-preference-optimization.md) | DPO原理、实现、变体(IPO/KTO/ORPO) | ⭐⭐⭐⭐ | 3-4h |
+| [大模型对齐技术](./llm-alignment.md) | Constitutional AI、RLAIF、安全对齐、红队测试 | ⭐⭐⭐⭐ | 4-5h |
 | [强化学习实战环境](./rl-environments.md) | Gym接口、自定义环境、包装器、向量化 | ⭐⭐ | 2-3h |
 | [强化学习工程实践](./rl-engineering.md) | 实验管理、超参调优、模型部署、分布式训练 | ⭐⭐⭐ | 3-4h |
 
@@ -59,13 +61,17 @@
     ↓
 策略梯度（重点：PPO原理）
     ↓
-大模型强化学习（核心章节）
+大模型强化学习（RLHF核心章节）
+    ↓
+直接偏好优化（DPO）
+    ↓
+大模型对齐技术（Constitutional AI、RLAIF）
     ↓
 RLHF实践 → 模型微调
 ```
 
 **适合人群**：关注LLM对齐技术，希望应用RLHF  
-**预计时间**：2-3周
+**预计时间**：3-4周
 
 ## 📖 核心知识点速查
 
@@ -80,11 +86,16 @@ RLHF实践 → 模型微调
 ├── 基于策略（Policy-Based）
 │   ├── REINFORCE
 │   └── Actor-Critic
-└── 结合型（Actor-Critic）
-    ├── A2C/A3C
-    ├── PPO
-    ├── DDPG/TD3
-    └── SAC
+├── 结合型（Actor-Critic）
+│   ├── A2C/A3C
+│   ├── PPO
+│   ├── DDPG/TD3
+│   └── SAC
+└── 大模型RL
+    ├── RLHF（PPO + KL惩罚）
+    ├── DPO（直接偏好优化）
+    ├── IPO/KTO/ORPO（DPO变体）
+    └── Constitutional AI（原则驱动）
 ```
 
 ### 核心公式
@@ -104,7 +115,9 @@ RLHF实践 → 模型微调
 | 连续动作、机器人控制 | SAC/TD3 | 样本效率高 |
 | 通用场景、首选算法 | PPO | 稳定易调参 |
 | 多智能体协作 | MAPPO | 效果优异 |
-| 大模型对齐 | PPO + KL惩罚 | RLHF标准方法 |
+| 大模型对齐（标准） | RLHF (PPO + KL) | 成熟、可控 |
+| 大模型对齐（快速） | DPO | 简单、稳定 |
+| 大模型对齐（可扩展） | Constitutional AI | 原则驱动 |
 
 ## 🛠️ 开发环境
 
