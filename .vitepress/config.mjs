@@ -74,7 +74,8 @@ export default withMermaid(
           { text: 'Java', link: '/notes/language/java/' },
           { text: 'C++', link: '/notes/language/c++/' },
           { text: 'Rust', link: '/notes/language/rust/' },
-          { text: 'Markdown', link: '/notes/language/markdown/' }
+          { text: 'Markdown', link: '/notes/language/markdown/' },
+          { text: '数据库', link: '/notes/language/database/' }
         ] 
       },
       { text: '机器学习',
@@ -276,6 +277,27 @@ export default withMermaid(
           collapsible: true,
           items: [
             { text: '核心面试题', link: '/notes/language/rust/interview/index.md' },
+          ]
+        },
+      ],
+
+      '/notes/language/database/': [
+        {
+          text: '关系型数据库',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/language/database/index.md' },
+            { text: 'MySQL基础', link: '/notes/language/database/mysql-basics.md' },
+            { text: 'PostgreSQL基础', link: '/notes/language/database/postgresql-basics.md' },
+          ]
+        },
+        {
+          text: 'NoSQL与消息队列',
+          collapsible: true,
+          items: [
+            { text: 'Redis基础', link: '/notes/language/database/redis-basics.md' },
+            { text: 'Kafka基础', link: '/notes/language/database/kafka-basics.md' },
+            { text: 'RabbitMQ基础', link: '/notes/language/database/rabbitmq-basics.md' },
           ]
         },
       ],
