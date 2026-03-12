@@ -47,6 +47,8 @@ jobs:
 
       # 构建+修复.nojekyll路径
       - name: Build with VitePress
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           pnpm run docs:build
           # 确保.nojekyll在dist目录下
