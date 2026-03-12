@@ -363,6 +363,12 @@ HelloWorld.class（字节码）
 | [MyBatis](./mybatis.md) | SQL 映射、动态 SQL、缓存机制 | ⭐⭐ | 1 周 |
 | [Spring Security](./spring-security.md) | 认证授权、JWT、安全配置 | ⭐⭐⭐ | 2 周 |
 
+### 面试准备
+
+| 文档 | 内容 | 难度 | 说明 |
+|------|------|:----:|------|
+| [面试题汇总](./interview.md) | Java 基础、集合、并发、JVM、Spring、数据库、Redis | ⭐⭐⭐ | 常见面试题与追问 |
+
 ---
 
 ## 💡 学习建议
