@@ -1,295 +1,540 @@
-# RabbitMQ 基础与实践
+# RabbitMQ 学习笔记
 
-RabbitMQ 是一个开源的消息代理软件，实现了高级消息队列协议（AMQP）。它以其可靠性、灵活的路由机制和丰富的客户端库支持而闻名，广泛应用于分布式系统、微服务架构和异步任务处理场景。
+RabbitMQ 是一个开源的消息代理软件，实现了高级消息队列协议（AMQP）。它以可靠性、灵活的路由机制和丰富的客户端库支持而闻名，广泛应用于分布式系统、微服务架构和异步任务处理场景。
 
-## 概述
+## 为什么需要 RabbitMQ？
 
-RabbitMQ 最初由 Rabbit Technologies 开发，现由 VMware（Pivotal）维护。它支持多种消息协议，其中 AMQP 0-9-1 是核心协议。RabbitMQ 的设计理念是**"智能路由、简单消费"**，消息在到达队列前经过复杂的路由逻辑，消费者只需从队列中获取消息。
+### 同步通信的问题
 
-### 核心优势
+在分布式系统中，服务之间的同步通信（如 HTTP REST）存在一系列问题：
 
-| 特性 | 说明 |
-|------|------|
-| 🔄 **灵活路由** | 通过交换机和路由键实现复杂的消息分发 |
-| 🛡️ **消息可靠** | 支持消息确认、持久化和事务 |
-| 🌐 **多协议支持** | AMQP、STOMP、MQTT、HTTP |
-| 🔌 **丰富客户端** | 支持 Java、Python、Go、.NET、JavaScript 等 |
-| 📊 **可视化管理** | 内置 Web 管理界面 |
-| 🔧 **插件生态** | 延迟消息、优先级队列、集群联邦等 |
-
-## RabbitMQ 3.x 新特性
-
-RabbitMQ 3.x 版本引入了许多重要改进，2024-2025 年推荐使用 **3.12+** 或 **4.x** 版本。
-
-### 3.12+ 版本重要更新
-
-```yaml
-# 版本特性对比
-3.12:
-  - Quorum Queue 成为默认队列类型
-  - 改进的内存管理算法
-  - Khepri 元数据存储（实验性）
-  - MQTTv5 支持
-  
-3.13:
-  - Super Streams（超级流）
-  - 改进的 Streams 性能
-  - OAuth 2.0 增强
-  
-4.0:
-  - Khepri 元数据存储默认启用
-  - 经典队列 v2
-  - 移除传统镜像队列支持
+```
+┌─────────────────────────────────────────────────────────┐
+│              同步通信的痛点                              │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  问题1：强耦合                                         │
+│  ┌─────────────┐     ┌─────────────┐                   │
+│  │   服务 A    │────>│   服务 B    │                   │
+│  │  订单服务   │     │  支付服务   │                   │
+│  └─────────────┘     └─────────────┘                   │
+│        ↓                                                   │
+│  • 服务 B 宕机，服务 A 无法工作                         │
+│  • 服务 B 升级，服务 A 必须同步修改                      │
+│  • 服务 B 响应慢，服务 A 被阻塞                         │
+│                                                         │
+│  问题2：流量洪峰                                       │
+│  ┌─────────────┐                                       │
+│  │  秒杀请求   │  1万 QPS                              │
+│  │   洪峰      │                                       │
+│  └──────┬──────┘                                       │
+│         │                                               │
+│         ▼                                               │
+│  ┌─────────────┐                                       │
+│  │  后端服务   │  只能处理 1000 QPS                     │
+│  │  直接崩溃！ │                                       │
+│  └─────────────┘                                       │
+│                                                         │
+│  问题3：调用链过长                                     │
+│  A → B → C → D → E                                     │
+│  总延迟 = A + B + C + D + E                            │
+│  任何一步失败，整个链路失败                              │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Quorum Queue vs Classic Queue
+### 消息队列的解决方案
 
-```python
-# Python: 声明 Quorum Queue（推荐）
-import pika
-
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-channel = connection.channel()
-
-# Quorum Queue - 高可用、持久化、Raft 共识
-channel.queue_declare(
-    queue='orders.quorum',
-    durable=True,
-    arguments={
-        'x-queue-type': 'quorum'  # 3.12+ 推荐的队列类型
-    }
-)
-
-# Classic Queue - 传统队列，适合低延迟场景
-channel.queue_declare(
-    queue='notifications.classic',
-    durable=True,
-    arguments={
-        'x-queue-type': 'classic'
-    }
-)
+```
+┌─────────────────────────────────────────────────────────┐
+│              异步解耦架构                                │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  同步模式：                                             │
+│  ┌─────────┐     ┌─────────┐     ┌─────────┐          │
+│  │ 订单服务 │────>│ 支付服务 │────>│ 物流服务 │          │
+│  └─────────┘     └─────────┘     └─────────┘          │
+│  紧耦合，任何一步失败都影响整体                          │
+│                                                         │
+│  异步模式（引入消息队列）：                              │
+│  ┌─────────┐     ┌─────────┐     ┌─────────┐          │
+│  │ 订单服务 │────>│ 消息队列 │────>│ 支付服务 │          │
+│  └─────────┘     │ RabbitMQ │     └─────────┘          │
+│                  └────┬────┘                           │
+│                       │                                 │
+│                       ▼                                 │
+│                  ┌─────────┐                           │
+│                  │ 物流服务 │                           │
+│                  └─────────┘                           │
+│                                                         │
+│  好处：                                                 │
+│  1. 解耦：各服务独立部署，互不影响                      │
+│  2. 削峰：消息队列缓存请求，平滑流量                    │
+│  3. 异步：非关键路径异步处理，降低延迟                  │
+│  4. 可靠：消息持久化，确保不丢失                        │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-::: tip 📌 选择建议
-- **Quorum Queue**: 生产环境首选，数据安全优先
-- **Classic Queue**: 开发测试、低延迟要求的非关键数据
-- **Stream**: 大数据量、消费者需要重新消费历史消息
-:::
+### RabbitMQ vs Kafka：如何选型？
+
+这是架构选型中最关键的问题。两者设计理念根本不同：
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              设计理念的根本差异                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  RabbitMQ：智能路由、简单消费                           │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │                                                  │   │
+│  │  Producer ──> Exchange ──> Queue ──> Consumer    │   │
+│  │              (路由中心)  (消息存储)              │   │
+│  │                                                  │   │
+│  │  特点：                                          │   │
+│  │  • 消息到达 Broker 后立即路由                    │   │
+│  │  • 路由逻辑复杂（Direct/Fanout/Topic/Headers）   │   │
+│  │  • 消费者被动接收（Push 模式）                   │   │
+│  │  • 消息消费后从队列删除                          │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  Kafka：简单路由、智能消费                              │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │                                                  │   │
+│  │  Producer ──> Topic ──> Partition ──> Consumer   │   │
+│  │               (Topic 即分区集合)                 │   │
+│  │                                                  │   │
+│  │  特点：                                          │   │
+│  │  • 路由逻辑简单（Topic + Partition）            │   │
+│  │  • 消费者主动拉取（Pull 模式）                   │   │
+│  │  • 消息持久化，支持回溯                          │   │
+│  │  • 高吞吐、低延迟                                │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**详细对比**：
+
+| 对比维度 | RabbitMQ | Kafka |
+|---------|----------|-------|
+| **设计目标** | 通用消息代理 | 分布式日志系统 |
+| **吞吐量** | 1-5万/秒 | 10-100万/秒 |
+| **延迟** | 微秒级 | 毫秒级 |
+| **消息路由** | 复杂（Exchange + Binding） | 简单（Topic + Partition） |
+| **消费模式** | Push（推） | Pull（拉） |
+| **消息持久化** | 可选 | 默认持久化 |
+| **消息回溯** | 不支持 | 支持 |
+| **事务支持** | 原生支持 | 支持（性能影响大） |
+| **协议** | AMQP、STOMP、MQTT | 自有协议 |
+
+**🎯 选型决策树**：
+
+```
+开始选型
+    │
+    ├── 需要复杂消息路由？
+    │       │
+    │       ├── 是 ───────────────> RabbitMQ ✅
+    │       │
+    │       └── 否
+    │               │
+    │               ├── 吞吐量 > 10万/秒？
+    │               │       │
+    │               │       ├── 是 ───────────────> Kafka ✅
+    │               │       │
+    │               │       └── 否
+    │               │               │
+    │               │               ├── 需要消息回溯？
+    │               │               │       │
+    │               │               │       ├── 是 ───────────────> Kafka ✅
+    │               │               │       │
+    │               │               │       └── 否
+    │               │               │               │
+    │               │               │               ├── 需要微秒级延迟？
+    │               │               │               │       │
+    │               │               │               │       ├── 是 ───────────────> RabbitMQ ✅
+    │               │               │               │       │
+    │               │               │               │       └── 否 ───────────────> 根据团队熟悉度选择
+```
+
+**典型场景推荐**：
+
+| 场景 | 推荐 | 原因 |
+|------|------|------|
+| 订单处理流程 | RabbitMQ | 需要复杂路由、事务支持、低延迟 |
+| 日志收集分析 | Kafka | 高吞吐、需要历史数据 |
+| 微服务异步通信 | RabbitMQ | 路由灵活、延迟低 |
+| 用户行为追踪 | Kafka | 数据量大、需要回放 |
+| 秒杀削峰 | 都可以 | RabbitMQ 推模式更简单 |
+| 事件溯源 | Kafka | 需要完整历史记录 |
 
 ## AMQP 协议基础
 
-AMQP（Advanced Message Queuing Protocol）是应用层协议，定义了消息的格式和传输规则。
+### 为什么选择 AMQP？
 
-### 协议层次
+**问题背景**：消息队列产品众多，协议各异，互操作性差。
+
+**AMQP 的价值**：
+- **标准化**：统一的协议规范，不同厂商实现可互通
+- **可靠性**：内置消息确认、持久化、事务机制
+- **灵活性**：支持多种消息模式（点对点、发布订阅、RPC）
 
 ```
-┌─────────────────────────────────────┐
-│           应用层 (Application)        │
-├─────────────────────────────────────┤
-│         AMQP 协议层                   │
-│  ┌─────────────────────────────┐    │
-│  │  命令层 (Class/Method)       │    │
-│  ├─────────────────────────────┤    │
-│  │  内容层 (Header/Body)        │    │
-│  └─────────────────────────────┘    │
-├─────────────────────────────────────┤
-│         传输层 (TCP/SSL)             │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│              AMQP 协议层次                               │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              应用层 (Application)                │   │
+│  │  业务逻辑：订单处理、消息通知等                   │   │
+│  └─────────────────────────────────────────────────┘   │
+│                         │                               │
+│                         ▼                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              AMQP 协议层                         │   │
+│  │  ┌─────────────────────────────────────────┐   │   │
+│  │  │  命令层 (Class/Method)                   │   │   │
+│  │  │  • Connection: 连接管理                  │   │   │
+│  │  │  • Channel: 通道管理                     │   │   │
+│  │  │  • Exchange: 交换机操作                  │   │   │
+│  │  │  • Queue: 队列操作                       │   │   │
+│  │  │  • Basic: 消息操作                       │   │   │
+│  │  └─────────────────────────────────────────┘   │   │
+│  │  ┌─────────────────────────────────────────┐   │   │
+│  │  │  内容层 (Header/Body)                    │   │   │
+│  │  │  • Content Header: 消息属性              │   │   │
+│  │  │  • Content Body: 消息体                  │   │   │
+│  │  └─────────────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────┘   │
+│                         │                               │
+│                         ▼                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              传输层 (TCP/SSL)                    │   │
+│  │  可靠的网络传输                                  │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### 核心概念模型
 
-AMQP 模型包含以下核心组件：
-
 ```
-                    ┌──────────────┐
-                    │   Producer   │
-                    └──────┬───────┘
-                           │ 消息 + Routing Key
-                           ▼
-                    ┌──────────────┐
-                    │   Exchange   │ ◄── 交换机：路由消息
-                    └──────┬───────┘
-                           │ Binding
-                           ▼
-                    ┌──────────────┐
-                    │    Queue     │ ◄── 队列：存储消息
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Consumer   │
-                    └──────────────┘
+┌─────────────────────────────────────────────────────────┐
+│              AMQP 消息流转模型                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────┐                                           │
+│  │ Producer │                                           │
+│  │ 生产者    │                                           │
+│  └────┬─────┘                                           │
+│       │                                                  │
+│       │ 1. 发布消息（指定 Exchange + Routing Key）       │
+│       ▼                                                  │
+│  ┌──────────┐     ┌──────────┐                         │
+│  │ Exchange │────>│ Binding  │                         │
+│  │  交换机   │     │   绑定   │                         │
+│  │ (路由中心)│     │(路由规则)│                         │
+│  └──────────┘     └────┬─────┘                         │
+│                        │                                │
+│       ┌────────────────┴────────────────┐              │
+│       │                                 │              │
+│       ▼                                 ▼              │
+│  ┌──────────┐                     ┌──────────┐        │
+│  │  Queue   │                     │  Queue   │        │
+│  │  队列 A   │                     │  队列 B   │        │
+│  │(消息存储) │                     │(消息存储) │        │
+│  └────┬─────┘                     └────┬─────┘        │
+│       │                                 │              │
+│       ▼                                 ▼              │
+│  ┌──────────┐                     ┌──────────┐        │
+│  │ Consumer │                     │ Consumer │        │
+│  │  消费者A  │                     │  消费者B  │        │
+│  └──────────┘                     └──────────┘        │
+│                                                         │
+│  核心组件职责：                                         │
+│  • Exchange：接收消息，根据路由规则分发                 │
+│  • Queue：存储消息，等待消费者获取                     │
+│  • Binding：定义 Exchange 与 Queue 的绑定关系          │
+│  • Routing Key：消息的路由标识                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## 核心概念详解
 
-### Exchange（交换机）
+### Exchange（交换机）：为什么需要路由中心？
 
-交换机接收生产者发送的消息，并根据路由规则将消息推送到队列。
+**问题背景**：如果生产者直接发送到队列，会带来什么问题？
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              直接发送队列的问题                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  生产者直接发队列：                                     │
+│                                                         │
+│  ┌──────────┐     ┌──────────┐     ┌──────────┐        │
+│  │ Producer │────>│  Queue A │────>│Consumer A│        │
+│  └──────────┘     └──────────┘     └──────────┘        │
+│       │                                                 │
+│       │ 需要知道所有队列名称                            │
+│       │ 硬编码队列信息                                  │
+│       ▼                                                 │
+│  问题：                                                 │
+│  1. 耦合：生产者必须知道消费者队列                      │
+│  2. 扩展难：新增消费者需要修改生产者                    │
+│  3. 路由逻辑：无法实现复杂的分发规则                    │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│              引入 Exchange 的好处                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────┐                                           │
+│  │ Producer │                                           │
+│  └────┬─────┘                                           │
+│       │ 只需知道 Exchange 名称                          │
+│       ▼                                                 │
+│  ┌──────────────────────────────────────────────┐      │
+│  │                 Exchange                      │      │
+│  │              (路由中心)                       │      │
+│  │  ┌─────────────────────────────────────────┐│      │
+│  │  │  路由规则：                              ││      │
+│  │  │  • error -> Queue A, Queue B            ││      │
+│  │  │  • info  -> Queue B                     ││      │
+│  │  │  • debug -> Queue C                     ││      │
+│  │  └─────────────────────────────────────────┘│      │
+│  └───────────────────┬──────────────────────────┘      │
+│                      │                                  │
+│       ┌──────────────┼──────────────┐                  │
+│       ▼              ▼              ▼                  │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐              │
+│  │ Queue A │   │ Queue B │   │ Queue C │              │
+│  └─────────┘   └─────────┘   └─────────┘              │
+│                                                         │
+│  好处：                                                 │
+│  1. 解耦：生产者只需知道 Exchange，不关心队列           │
+│  2. 灵活：通过 Binding 动态调整路由规则                 │
+│  3. 可扩展：新增消费者只需添加 Binding                  │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 四种交换机类型
+
+#### 1️⃣ Direct Exchange（直连交换机）
+
+**为什么需要？** 精确路由，点对点消息传递。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Direct Exchange 工作原理                    │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Producer 发送消息：routing_key = "order.paid"          │
+│                                                         │
+│  ┌──────────────────────────────────────────────┐      │
+│  │            Direct Exchange                    │      │
+│  │                                               │      │
+│  │  Binding:                                    │      │
+│  │  • Queue A ← routing_key = "order.created"   │      │
+│  │  • Queue B ← routing_key = "order.paid"      │      │
+│  │  • Queue C ← routing_key = "order.cancelled" │      │
+│  │                                               │      │
+│  └───────────────────┬──────────────────────────┘      │
+│                      │                                  │
+│                      │ 精确匹配 "order.paid"            │
+│                      ▼                                  │
+│                ┌─────────┐                             │
+│                │ Queue B │                             │
+│                └─────────┘                             │
+│                                                         │
+│  特点：                                                 │
+│  • 精确匹配 routing_key                                │
+│  • 一个消息最多到达一个队列                            │
+│  • 性能最高                                            │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 ```python
-# 声明交换机
+# Python 代码示例
+import pika
+import json
+
+# 建立连接
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# 声明 Direct Exchange
 channel.exchange_declare(
-    exchange='orders.direct',      # 交换机名称
-    exchange_type='direct',        # 类型
-    durable=True,                  # 持久化
-    auto_delete=False              # 不自动删除
-)
-```
-
-### Queue（队列）
-
-队列是存储消息的缓冲区，消费者从队列中获取消息。
-
-```python
-# 声明队列
-channel.queue_declare(
-    queue='order.created',
-    durable=True,                  # 持久化
-    exclusive=False,               # 非独占
-    auto_delete=False,             # 不自动删除
-    arguments={
-        'x-message-ttl': 86400000,        # 消息 TTL：24小时
-        'x-max-length': 10000,            # 最大消息数
-        'x-overflow': 'reject-publish-dlx' # 溢出策略
-    }
-)
-```
-
-### Binding（绑定）
-
-绑定定义了交换机和队列之间的关系，将路由规则关联起来。
-
-```python
-# 将队列绑定到交换机
-channel.queue_bind(
-    queue='order.created',
     exchange='orders.direct',
-    routing_key='order.created'    # 路由键
+    exchange_type='direct',
+    durable=True
 )
-```
 
-### Routing Key（路由键）
+# 声明队列
+channel.queue_declare(queue='order.created', durable=True)
+channel.queue_declare(queue='order.paid', durable=True)
+channel.queue_declare(queue='order.cancelled', durable=True)
 
-路由键是消息的路由标识，交换机根据路由键决定消息的目标队列。
+# 绑定队列到交换机（指定 routing_key）
+channel.queue_bind(queue='order.created', exchange='orders.direct', routing_key='order.created')
+channel.queue_bind(queue='order.paid', exchange='orders.direct', routing_key='order.paid')
+channel.queue_bind(queue='order.cancelled', exchange='orders.direct', routing_key='order.cancelled')
 
-```python
-# 发布消息时指定路由键
+# 发送消息（只会路由到 order.paid 队列）
 channel.basic_publish(
     exchange='orders.direct',
-    routing_key='order.created',   # 路由键
+    routing_key='order.paid',
     body=json.dumps({'order_id': '12345', 'amount': 99.99}),
     properties=pika.BasicProperties(
-        delivery_mode=2,           # 持久化消息
+        delivery_mode=2,  # 持久化
         content_type='application/json'
     )
 )
+
+print("消息已发送到 order.paid 队列")
+connection.close()
 ```
 
-## 交换机类型
+#### 2️⃣ Fanout Exchange（扇出交换机）
 
-RabbitMQ 提供四种交换机类型，每种类型实现不同的路由策略。
+**为什么需要？** 广播消息，发布/订阅模式。
 
-### 1. Direct Exchange（直连交换机）
-
-精确匹配路由键，适合点对点消息传递。
+```
+┌─────────────────────────────────────────────────────────┐
+│              Fanout Exchange 工作原理                    │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Producer 发送消息（routing_key 被忽略）                │
+│                                                         │
+│  ┌──────────────────────────────────────────────┐      │
+│  │            Fanout Exchange                    │      │
+│  │                                               │      │
+│  │  广播到所有绑定的队列：                        │      │
+│  │  • Queue A (邮件通知)                         │      │
+│  │  • Queue B (短信通知)                         │      │
+│  │  • Queue C (Push通知)                         │      │
+│  │                                               │      │
+│  └───────────────────┬──────────────────────────┘      │
+│          │              │              │                │
+│          ▼              ▼              ▼                │
+│    ┌─────────┐   ┌─────────┐   ┌─────────┐            │
+│    │ Queue A │   │ Queue B │   │ Queue C │            │
+│    │ 邮件服务 │   │ 短信服务 │   │ Push服务 │            │
+│    └─────────┘   └─────────┘   └─────────┘            │
+│                                                         │
+│  特点：                                                 │
+│  • 忽略 routing_key                                    │
+│  • 消息复制到所有绑定队列                               │
+│  • 实现广播/发布订阅模式                               │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 ```python
-# Direct Exchange 示例
-channel.exchange_declare(exchange='logs.direct', exchange_type='direct')
-
-# 创建队列
-channel.queue_declare(queue='logs.error')
-channel.queue_declare(queue='logs.info')
-
-# 绑定队列（精确匹配）
-channel.queue_bind(queue='logs.error', exchange='logs.direct', routing_key='error')
-channel.queue_bind(queue='logs.info', exchange='logs.direct', routing_key='info')
-
-# 发送消息
-channel.basic_publish(exchange='logs.direct', routing_key='error', body='Error message')
-# 只有 logs.error 队列会收到消息
-```
-
-```
-          routing_key="error"
-Producer ───────────────────────► [Exchange: logs.direct]
-                                        │
-                    ┌───────────────────┴───────────────────┐
-                    │                                       │
-                    ▼                                       ▼
-            [Queue: logs.error]                    [Queue: logs.info]
-            routing_key="error" ✓                  routing_key="error" ✗
-```
-
-### 2. Fanout Exchange（扇出交换机）
-
-广播消息到所有绑定的队列，忽略路由键。
-
-```python
-# Fanout Exchange 示例（发布/订阅模式）
-channel.exchange_declare(exchange='notifications.fanout', exchange_type='fanout')
+# Fanout Exchange 示例
+channel.exchange_declare(exchange='notifications.fanout', exchange_type='fanout', durable=True)
 
 # 多个消费者队列
-channel.queue_declare(queue='notification.email')
-channel.queue_declare(queue='notification.sms')
-channel.queue_declare(queue='notification.push')
+channel.queue_declare(queue='notification.email', durable=True)
+channel.queue_declare(queue='notification.sms', durable=True)
+channel.queue_declare(queue='notification.push', durable=True)
 
-# 绑定队列（无需路由键）
+# 绑定队列（无需 routing_key）
 channel.queue_bind(queue='notification.email', exchange='notifications.fanout')
 channel.queue_bind(queue='notification.sms', exchange='notifications.fanout')
 channel.queue_bind(queue='notification.push', exchange='notifications.fanout')
 
-# 发送广播消息
+# 发送广播消息（三个队列都会收到）
 channel.basic_publish(
     exchange='notifications.fanout',
     routing_key='',  # 路由键被忽略
-    body='System maintenance at 2:00 AM'
+    body='系统维护通知：今晚 2:00 进行系统升级'
 )
-# 三个队列都会收到消息
+
+print("广播消息已发送到所有队列")
 ```
 
-### 3. Topic Exchange（主题交换机）
+#### 3️⃣ Topic Exchange（主题交换机）
 
-支持通配符匹配，适合复杂路由场景。
+**为什么需要？** 支持通配符匹配，灵活的事件路由。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Topic Exchange 通配符规则                   │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  通配符说明：                                           │
+│  • * (星号) 匹配一个单词                                │
+│  • # (井号) 匹配零个或多个单词                          │
+│                                                         │
+│  示例路由键格式：<domain>.<event>.<status>              │
+│                                                         │
+│  路由键示例：                                           │
+│  • order.created.success                               │
+│  • order.paid.pending                                  │
+│  • user.registered                                     │
+│  • payment.refunded.failed                             │
+│                                                         │
+│  Binding 规则示例：                                     │
+│  ┌─────────────────┬─────────────────────────────────┐ │
+│  │ Binding Key     │ 匹配的路由键                     │ │
+│  ├─────────────────┼─────────────────────────────────┤ │
+│  │ order.#         │ order.*.success, order.paid.*   │ │
+│  │ order.*         │ order.created, order.paid       │ │
+│  │ *.paid.*        │ order.paid.success, user.paid.* │ │
+│  │ #               │ 所有路由键                       │ │
+│  └─────────────────┴─────────────────────────────────┘ │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 ```python
 # Topic Exchange 示例
-channel.exchange_declare(exchange='events.topic', exchange_type='topic')
+channel.exchange_declare(exchange='events.topic', exchange_type='topic', durable=True)
 
-# 绑定模式
-# * 匹配一个单词
-# # 匹配零个或多个单词
+# 声明队列
+channel.queue_declare(queue='all.orders', durable=True)
+channel.queue_declare(queue='order.paid', durable=True)
+channel.queue_declare(queue='all.events', durable=True)
 
+# 绑定队列（使用通配符）
+# order.# 匹配所有 order. 开头的消息
 channel.queue_bind(queue='all.orders', exchange='events.topic', routing_key='order.#')
+
+# order.paid 只匹配 order.paid
 channel.queue_bind(queue='order.paid', exchange='events.topic', routing_key='order.paid')
+
+# # 匹配所有消息
 channel.queue_bind(queue='all.events', exchange='events.topic', routing_key='#')
 
-# 发送消息
-channel.basic_publish(exchange='events.topic', routing_key='order.created', body='...')
-# all.orders 和 all.events 收到
+# 发送消息测试
+# 这条消息会匹配 order.# 和 #，进入 all.orders 和 all.events
+channel.basic_publish(
+    exchange='events.topic',
+    routing_key='order.created',
+    body=json.dumps({'event': 'order_created'})
+)
 
-channel.basic_publish(exchange='events.topic', routing_key='order.paid', body='...')
-# all.orders、order.paid、all.events 都收到
+# 这条消息会匹配 order.#、order.paid 和 #，进入所有三个队列
+channel.basic_publish(
+    exchange='events.topic',
+    routing_key='order.paid',
+    body=json.dumps({'event': 'order_paid'})
+)
 ```
 
-```
-路由键格式: <domain>.<event>.<sub_event>
+#### 4️⃣ Headers Exchange（头交换机）
 
-order.created          → order.# ✓, # ✓
-order.paid.success     → order.# ✓, # ✓  
-user.registered        → # ✓
-payment.refunded       → payment.# ✓, # ✓
-```
-
-### 4. Headers Exchange（头交换机）
-
-基于消息头属性匹配，适用于多条件路由。
+**为什么需要？** 基于多属性匹配，适用于复杂条件路由。
 
 ```python
 # Headers Exchange 示例
-channel.exchange_declare(exchange='router.headers', exchange_type='headers')
+channel.exchange_declare(exchange='router.headers', exchange_type='headers', durable=True)
 
 # 绑定队列时指定匹配条件
 channel.queue_bind(
@@ -297,7 +542,7 @@ channel.queue_bind(
     exchange='router.headers',
     routing_key='',  # 路由键被忽略
     arguments={
-        'x-match': 'all',      # 'all' 或 'any'
+        'x-match': 'all',      # 'all': 所有条件都匹配; 'any': 任一条件匹配
         'vip': 'true',
         'region': 'cn'
     }
@@ -315,149 +560,347 @@ channel.basic_publish(
         }
     )
 )
-# 消息会被路由到 premium.orders 队列
+# 消息会被路由到 premium.orders 队列（两个条件都满足）
 ```
 
-### 交换机类型对比
+**交换机类型对比**：
 
 | 类型 | 路由方式 | 使用场景 | 性能 |
 |------|---------|----------|------|
 | **Direct** | 精确匹配路由键 | 点对点、RPC | ⭐⭐⭐⭐⭐ |
-| **Fanout** | 广播到所有队列 | 发布/订阅、广播通知 | ⭐⭐⭐⭐ |
-| **Topic** | 通配符匹配 | 事件驱动、日志收集 | ⭐⭐⭐ |
+| **Fanout** | 广播到所有队列 | 发布/订阅 | ⭐⭐⭐⭐ |
+| **Topic** | 通配符匹配 | 事件驱动、日志 | ⭐⭐⭐ |
 | **Headers** | 头属性匹配 | 多条件路由 | ⭐⭐ |
+
 
 ## 消息确认机制
 
-消息确认是 RabbitMQ 保证**"至少一次投递"**（At-Least-Once Delivery）的关键机制。
+### 为什么需要消息确认？
 
-### ACK（确认）
+**问题背景**：消费者处理消息可能失败，如何保证消息不丢失？
 
-消费者成功处理消息后发送确认。
+```
+┌─────────────────────────────────────────────────────────┐
+│              没有确认机制的问题                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  场景：消费者收到消息后崩溃                             │
+│                                                         │
+│  ┌─────────┐     ┌─────────┐     ┌─────────┐          │
+│  │  Queue  │────>│Consumer │     │         │          │
+│  │ [M1,M2] │     │ 收到 M1  │────>│ 处理 M1 │          │
+│  └─────────┘     └─────────┘     │   ...   │          │
+│                        │         └─────────┘          │
+│                        │                                │
+│                        ▼                                │
+│                   ┌─────────┐                          │
+│                   │ 崩溃！   │                          │
+│                   └─────────┘                          │
+│                                                         │
+│  结果：                                                 │
+│  • M1 已从队列删除                                     │
+│  • M1 未处理完成                                       │
+│  • 消息永久丢失！                                       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│              确认机制的解决方案                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  工作流程：                                             │
+│                                                         │
+│  1. 消费者收到消息，状态变为"未确认"                     │
+│  2. 消费者处理消息                                      │
+│  3. 处理成功 → 发送 ACK，消息从队列删除                  │
+│  4. 处理失败 → 发送 NACK，消息重新入队或进入死信队列     │
+│                                                         │
+│  ┌─────────────────────────────────────────────┐       │
+│  │                   Queue                      │       │
+│  │  ┌───────────────────────────────────────┐ │       │
+│  │  │ M1 (unacked) │ M2 (ready) │ M3 (ready) │ │       │
+│  │  └───────────────────────────────────────┘ │       │
+│  │        ↑                                    │       │
+│  │   等待确认                                  │       │
+│  │   消费者崩溃 → M1 重新变为 ready           │       │
+│  └─────────────────────────────────────────────┘       │
+│                                                         │
+│  好处：                                                 │
+│  • 消息不会因消费者崩溃而丢失                          │
+│  • 保证"At-Least-Once"投递                             │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### ACK / NACK / Reject
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              三种确认方式对比                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ACK（确认）                                           │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  含义：消息处理成功，可以从队列删除               │   │
+│  │  用法：ch.basic_ack(delivery_tag=...)           │   │
+│  │  场景：正常处理完成                               │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  NACK（否定确认）                                      │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  含义：消息处理失败，可选择重新入队               │   │
+│  │  用法：ch.basic_nack(delivery_tag, requeue=True/False) │
+│  │  场景：                                           │   │
+│  │  • requeue=True: 可重试错误，重新入队            │   │
+│  │  • requeue=False: 不可恢复错误，进入死信队列     │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  Reject（拒绝）                                        │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  含义：拒绝单条消息                              │   │
+│  │  用法：ch.basic_reject(delivery_tag, requeue=...)│   │
+│  │  场景：明确拒绝某条消息                          │   │
+│  │  注意：只能处理单条消息，不支持批量              │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  对比：                                                 │
+│  ┌─────────┬──────────────┬─────────────┬───────────┐ │
+│  │  方式   │   作用范围    │   requeue   │   场景    │ │
+│  ├─────────┼──────────────┼─────────────┼───────────┤ │
+│  │   ACK   │ 单条/批量     │    N/A     │ 处理成功  │ │
+│  │   NACK  │ 单条/批量     │    可选    │ 处理失败  │ │
+│  │ Reject  │ 仅单条        │    可选    │ 明确拒绝  │ │
+│  └─────────┴──────────────┴─────────────┴───────────┘ │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 代码示例
 
 ```python
-# 消费者确认模式
-def callback(ch, method, properties, body):
-    try:
-        # 处理消息
-        process_message(body)
-        # 手动确认（推荐）
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        print(f"Message acknowledged: {method.delivery_tag}")
-    except Exception as e:
-        # 处理失败，重新入队
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+# Python 消费者确认示例
+import pika
+import json
+import logging
 
-# 开启手动确认模式
-channel.basic_consume(
-    queue='orders',
-    on_message_callback=callback,
-    auto_ack=False  # 关键：关闭自动确认
-)
-```
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-### NACK（否定确认）
-
-消费者处理失败时，可以选择重新入队或拒绝。
-
-```python
-# NACK 示例
-def callback(ch, method, properties, body):
-    try:
-        process_message(body)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-    except RetryableError as e:
-        # 可重试错误，重新入队
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-    except FatalError as e:
-        # 不可恢复错误，发送到死信队列
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-```
-
-### Reject（拒绝）
-
-拒绝单条消息，与 NACK 类似但只能处理单条。
-
-```python
-# Reject 示例
-def callback(ch, method, properties, body):
-    if is_invalid(body):
-        # 拒绝消息，不重新入队（进入死信队列）
-        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-    else:
-        process_and_ack(ch, method, body)
-```
-
-### 确认机制对比
-
-```python
-# 三种确认方式对比
-# ┌─────────┬──────────────┬─────────────────┬────────────────┐
-# │   方式   │    作用范围   │     requeue     │      场景       │
-# ├─────────┼──────────────┼─────────────────┼────────────────┤
-# │   ACK   │ 单条/批量     │  N/A            │ 处理成功        │
-# │   NACK  │ 单条/批量     │  可选择         │ 处理失败        │
-# │ Reject  │ 仅单条        │  可选择         │ 明确拒绝        │
-# └─────────┴──────────────┴─────────────────┴────────────────┘
-
-# 批量确认（提高性能）
-def callback(ch, method, properties, body):
-    process_message(body)
-    # 消息序号连续时，可以批量确认
-    # 确认当前消息及之前所有未确认消息
-    ch.basic_ack(delivery_tag=method.delivery_tag, multiple=True)
-```
-
-## 消费者 Prefetch 配置
-
-Prefetch 控制消费者未确认消息的最大数量，是实现**公平分发**的关键。
-
-### 工作原理
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Prefetch 机制示意                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  prefetch_count = 2                                         │
-│                                                             │
-│  Consumer A: [msg1(未确认)] [msg2(未确认)] ← 达到上限，暂停   │
-│  Consumer B: [msg3(未确认)] [msg4(未确认)] ← 达到上限，暂停   │
-│  Consumer C: [msg5(未确认)] ← 继续接收                       │
-│                                                             │
-│  当 Consumer A 确认 msg1 后，可以接收新消息                   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 配置示例
-
-```python
-# Prefetch 配置
-# 设置每个消费者最多同时处理的消息数
-channel.basic_qos(prefetch_count=1)  # 公平分发
-
-# 消费者
-channel.basic_consume(queue='tasks', on_message_callback=callback, auto_ack=False)
-
-# 完整消费者示例
 def start_consumer():
+    # 建立连接
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
             host='localhost',
-            heartbeat=30,  # 心跳间隔
+            heartbeat=30,  # 心跳间隔，防止连接被断开
             blocked_connection_timeout=300
         )
     )
     channel = connection.channel()
     
+    # 声明队列（确保队列存在）
+    channel.queue_declare(queue='orders', durable=True)
+    
+    # 设置 prefetch_count（公平分发）
+    channel.basic_qos(prefetch_count=1)
+    
+    def callback(ch, method, properties, body):
+        """消息处理回调函数"""
+        delivery_tag = method.delivery_tag
+        
+        try:
+            # 解析消息
+            message = json.loads(body)
+            logger.info(f"收到消息: {message}")
+            
+            # 处理业务逻辑
+            process_order(message)
+            
+            # 处理成功，发送 ACK
+            ch.basic_ack(delivery_tag=delivery_tag)
+            logger.info(f"消息处理成功，已确认: {delivery_tag}")
+            
+        except RetryableError as e:
+            # 可重试错误，重新入队
+            logger.warning(f"处理失败（可重试）: {e}")
+            ch.basic_nack(delivery_tag=delivery_tag, requeue=True)
+            
+        except FatalError as e:
+            # 不可恢复错误，发送到死信队列
+            logger.error(f"处理失败（致命错误）: {e}")
+            ch.basic_nack(delivery_tag=delivery_tag, requeue=False)
+            
+        except Exception as e:
+            # 未知错误，记录日志后拒绝
+            logger.error(f"处理异常: {e}")
+            ch.basic_nack(delivery_tag=delivery_tag, requeue=False)
+    
+    # 开始消费（auto_ack=False 表示手动确认）
+    channel.basic_consume(
+        queue='orders',
+        on_message_callback=callback,
+        auto_ack=False  # 关键：关闭自动确认
+    )
+    
+    logger.info("开始消费消息...")
+    channel.start_consuming()
+
+def process_order(message):
+    """订单处理逻辑"""
+    order_id = message.get('order_id')
+    # 模拟业务处理
+    # 如果订单不存在，抛出致命错误
+    # 如果数据库暂时不可用，抛出可重试错误
+    pass
+
+class RetryableError(Exception):
+    """可重试错误"""
+    pass
+
+class FatalError(Exception):
+    """致命错误"""
+    pass
+
+if __name__ == '__main__':
+    try:
+        start_consumer()
+    except KeyboardInterrupt:
+        print("消费者已停止")
+```
+
+### 自动确认 vs 手动确认
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              自动确认 vs 手动确认                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  自动确认 (auto_ack=True)：                             │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  消息一到达消费者，立即从队列删除                 │   │
+│  │                                                  │   │
+│  │  流程：                                          │   │
+│  │  Queue ──> Consumer ──> 立即 ACK ──> 删除消息    │   │
+│  │                                                  │   │
+│  │  问题：消费者处理失败后，消息已丢失              │   │
+│  │  适用：日志收集、允许丢失的非关键消息            │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  手动确认 (auto_ack=False)：                            │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  消费者处理完成后，手动发送确认                   │   │
+│  │                                                  │   │
+│  │  流程：                                          │   │
+│  │  Queue ──> Consumer ──> 处理 ──> 手动 ACK        │   │
+│  │                                     ↓            │   │
+│  │                                  删除消息        │   │
+│  │                                                  │   │
+│  │  好处：只有处理成功才删除，消息安全              │   │
+│  │  适用：大多数业务场景（推荐）                    │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  推荐：生产环境始终使用手动确认                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 消费者 Prefetch 配置
+
+### 为什么需要 Prefetch？
+
+**问题背景**：多个消费者处理速度不同，如何公平分配消息？
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              没有 Prefetch 的问题                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  场景：两个消费者，处理速度差异大                        │
+│                                                         │
+│  Consumer A（处理快）：处理 1 条消息需要 100ms          │
+│  Consumer B（处理慢）：处理 1 条消息需要 1000ms         │
+│                                                         │
+│  默认行为：RabbitMQ 轮询分发                            │
+│                                                         │
+│  时间线：                                               │
+│  ───────────────────────────────────────────────────>  │
+│                                                         │
+│  Consumer A: [M1][M3][M5][M7]...  ← 分到 4 条          │
+│              ↓ ↓ ↓ ↓                                    │
+│              快速处理完成                                │
+│                                                         │
+│  Consumer B: [M2][M4][M6][M8]...  ← 分到 4 条          │
+│              ↓                                          │
+│              还在处理 M2...                             │
+│              消息积压                                    │
+│                                                         │
+│  问题：                                                 │
+│  • Consumer A 处理完就空闲了                            │
+│  • Consumer B 积压严重                                  │
+│  • 整体吞吐量受限于慢消费者                             │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Prefetch 的工作原理
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Prefetch 公平分发机制                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  设置 prefetch_count=1：                                │
+│  • 每个消费者同时最多处理 1 条未确认的消息              │
+│  • 只有确认后才会收到新消息                             │
+│                                                         │
+│  时间线：                                               │
+│  ───────────────────────────────────────────────────>  │
+│                                                         │
+│  Consumer A (prefetch=1):                               │
+│  [M1]──确认──>[M3]──确认──>[M5]──确认──>...            │
+│   100ms      100ms       100ms                          │
+│  持续工作，不空闲                                        │
+│                                                         │
+│  Consumer B (prefetch=1):                               │
+│  [M2]────────────确认────────────>[M4]...              │
+│   1000ms                          1000ms               │
+│  处理慢，但不会积压                                      │
+│                                                         │
+│  结果：                                                 │
+│  • Consumer A 处理更多消息（速度快）                     │
+│  • Consumer B 不会积压                                  │
+│  • 整体吞吐量提高                                       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Prefetch 值的选择
+
+```python
+# Prefetch 配置示例
+channel.basic_qos(prefetch_count=1)  # 公平分发
+
+# Prefetch 值设置建议：
+# ┌─────────────────────┬────────────┬─────────────────────────────┐
+# │       场景          │ 推荐值      │ 说明                         │
+# ├─────────────────────┼────────────┼─────────────────────────────┤
+# │ 任务处理时间差异大   │ 1          │ 公平分发，避免快消费者空闲    │
+# │ 任务处理时间稳定     │ 5-10       │ 提高吞吐量                   │
+# │ 高吞吐量场景        │ 10-50      │ 批量处理优化                 │
+# │ 消息处理很重        │ 1          │ 防止消费者过载               │
+# │ I/O 密集型         │ 10-20      │ 等待 I/O 时处理其他消息       │
+# └─────────────────────┴────────────┴─────────────────────────────┘
+
+# 完整消费者示例
+def start_consumer_with_prefetch():
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    
     # 关键：设置 prefetch
-    # prefetch_count=1 表示公平分发，每次只处理一条消息
-    # prefetch_count=10 表示可以同时处理10条消息，提高吞吐量
     channel.basic_qos(prefetch_count=1)
     
     def callback(ch, method, properties, body):
         try:
-            process_task(body)
+            process_message(body)
             ch.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
             logger.error(f"处理失败: {e}")
@@ -467,38 +910,88 @@ def start_consumer():
     channel.start_consuming()
 ```
 
-### Prefetch 最佳实践
+## 死信队列（DLX）
 
-```python
-# Prefetch 值设置建议
-# ┌─────────────────┬────────────┬───────────────────────────────┐
-# │     场景         │ 推荐值      │ 说明                           │
-# ├─────────────────┼────────────┼───────────────────────────────┤
-# │ 任务处理时间差异大 │ 1          │ 公平分发，避免快消费者空闲       │
-# │ 任务处理时间稳定  │ 5-10       │ 提高吞吐量                      │
-# │ 高吞吐量场景     │ 10-50      │ 批量处理优化                    │
-# │ 消息处理很重     │ 1          │ 防止消费者过载                  │
-# └─────────────────┴────────────┴───────────────────────────────┘
+### 为什么需要死信队列？
 
-# 全局 Prefetch vs 通道 Prefetch
-channel.basic_qos(
-    prefetch_count=1,
-    global_qos=False  # False: 每个消费者独立计数
-                       # True: 整个通道共享限制（RabbitMQ 不完全支持）
-)
+**问题背景**：消息无法被正常消费时，如何处理？
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              没有死信队列的问题                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  消息无法消费的场景：                                   │
+│  1. 消息格式错误，消费者无法解析                        │
+│  2. 消息处理反复失败                                    │
+│  3. 消息 TTL 过期                                       │
+│  4. 队列满了，新消息无法入队                            │
+│                                                         │
+│  默认行为：                                             │
+│  • 消息被丢弃 → 永久丢失                               │
+│  • 无法追踪失败原因                                     │
+│  • 无法重试或人工干预                                   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│              死信队列的解决方案                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  设计思路：                                             │
+│  • 无法消费的消息转发到"死信队列"                        │
+│  • 死信队列的消息可以被专门处理                         │
+│  • 支持重试、告警、人工干预                             │
+│                                                         │
+│  架构：                                                 │
+│                                                         │
+│  Producer                                               │
+│      │                                                  │
+│      ▼                                                  │
+│  ┌─────────────────┐                                   │
+│  │ Business Queue  │                                   │
+│  │  配置 DLX       │──消费失败──┐                       │
+│  └─────────────────┘             │                       │
+│                                  ▼                       │
+│                         ┌─────────────────┐             │
+│                         │   DLX Exchange  │             │
+│                         └────────┬────────┘             │
+│                                  │                       │
+│                                  ▼                       │
+│                         ┌─────────────────┐             │
+│                         │   DLX Queue     │             │
+│                         │  死信队列        │             │
+│                         └────────┬────────┘             │
+│                                  │                       │
+│                                  ▼                       │
+│                         ┌─────────────────┐             │
+│                         │ 死信消费者       │             │
+│                         │ 告警/重试/人工   │             │
+│                         └─────────────────┘             │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## 死信队列（DLX）设计
+### 死信产生的条件
 
-死信队列（Dead Letter Exchange）用于存储无法被正常消费的消息。
-
-### 死信产生条件
-
-```yaml
-死信触发条件:
-  1. 消息被拒绝 (basic.reject/basic_nack) 且 requeue=false
-  2. 消息 TTL 过期
-  3. 队列达到最大长度
+```
+┌─────────────────────────────────────────────────────────┐
+│              死信触发条件                               │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. 消息被拒绝且不重新入队                              │
+│     • basic.reject(requeue=False)                      │
+│     • basic.nack(requeue=False)                        │
+│                                                         │
+│  2. 消息 TTL 过期                                       │
+│     • 队列设置 x-message-ttl                           │
+│     • 消息设置 expiration 属性                          │
+│                                                         │
+│  3. 队列达到最大长度                                    │
+│     • x-max-length: 最大消息数                         │
+│     • x-max-length-bytes: 最大字节数                   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### 死信队列配置
@@ -506,12 +999,17 @@ channel.basic_qos(
 ```python
 # 死信队列完整配置
 import pika
+import json
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 
 # 1. 声明死信交换机
-channel.exchange_declare(exchange='dlx.exchange', exchange_type='direct', durable=True)
+channel.exchange_declare(
+    exchange='dlx.exchange', 
+    exchange_type='direct', 
+    durable=True
+)
 
 # 2. 声明死信队列
 channel.queue_declare(queue='dlx.queue', durable=True)
@@ -525,220 +1023,367 @@ channel.queue_declare(
         'x-dead-letter-exchange': 'dlx.exchange',      # 死信交换机
         'x-dead-letter-routing-key': 'dlx',            # 死信路由键
         'x-message-ttl': 60000,                        # 消息 TTL: 60秒
-        'x-max-length': 10000                          # 最大长度
+        'x-max-length': 10000                          # 最大消息数
     }
 )
 
-# 4. 声明业务交换机并绑定
+# 4. 绑定业务队列到业务交换机
 channel.exchange_declare(exchange='business.exchange', exchange_type='direct', durable=True)
-channel.queue_bind(queue='business.queue', exchange='business.exchange', routing_key='business')
+channel.queue_bind(
+    queue='business.queue', 
+    exchange='business.exchange', 
+    routing_key='business'
+)
+
+print("死信队列配置完成")
 ```
 
-### 死信队列消费处理
+### 死信消息处理
 
 ```python
-# 死信队列消费者 - 记录失败消息
-def dlx_callback(ch, method, properties, body):
-    # 获取原始消息信息
-    original_exchange = properties.headers.get('x-death', [{}])[0].get('exchange')
-    original_queue = properties.headers.get('x-death', [{}])[0].get('queue')
-    death_reason = properties.headers.get('x-death', [{}])[0].get('reason')
-    death_time = properties.headers.get('x-death', [{}])[0].get('time')
-    death_count = properties.headers.get('x-death', [{}])[0].get('count', 1)
+# 死信队列消费者
+def dlx_consumer():
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
     
-    # 记录到数据库或发送告警
-    log_failed_message(
-        original_queue=original_queue,
-        reason=death_reason,
-        message_body=body.decode(),
-        death_count=death_count
-    )
+    def callback(ch, method, properties, body):
+        # 获取死信信息
+        x_death = properties.headers.get('x-death', [{}])[0] if properties.headers else {}
+        
+        original_exchange = x_death.get('exchange', 'unknown')
+        original_queue = x_death.get('queue', 'unknown')
+        death_reason = x_death.get('reason', 'unknown')
+        death_time = x_death.get('time', 'unknown')
+        death_count = x_death.get('count', 1)
+        
+        # 记录死信信息
+        logger.warning(f"""
+        死信消息:
+        - 原始交换机: {original_exchange}
+        - 原始队列: {original_queue}
+        - 死亡原因: {death_reason}
+        - 死亡时间: {death_time}
+        - 重试次数: {death_count}
+        - 消息内容: {body.decode()}
+        """)
+        
+        # 根据重试次数决定处理方式
+        if death_count > 3:
+            # 超过 3 次，发送告警并记录到数据库
+            send_alert(f"消息处理失败超过 3 次: {body.decode()}")
+            save_to_failure_db(body.decode(), death_reason)
+        else:
+            # 尝试重新处理
+            retry_message(body)
+        
+        # 确认死信消息
+        ch.basic_ack(delivery_tag=method.delivery_tag)
     
-    # 确认死信消息
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-    
-    # 可选：超过重试次数后，发送到人工处理队列
-    if death_count > 3:
-        send_to_manual_queue(body)
-```
-
-### 死信队列架构图
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        死信队列架构                               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Producer                                                       │
-│     │                                                           │
-│     ▼                                                           │
-│  ┌─────────────────┐                                            │
-│  │ Business Exchange│                                           │
-│  └────────┬────────┘                                            │
-│           │                                                     │
-│           ▼                                                     │
-│  ┌─────────────────────────────────┐                            │
-│  │     Business Queue              │                            │
-│  │  ┌───────────────────────────┐  │                            │
-│  │  │ x-dead-letter-exchange    │──┐                           │
-│  │  │ x-message-ttl: 60000      │  │                           │
-│  │  │ x-max-length: 10000       │  │                           │
-│  │  └───────────────────────────┘  │                           │
-│  └─────────────────────────────────┘                           │
-│           │ 消费失败/TTL过期/队列满                               │
-│           │                                                     │
-│           ▼                                                     │
-│  ┌─────────────────┐                                            │
-│  │   DLX Exchange  │◄──────────────────────┘                   │
-│  └────────┬────────┘                                            │
-│           │                                                     │
-│           ▼                                                     │
-│  ┌─────────────────┐     ┌─────────────────┐                    │
-│  │   DLX Queue     │────►│  告警/重试/人工  │                    │
-│  └─────────────────┘     └─────────────────┘                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue='dlx.queue', on_message_callback=callback, auto_ack=False)
+    channel.start_consuming()
 ```
 
 ## 延迟队列实现
 
-RabbitMQ 本身不支持延迟队列，但可以通过插件或 TTL + DLX 组合实现。
+### 为什么需要延迟队列？
 
-### 方案一：rabbitmq_delayed_message_exchange 插件
+**场景**：
+- 订单 30 分钟未支付自动取消
+- 消息发送失败后延迟重试
+- 定时任务调度
+
+### 方案一：TTL + DLX
+
+**原理**：消息在 TTL 队列过期后，自动转发到目标队列
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              TTL + DLX 延迟队列原理                     │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  流程：                                                 │
+│                                                         │
+│  1. 消息发送到 TTL 队列                                 │
+│  2. 消息在 TTL 队列中等待过期                           │
+│  3. 过期后自动转发到目标队列（通过 DLX）                 │
+│  4. 消费者从目标队列消费消息                            │
+│                                                         │
+│  ┌──────────┐     ┌──────────────┐     ┌──────────────┐│
+│  │ Producer │────>│  TTL Queue   │────>│ Target Queue ││
+│  └──────────┘     │ x-message-ttl │    │              ││
+│                   │ = 30000ms    │     │              ││
+│                   │              │     │              ││
+│                   │ x-dead-letter │    │              ││
+│                   │ -exchange    │────>│ Consumer     ││
+│                   └──────────────┘     └──────────────┘│
+│                                                         │
+│  优点：不需要安装额外插件                               │
+│  缺点：TTL 必须预先设置，不灵活                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+```python
+# TTL + DLX 实现延迟队列
+def setup_delay_queue():
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    
+    # 1. 目标队列（实际处理消息）
+    channel.queue_declare(queue='process.queue', durable=True)
+    
+    # 2. 目标交换机
+    channel.exchange_declare(exchange='process.exchange', exchange_type='direct', durable=True)
+    channel.queue_bind(queue='process.queue', exchange='process.exchange', routing_key='process')
+    
+    # 3. 延迟队列（消息在这里等待过期）
+    # 设置 30 秒延迟
+    channel.queue_declare(
+        queue='delay.30s.queue',
+        durable=True,
+        arguments={
+            'x-message-ttl': 30000,                        # 30秒过期
+            'x-dead-letter-exchange': 'process.exchange',  # 过期后转发
+            'x-dead-letter-routing-key': 'process'         # 路由键
+        }
+    )
+    
+    # 发送延迟消息
+    channel.basic_publish(
+        exchange='',
+        routing_key='delay.30s.queue',
+        body=json.dumps({'order_id': '12345', 'action': 'cancel_if_unpaid'})
+    )
+    
+    print("延迟消息已发送，将在 30 秒后处理")
+```
+
+### 方案二：延迟消息插件
 
 ```bash
 # 安装延迟消息插件
 rabbitmq-plugins enable rabbitmq_delayed_message_exchange
-
-# 重启 RabbitMQ
 systemctl restart rabbitmq-server
 ```
 
 ```python
 # 使用延迟消息插件
-channel.exchange_declare(
-    exchange='delayed.exchange',
-    exchange_type='x-delayed-message',  # 延迟交换机类型
-    durable=True,
-    arguments={
-        'x-delayed-type': 'direct'      # 底层交换机类型
-    }
-)
-
-# 声明队列
-channel.queue_declare(queue='delayed.queue', durable=True)
-channel.queue_bind(queue='delayed.queue', exchange='delayed.exchange', routing_key='delayed')
-
-# 发送延迟消息（延迟 30 秒）
-channel.basic_publish(
-    exchange='delayed.exchange',
-    routing_key='delayed',
-    body='Delayed message content',
-    properties=pika.BasicProperties(
-        headers={'x-delay': 30000}  # 延迟时间：毫秒
-    )
-)
-```
-
-### 方案二：TTL + DLX（无需插件）
-
-```python
-# TTL + DLX 实现延迟队列
-# 原理：消息在 TTL 队列过期后，转发到目标队列
-
-# 1. 声明目标队列（实际处理消息）
-channel.queue_declare(queue='process.queue', durable=True)
-
-# 2. 声明目标交换机
-channel.exchange_declare(exchange='process.exchange', exchange_type='direct', durable=True)
-channel.queue_bind(queue='process.queue', exchange='process.exchange', routing_key='process')
-
-# 3. 声明延迟队列（消息在这里等待过期）
-channel.queue_declare(
-    queue='delay.30s.queue',
-    durable=True,
-    arguments={
-        'x-message-ttl': 30000,                    # 30秒过期
-        'x-dead-letter-exchange': 'process.exchange',  # 过期后转发
-        'x-dead-letter-routing-key': 'process'          # 路由键
-    }
-)
-
-# 4. 发送消息到延迟队列
-channel.basic_publish(
-    exchange='',
-    routing_key='delay.30s.queue',
-    body='Message will be processed after 30 seconds'
-)
-```
-
-### 多级延迟队列
-
-```python
-# 多级延迟队列 - 不同延迟时间
-delay_levels = [
-    ('delay.5s.queue', 5000),
-    ('delay.30s.queue', 30000),
-    ('delay.1m.queue', 60000),
-    ('delay.5m.queue', 300000),
-    ('delay.1h.queue', 3600000),
-]
-
-# 创建延迟队列
-for queue_name, ttl in delay_levels:
-    channel.queue_declare(
-        queue=queue_name,
+def setup_delayed_exchange():
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    
+    # 声明延迟交换机
+    channel.exchange_declare(
+        exchange='delayed.exchange',
+        exchange_type='x-delayed-message',  # 延迟交换机类型
         durable=True,
         arguments={
-            'x-message-ttl': ttl,
-            'x-dead-letter-exchange': 'process.exchange',
-            'x-dead-letter-routing-key': 'process'
+            'x-delayed-type': 'direct'      # 底层交换机类型
         }
     )
-
-# 根据需要选择延迟级别发送消息
-def send_delayed_message(body, delay_seconds):
-    """发送延迟消息"""
-    # 找到合适的延迟队列
-    if delay_seconds <= 5:
-        routing_key = 'delay.5s.queue'
-    elif delay_seconds <= 30:
-        routing_key = 'delay.30s.queue'
-    elif delay_seconds <= 60:
-        routing_key = 'delay.1m.queue'
-    elif delay_seconds <= 300:
-        routing_key = 'delay.5m.queue'
-    else:
-        routing_key = 'delay.1h.queue'
     
-    channel.basic_publish(exchange='', routing_key=routing_key, body=body)
+    # 声明队列并绑定
+    channel.queue_declare(queue='delayed.queue', durable=True)
+    channel.queue_bind(queue='delayed.queue', exchange='delayed.exchange', routing_key='delayed')
+    
+    # 发送延迟消息（延迟 30 秒）
+    channel.basic_publish(
+        exchange='delayed.exchange',
+        routing_key='delayed',
+        body=json.dumps({'order_id': '12345'}),
+        properties=pika.BasicProperties(
+            headers={'x-delay': 30000}  # 延迟时间：毫秒
+        )
+    )
+    
+    print("延迟消息已发送")
 ```
 
-## 镜像队列与 Quorum Queue
-
-### 经典镜像队列（Classic Mirrored Queue）
-
-::: warning ⚠️ 注意
-RabbitMQ 4.0 已移除经典镜像队列支持，建议使用 Quorum Queue。
-:::
+### 订单超时取消示例
 
 ```python
-# 镜像队列策略（3.x 版本）
-# 通过管理界面或命令配置
-"""
-rabbitmqctl set_policy ha-orders "^orders\." \
-  '{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic"}'
-"""
+# 完整的订单超时取消实现
+import pika
+import json
+import logging
+from datetime import datetime
 
-# ha-mode 选项:
-# - all: 镜像到所有节点
-# - exactly: 镜像到指定数量节点
-# - nodes: 镜像到指定节点
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class OrderTimeoutHandler:
+    """订单超时处理"""
+    
+    def __init__(self, host='localhost'):
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+        self.channel = self.connection.channel()
+        self._setup_queues()
+    
+    def _setup_queues(self):
+        """设置延迟队列"""
+        # 目标队列
+        self.channel.queue_declare(queue='order.cancel', durable=True)
+        
+        # 延迟队列（30 分钟）
+        self.channel.queue_declare(
+            queue='order.timeout.30m',
+            durable=True,
+            arguments={
+                'x-message-ttl': 1800000,  # 30 分钟
+                'x-dead-letter-exchange': '',
+                'x-dead-letter-routing-key': 'order.cancel'
+            }
+        )
+    
+    def create_order(self, order_id, amount):
+        """创建订单并发送延迟取消消息"""
+        # 1. 创建订单（数据库操作）
+        # db.create_order(order_id, amount)
+        logger.info(f"订单创建成功: {order_id}")
+        
+        # 2. 发送延迟取消消息
+        self.channel.basic_publish(
+            exchange='',
+            routing_key='order.timeout.30m',
+            body=json.dumps({
+                'order_id': order_id,
+                'created_at': datetime.now().isoformat(),
+                'amount': amount
+            }),
+            properties=pika.BasicProperties(delivery_mode=2)
+        )
+        logger.info(f"延迟取消消息已发送: {order_id}")
+    
+    def pay_order(self, order_id):
+        """支付订单"""
+        # 1. 更新订单状态
+        # db.update_order_status(order_id, 'paid')
+        logger.info(f"订单支付成功: {order_id}")
+        
+        # 2. 注意：延迟消息仍会触发，需要在消费时检查订单状态
+        # 或者使用消息 ID 过滤（更复杂）
+    
+    def consume_timeout_orders(self):
+        """消费超时订单"""
+        def callback(ch, method, properties, body):
+            order = json.loads(body)
+            order_id = order['order_id']
+            
+            # 检查订单状态
+            # status = db.get_order_status(order_id)
+            status = 'pending'  # 模拟
+            
+            if status == 'pending':
+                # 订单未支付，取消订单
+                # db.update_order_status(order_id, 'cancelled')
+                logger.info(f"订单超时取消: {order_id}")
+                
+                # 发送取消通知
+                send_cancellation_notification(order_id)
+            else:
+                logger.info(f"订单已支付，跳过: {order_id}")
+            
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+        
+        self.channel.basic_qos(prefetch_count=1)
+        self.channel.basic_consume(queue='order.cancel', on_message_callback=callback, auto_ack=False)
+        self.channel.start_consuming()
+
+def send_cancellation_notification(order_id):
+    """发送取消通知"""
+    logger.info(f"发送取消通知: {order_id}")
+
+# 使用示例
+if __name__ == '__main__':
+    handler = OrderTimeoutHandler()
+    
+    # 创建订单
+    handler.create_order('ORD-001', 99.99)
+    
+    # 启动超时订单消费者
+    # handler.consume_timeout_orders()
 ```
 
-### Quorum Queue（仲裁队列）
 
-Quorum Queue 是 RabbitMQ 3.8+ 引入的现代队列类型，使用 Raft 协议保证数据一致性。
+## Quorum Queue 与镜像队列
+
+### 为什么需要高可用队列？
+
+**问题背景**：单节点队列存在单点故障风险。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              单节点队列的风险                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────┐                                       │
+│  │   Node 1     │  ← 存储队列数据                       │
+│  │  Queue: A    │                                       │
+│  │  Messages... │                                       │
+│  └──────────────┘                                       │
+│         │                                               │
+│         │ 节点故障                                       │
+│         ▼                                               │
+│  ┌──────────────┐                                       │
+│  │   Node 1     │                                       │
+│  │    离线！     │  ← 队列不可用                        │
+│  │              │    消息丢失                           │
+│  └──────────────┘                                       │
+│                                                         │
+│  后果：                                                 │
+│  • 队列不可用，服务中断                                 │
+│  • 消息可能丢失                                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│              高可用队列方案                              │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  方案1：经典镜像队列（Classic Mirrored Queue）          │
+│  • 主从复制：主队列 + 镜像副本                          │
+│  • 主队列故障时，镜像升级为主                           │
+│  • 问题：同步复制影响性能，脑裂风险                     │
+│  • 状态：RabbitMQ 4.0 已移除                           │
+│                                                         │
+│  方案2：仲裁队列（Quorum Queue）                        │
+│  • 基于 Raft 共识协议                                   │
+│  • 多节点数据复制，强一致性                             │
+│  • 推荐：RabbitMQ 3.8+ 新项目首选                       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Quorum Queue 详解
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Quorum Queue 工作原理                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  基于 Raft 共识协议：                                   │
+│                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │   Node 1     │  │   Node 2     │  │   Node 3     │  │
+│  │   Leader     │  │   Follower   │  │   Follower   │  │
+│  │              │  │              │  │              │  │
+│  │  Queue Data  │  │  Queue Data  │  │  Queue Data  │  │
+│  │   (完整)     │  │   (完整)     │  │   (完整)     │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+│         │                 │                 │          │
+│         └─────────────────┼─────────────────┘          │
+│                           │                             │
+│                    Raft 共识复制                        │
+│                    多数节点确认才成功                    │
+│                                                         │
+│  特点：                                                 │
+│  • 强一致性：多数节点确认后才返回成功                   │
+│  • 自动故障转移：Leader 故障自动选举新 Leader           │
+│  • 数据安全：多数节点存活即可保证数据不丢失             │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 ```python
 # Quorum Queue 声明
@@ -746,83 +1391,79 @@ channel.queue_declare(
     queue='critical.orders',
     durable=True,
     arguments={
-        'x-queue-type': 'quorum',
-        'x-quorum-initial-group-size': 3,  # 初始仲裁组大小
-        'x-delivery-limit': 10,            # 最大投递次数
+        'x-queue-type': 'quorum',           # 队列类型
+        'x-quorum-initial-group-size': 3,   # 初始仲裁组大小
+        'x-delivery-limit': 10,             # 最大投递次数
         'x-dead-letter-strategy': 'at-least-once'  # 死信策略
     }
 )
 ```
 
-### Quorum Queue 特性
-
-```yaml
-Quorum Queue 优势:
-  数据安全:
-    - 基于 Raft 共识协议
-    - 多节点数据复制
-    - 节点故障自动恢复
-    
-  性能特点:
-    - 写入需多数节点确认
-    - 吞吐量略低于经典队列
-    - 延迟更稳定
-    
-  适用场景:
-    - 数据不能丢失的关键业务
-    - 订单、支付、消息通知
-    - 需要Exactly-Once语义
-```
-
 ### Quorum Queue vs Classic Queue
 
-```python
-# 性能对比配置示例
-import pika
-import time
+| 特性 | Classic Queue | Quorum Queue |
+|------|---------------|--------------|
+| **数据安全** | 低（单副本）或中（镜像） | 高（Raft 复制） |
+| **写入性能** | 高 | 中（需多数确认） |
+| **故障恢复** | 快（镜像需同步） | 快（自动选举） |
+| **数据一致性** | 最终一致 | 强一致 |
+| **适用场景** | 开发测试、可丢失数据 | 生产环境、关键业务 |
+| **RabbitMQ 版本** | 所有版本 | 3.8+ |
 
-def benchmark_queues():
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-    
-    # Classic Queue - 低延迟
-    channel.queue_declare(queue='bench.classic', durable=True, 
-                          arguments={'x-queue-type': 'classic'})
-    
-    # Quorum Queue - 高可靠
-    channel.queue_declare(queue='bench.quorum', durable=True,
-                          arguments={'x-queue-type': 'quorum'})
-    
-    # 测试发送性能
-    test_messages = 10000
-    
-    # Classic Queue 发送测试
-    start = time.time()
-    for i in range(test_messages):
-        channel.basic_publish(exchange='', routing_key='bench.classic', body='test')
-    classic_publish_time = time.time() - start
-    
-    # Quorum Queue 发送测试
-    start = time.time()
-    for i in range(test_messages):
-        channel.basic_publish(exchange='', routing_key='bench.quorum', body='test')
-    quorum_publish_time = time.time() - start
-    
-    print(f"Classic Queue: {classic_publish_time:.2f}s")
-    print(f"Quorum Queue: {quorum_publish_time:.2f}s")
+**选择建议**：
+```
+┌─────────────────────────────────────────────────────────┐
+│              队列类型选择指南                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  选择 Quorum Queue：                                    │
+│  ✓ 生产环境关键业务                                    │
+│  ✓ 数据不能丢失（订单、支付、通知）                      │
+│  ✓ 需要强一致性保证                                    │
+│                                                         │
+│  选择 Classic Queue：                                   │
+│  ✓ 开发测试环境                                        │
+│  ✓ 数据可以丢失（日志、临时缓存）                        │
+│  ✓ 需要极致低延迟                                      │
+│                                                         │
+│  选择 Stream（3.9+）：                                  │
+│  ✓ 需要消费历史消息                                    │
+│  ✓ 大数据量场景                                        │
+│  ✓ 多消费者独立消费                                    │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## 消息持久化策略
 
-消息持久化确保 RabbitMQ 重启后消息不丢失。
+### 为什么需要持久化？
 
-### 三层持久化
+**问题背景**：RabbitMQ 重启后，内存中的消息会丢失。
 
-```yaml
-消息持久化需要三层保障:
-  1. Exchange 持久化 - durable=True
-  2. Queue 持久化 - durable=True  
-  3. Message 持久化 - delivery_mode=2
+```
+┌─────────────────────────────────────────────────────────┐
+│              持久化的三层保障                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. Exchange 持久化                                     │
+│     durable=True                                        │
+│     ↓                                                   │
+│     交换机元数据持久化，重启后仍存在                     │
+│                                                         │
+│  2. Queue 持久化                                        │
+│     durable=True                                        │
+│     ↓                                                   │
+│     队列元数据持久化，重启后仍存在                       │
+│                                                         │
+│  3. Message 持久化                                      │
+│     delivery_mode=2                                     │
+│     ↓                                                   │
+│     消息内容持久化，重启后仍存在                         │
+│                                                         │
+│  ⚠️ 注意：三层缺一不可！                                │
+│     任何一层未持久化，消息都可能丢失                     │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### 持久化配置
@@ -855,6 +1496,7 @@ def publish_persistent_message():
         }
     )
     
+    # 绑定队列到交换机
     channel.queue_bind(
         queue='orders.persistent',
         exchange='orders.persistent',
@@ -865,9 +1507,9 @@ def publish_persistent_message():
     channel.basic_publish(
         exchange='orders.persistent',
         routing_key='order',
-        body=json.dumps({'order_id': '12345'}),
+        body=json.dumps({'order_id': '12345', 'amount': 99.99}),
         properties=pika.BasicProperties(
-            delivery_mode=2,  # 关键：消息持久化 (PERSISTENT_DELIVERY_MODE)
+            delivery_mode=2,  # 关键：消息持久化
             content_type='application/json',
             content_encoding='utf-8',
             headers={'version': '1.0'},
@@ -876,51 +1518,337 @@ def publish_persistent_message():
     )
     
     print("持久化消息发送成功")
+    connection.close()
 ```
 
 ### 持久化性能权衡
 
-```python
-# 持久化配置对比
-# ┌───────────────────┬────────────┬────────────┬─────────────┐
-# │       配置         │   安全性    │   性能      │   适用场景   │
-# ├───────────────────┼────────────┼────────────┼─────────────┤
-# │ 非持久化           │ 低         │ 最高        │ 缓存、日志   │
-# │ 仅队列持久化       │ 中         │ 高          │ 可重放数据   │
-# │ 全持久化           │ 高         │ 中          │ 关键业务     │
-# │ Quorum Queue      │ 最高       │ 中低        │ 金融、交易   │
-# └───────────────────┴────────────┴────────────┴─────────────┘
-
-# 消息大小建议
-# ⚠️ 单条消息建议 < 1MB
-# 大消息应存储在对象存储，RabbitMQ 只传递引用
-
-def send_large_file_reference(file_url, metadata):
-    """大文件处理：只传递引用"""
-    channel.basic_publish(
-        exchange='files.exchange',
-        routing_key='file.process',
-        body=json.dumps({
-            'file_url': file_url,  # 文件存储地址
-            'size': metadata['size'],
-            'checksum': metadata['checksum']
-        }),
-        properties=pika.BasicProperties(
-            delivery_mode=2,
-            headers={'file-type': 'reference'}
-        )
-    )
+```
+┌─────────────────────────────────────────────────────────┐
+│              持久化配置对比                              │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌───────────────────┬────────────┬────────────┬─────────┐
+│  │       配置         │   安全性    │   性能      │  适用   │
+│  ├───────────────────┼────────────┼────────────┼─────────┤
+│  │ 非持久化           │ 低         │ 最高        │ 缓存   │
+│  │ 仅队列持久化       │ 中         │ 高          │ 可重放 │
+│  │ 全持久化           │ 高         │ 中          │ 关键   │
+│  │ Quorum Queue      │ 最高       │ 中低        │ 金融   │
+│  └───────────────────┴────────────┴────────────┴─────────┘
+│                                                         │
+│  性能数据（参考）：                                     │
+│  • 非持久化：10-20万/秒                                │
+│  • 全持久化：1-5万/秒                                  │
+│  • Quorum Queue：1-3万/秒                              │
+│                                                         │
+│  优化建议：                                             │
+│  • 使用批量确认减少 IO                                 │
+│  • 使用 SSD 提高磁盘性能                               │
+│  • 合理设置消息大小（建议 < 1MB）                       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## 现代最佳实践
+## 监控指标
 
-### 1. 长连接消费者模式
+### 关键监控指标
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              RabbitMQ 关键监控指标                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  节点级别：                                             │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ 指标名称              含义            告警阈值   │   │
+│  ├─────────────────────────────────────────────────┤   │
+│  │ vm_memory_use      内存使用率        > 80% 告警 │   │
+│  │ disk_free          磁盘剩余空间      < 10GB 告警│   │
+│  │ fd_used            文件描述符使用    > 80% 告警 │   │
+│  │ sockets_used       Socket 使用       > 80% 告警 │   │
+│  │ proc_used          Erlang 进程使用   > 80% 告警 │   │
+│  │ running            节点是否运行      false 告警 │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  队列级别：                                             │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ 指标名称              含义            告警阈值   │   │
+│  ├─────────────────────────────────────────────────┤   │
+│  │ messages           队列消息总数      过高告警   │   │
+│  │ messages_ready     待消费消息        积压告警   │   │
+│  │ messages_unacked   未确认消息        过多告警   │   │
+│  │ consumers          消费者数量        = 0 告警   │   │
+│  │ rate               消息速率          基线监控   │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 监控脚本
 
 ```python
-# 推荐：长连接消费者
+# RabbitMQ 监控脚本
+import requests
+import json
+
+class RabbitMQMonitor:
+    def __init__(self, host='localhost', port=15672, user='admin', password='password'):
+        self.api_url = f'http://{host}:{port}/api'
+        self.auth = (user, password)
+    
+    def get_overview(self):
+        """获取集群概览"""
+        response = requests.get(f'{self.api_url}/overview', auth=self.auth)
+        return response.json()
+    
+    def get_queues(self):
+        """获取所有队列信息"""
+        response = requests.get(f'{self.api_url}/queues', auth=self.auth)
+        return response.json()
+    
+    def get_nodes(self):
+        """获取节点信息"""
+        response = requests.get(f'{self.api_url}/nodes', auth=self.auth)
+        return response.json()
+    
+    def check_health(self):
+        """健康检查"""
+        alerts = []
+        
+        # 检查节点
+        nodes = self.get_nodes()
+        for node in nodes:
+            if not node.get('running', False):
+                alerts.append(f"节点 {node['name']} 未运行")
+            
+            memory_used = node.get('mem_used', 0)
+            memory_limit = node.get('mem_limit', 1)
+            memory_usage = memory_used / memory_limit * 100
+            
+            if memory_usage > 80:
+                alerts.append(f"节点 {node['name']} 内存使用率 {memory_usage:.1f}%")
+            
+            disk_free = node.get('disk_free', 0)
+            if disk_free < 10 * 1024 * 1024 * 1024:  # 10GB
+                alerts.append(f"节点 {node['name']} 磁盘空间不足 {disk_free / 1024**3:.1f}GB")
+        
+        # 检查队列
+        queues = self.get_queues()
+        for queue in queues:
+            messages = queue.get('messages', 0)
+            consumers = queue.get('consumers', 0)
+            
+            if messages > 10000:
+                alerts.append(f"队列 {queue['name']} 积压 {messages} 条消息")
+            
+            if consumers == 0 and messages > 0:
+                alerts.append(f"队列 {queue['name']} 无消费者但有 {messages} 条消息")
+        
+        return alerts
+    
+    def print_status(self):
+        """打印状态"""
+        overview = self.get_overview()
+        print(f"\n{'='*50}")
+        print("RabbitMQ 状态概览")
+        print(f"{'='*50}")
+        print(f"版本: {overview.get('rabbitmq_version', 'unknown')}")
+        print(f"消息总数: {overview.get('queue_totals', {}).get('messages', 0)}")
+        print(f"连接数: {overview.get('object_totals', {}).get('connections', 0)}")
+        print(f"通道数: {overview.get('object_totals', {}).get('channels', 0)}")
+        print(f"消费者数: {overview.get('object_totals', {}).get('consumers', 0)}")
+        print(f"队列数: {overview.get('object_totals', {}).get('queues', 0)}")
+        
+        alerts = self.check_health()
+        if alerts:
+            print(f"\n⚠️ 告警:")
+            for alert in alerts:
+                print(f"  - {alert}")
+        else:
+            print(f"\n✅ 系统正常")
+
+# 使用示例
+if __name__ == '__main__':
+    monitor = RabbitMQMonitor()
+    monitor.print_status()
+```
+
+## 安全配置
+
+### 访问控制
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              RabbitMQ 安全配置                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. 用户权限管理                                       │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  # 创建用户                                      │   │
+│  │  rabbitmqctl add_user app_user app_password     │   │
+│  │                                                  │   │
+│  │  # 设置权限（vhost: configure: write: read）    │   │
+│  │  rabbitmqctl set_permissions -p / app_user \    │   │
+│  │    ".*" ".*" ".*"                               │   │
+│  │                                                  │   │
+│  │  # 设置用户标签                                  │   │
+│  │  rabbitmqctl set_user_tags app_user monitoring  │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  2. 权限标签                                           │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  标签          权限                               │   │
+│  │  ──────────────────────────────────────────────  │   │
+│  │  administrator  完全管理权限                      │   │
+│  │  monitoring     监控权限                         │   │
+│  │  policymaker    策略管理权限                      │   │
+│  │  management     Web 管理界面访问                 │   │
+│  │  (无标签)       只能通过 AMQP 访问               │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  3. 安全建议                                           │
+│  • 删除默认 guest 用户或限制其只能本地访问              │
+│  • 使用最小权限原则                                    │
+│  • 启用 TLS 加密                                       │
+│  • 定期轮换密码                                        │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### TLS 配置
+
+```bash
+# 生成证书
+openssl genrsa -out ca.key 2048
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt
+
+# 创建 RabbitMQ 配置
+# rabbitmq.conf
+listeners.ssl.default = 5671
+ssl_options.cacertfile = /path/to/ca.crt
+ssl_options.certfile   = /path/to/server.crt
+ssl_options.keyfile    = /path/to/server.key
+ssl_options.verify     = verify_peer
+ssl_options.fail_if_no_peer_cert = false
+```
+
+```python
+# Python 客户端 TLS 连接
 import pika
-import logging
+import ssl
+
+ssl_context = ssl.create_default_context(
+    cafile='/path/to/ca.crt'
+)
+ssl_context.load_cert_chain(
+    certfile='/path/to/client.crt',
+    keyfile='/path/to/client.key'
+)
+
+ssl_options = pika.SSLOptions(
+    context=ssl_context,
+    server_hostname='rabbitmq.example.com'
+)
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(
+        host='rabbitmq.example.com',
+        port=5671,
+        ssl_options=ssl_options,
+        credentials=pika.PlainCredentials('app_user', 'app_password')
+    )
+)
+```
+
+## 常见问题与解决方案
+
+### 消息积压处理
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              消息积压诊断与处理                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  诊断：                                                 │
+│  1. 检查队列消息数量                                   │
+│  2. 检查消费者状态                                     │
+│  3. 分析消费速率 vs 生产速率                            │
+│                                                         │
+│  处理方案：                                             │
+│  1. 增加消费者实例                                     │
+│  2. 提高消费者处理速度（优化代码、增加线程）            │
+│  3. 调整 prefetch_count                               │
+│  4. 紧急情况：清空队列或转存                           │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+```python
+# 消息积压处理脚本
+def handle_backlog(queue_name):
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    
+    # 检查队列状态
+    queue_info = channel.queue_declare(queue=queue_name, passive=True)
+    message_count = queue_info.method.message_count
+    
+    print(f"队列 {queue_name} 积压消息数: {message_count}")
+    
+    if message_count > 10000:
+        # 方案1：增加 prefetch，批量消费
+        channel.basic_qos(prefetch_count=100)
+        
+        # 方案2：转存到其他地方
+        # 将消息转存到数据库或文件
+        
+        # 方案3：清空队列（谨慎使用）
+        # channel.queue_purge(queue=queue_name)
+```
+
+### 消息重复消费
+
+```python
+# 幂等性处理
+import hashlib
+import redis
+
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+def idempotent_consume(ch, method, properties, body):
+    """幂等消费处理"""
+    # 生成消息唯一 ID
+    message_id = properties.message_id or hashlib.md5(body).hexdigest()
+    
+    # 检查是否已处理（使用 Redis）
+    key = f"rabbitmq:processed:{message_id}"
+    
+    if redis_client.exists(key):
+        print(f"消息 {message_id} 已处理，跳过")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+    
+    try:
+        # 处理消息
+        process_message(body)
+        
+        # 标记已处理（设置过期时间）
+        redis_client.setex(key, 86400, "1")  # 24小时过期
+        
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except Exception as e:
+        print(f"处理失败: {e}")
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+```
+
+### 连接断开重连
+
+```python
+# 自动重连消费者
+import pika
 import time
+import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -995,143 +1923,34 @@ if __name__ == '__main__':
     consumer.run()
 ```
 
-### 2. 错误处理与重试机制
+## 生产部署最佳实践
 
-```python
-# 智能重试机制
-import json
-from datetime import datetime
-
-class RetryHandler:
-    """消息重试处理器"""
-    
-    MAX_RETRIES = 3
-    RETRY_DELAYS = [1000, 5000, 30000]  # 1s, 5s, 30s
-    
-    def __init__(self, channel):
-        self.channel = channel
-    
-    def handle_with_retry(self, ch, method, properties, body):
-        """带重试的消息处理"""
-        # 获取重试次数
-        retry_count = self.get_retry_count(properties)
-        
-        try:
-            # 业务处理
-            self.process_business_logic(body)
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            
-        except RetryableError as e:
-            if retry_count < self.MAX_RETRIES:
-                # 延迟重试
-                self.schedule_retry(body, retry_count, properties)
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-            else:
-                # 超过重试次数，发送到死信队列
-                logger.error(f"超过最大重试次数: {retry_count}")
-                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-                
-        except FatalError as e:
-            logger.error(f"致命错误: {e}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-    
-    def get_retry_count(self, properties):
-        """获取当前重试次数"""
-        if properties.headers and 'x-retry-count' in properties.headers:
-            return properties.headers['x-retry-count']
-        return 0
-    
-    def schedule_retry(self, body, retry_count, old_properties):
-        """调度重试"""
-        # 获取延迟时间
-        delay = self.RETRY_DELAYS[retry_count] if retry_count < len(self.RETRY_DELAYS) else self.RETRY_DELAYS[-1]
-        
-        # 发送到延迟队列
-        self.channel.basic_publish(
-            exchange='retry.exchange',
-            routing_key='retry',
-            body=body,
-            properties=pika.BasicProperties(
-                delivery_mode=2,
-                headers={
-                    'x-retry-count': retry_count + 1,
-                    'x-delay': delay,
-                    'x-first-failure-time': old_properties.headers.get('x-first-failure-time', datetime.now().isoformat())
-                }
-            )
-        )
-    
-    def process_business_logic(self, body):
-        """实际业务逻辑"""
-        data = json.loads(body)
-        # 业务处理代码...
-        pass
-```
-
-### 3. 连接池管理
-
-```python
-# 连接池实现（使用 pika_pool）
-import pika
-from pika_pool import Pool
-
-# 配置连接池
-pool = Pool(
-    create=lambda: pika.BlockingConnection(
-        pika.URLParameters('amqp://admin:password@localhost:5672/%2F')
-    ),
-    max_size=10,        # 最大连接数
-    max_overflow=5,     # 最大溢出连接
-    timeout=10,         # 获取连接超时
-    recycle=3600,       # 连接回收时间
-    stale=60,           # 连接空闲过期时间
-)
-
-# 使用连接池发布消息
-def publish_with_pool(exchange, routing_key, body):
-    with pool.acquire() as connection:
-        channel = connection.channel()
-        channel.confirm_delivery()  # 开启发布确认
-        
-        try:
-            channel.basic_publish(
-                exchange=exchange,
-                routing_key=routing_key,
-                body=body,
-                properties=pika.BasicProperties(delivery_mode=2)
-            )
-            return True
-        except pika.exceptions.UnroutableError:
-            logger.error("消息无法路由")
-            return False
-```
-
-### 4. 生产部署检查清单
+### 部署检查清单
 
 ```yaml
 # 生产部署检查清单
 
 ## 基础配置
 - [ ] 集群部署（至少 3 节点）
-- [ ] 内存阈值设置（vm_memory_high_watermark: 0.6）
-- [ ] 磁盘空间阈值（disk_free_limit: 10GB）
-- [ ] 文件描述符限制（ulimit -n 65536）
+- [ ] 内存阈值：vm_memory_high_watermark = 0.6
+- [ ] 磁盘阈值：disk_free_limit = 10GB
+- [ ] 文件描述符：ulimit -n 65536
 
 ## 安全配置
-- [ ] 启用 TLS 加密
-- [ ] 配置用户权限（最小权限原则）
-- [ ] 禁用 guest 用户远程访问
+- [ ] 删除或限制 guest 用户
+- [ ] 创建专用用户，最小权限原则
+- [ ] 启用 TLS 加密（生产环境必须）
 - [ ] 启用 Management 插件认证
 
 ## 高可用配置
-- [ ] 使用 Quorum Queue 替代 Classic Queue
+- [ ] 使用 Quorum Queue
 - [ ] 配置镜像策略（3.x 版本）
 - [ ] 设置队列 TTL 和最大长度
 - [ ] 配置死信队列
 
 ## 性能优化
-- [ ] 开启发布确认（Publisher Confirms）
 - [ ] 合理设置 Prefetch Count
+- [ ] 开启发布确认（Publisher Confirms）
 - [ ] 消息批量处理
 - [ ] 连接池配置
 
@@ -1146,123 +1965,6 @@ def publish_with_pool(exchange, routing_key, body):
 - [ ] 日志收集与分析
 - [ ] 升级测试流程
 - [ ] 灾难恢复预案
-```
-
-### 5. 监控指标
-
-```python
-# 监控关键指标
-import requests
-
-def get_rabbitmq_metrics():
-    """获取 RabbitMQ 监控指标"""
-    api_url = 'http://localhost:15672/api'
-    auth = ('admin', 'password')
-    
-    # 队列状态
-    queues = requests.get(f'{api_url}/queues', auth=auth).json()
-    
-    metrics = {
-        'total_messages': sum(q['messages'] for q in queues),
-        'unacked_messages': sum(q['messages_unacknowledged'] for q in queues),
-        'queue_count': len(queues),
-        'consumer_count': sum(q.get('consumers', 0) for q in queues),
-    }
-    
-    # 关键告警指标
-    alerts = []
-    for queue in queues:
-        # 队列积压告警
-        if queue['messages'] > 10000:
-            alerts.append(f"队列 {queue['name']} 积压 {queue['messages']} 条消息")
-        
-        # 无消费者告警
-        if queue.get('consumers', 0) == 0 and queue['messages'] > 0:
-            alerts.append(f"队列 {queue['name']} 无消费者")
-    
-    return metrics, alerts
-```
-
-## 常见问题与解决方案
-
-### 1. 消息积压处理
-
-```python
-# 消息积压临时处理方案
-def handle_message_backlog(channel, queue_name):
-    """处理消息积压"""
-    # 1. 检查积压情况
-    queue_info = channel.queue_declare(queue=queue_name, passive=True)
-    message_count = queue_info.method.message_count
-    
-    print(f"当前积压消息数: {message_count}")
-    
-    if message_count > 10000:
-        # 2. 临时增加消费者
-        print("建议增加消费者实例")
-        
-        # 3. 批量消费处理
-        def batch_callback(ch, method, properties, body):
-            # 批量处理逻辑
-            messages = json.loads(body) if isinstance(body, str) else [body]
-            for msg in messages:
-                process_message(msg)
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-        
-        # 提高预取数量
-        channel.basic_qos(prefetch_count=100)
-```
-
-### 2. 消息重复消费
-
-```python
-# 幂等性处理
-import hashlib
-
-def idempotent_consume(ch, method, properties, body):
-    """幂等消费处理"""
-    message_id = properties.message_id or hashlib.md5(body).hexdigest()
-    
-    # 检查是否已处理
-    if is_message_processed(message_id):
-        logger.info(f"消息 {message_id} 已处理，跳过")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-    
-    try:
-        # 处理消息
-        process_message(body)
-        
-        # 标记已处理
-        mark_message_processed(message_id)
-        
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-    except Exception as e:
-        logger.error(f"处理失败: {e}")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-```
-
-### 3. 连接泄漏检测
-
-```python
-# 连接健康检查
-def check_connection_health():
-    """检查连接健康状态"""
-    api_url = 'http://localhost:15672/api'
-    auth = ('admin', 'password')
-    
-    connections = requests.get(f'{api_url}/connections', auth=auth).json()
-    
-    for conn in connections:
-        # 检查连接空闲时间
-        if conn.get('idle_since'):
-            idle_time = time.time() - parse_time(conn['idle_since'])
-            if idle_time > 3600:  # 空闲超过1小时
-                logger.warning(f"连接 {conn['name']} 空闲 {idle_time}s")
-        
-        # 检查通道数
-        if conn.get('channels', 0) > 100:
-            logger.warning(f"连接 {conn['name']} 通道数过多: {conn['channels']}")
 ```
 
 ## 参考资料

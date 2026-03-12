@@ -230,6 +230,13 @@ export default withMermaid(
           ]
         },
         {
+          text: '多线程与并发',
+          collapsible: true,
+          items: [
+            { text: '并发编程', link: '/notes/language/java/concurrency.md' },
+          ]
+        },
+        {
           text: '开发框架',
           collapsible: true,
           items: [
@@ -238,6 +245,20 @@ export default withMermaid(
             { text: 'Spring MVC', link: '/notes/language/java/springmvc.md' },
             { text: 'MyBatis', link: '/notes/language/java/mybatis.md' },
             { text: 'Spring Security', link: '/notes/language/java/spring-security.md' },
+          ]
+        },
+        {
+          text: '面试专栏',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/language/java/interview/index.md' },
+            { text: 'Java 基础', link: '/notes/language/java/interview/java-basics.md' },
+            { text: 'Java 集合', link: '/notes/language/java/interview/java-collections.md' },
+            { text: 'Java 并发', link: '/notes/language/java/interview/java-concurrent.md' },
+            { text: 'JVM', link: '/notes/language/java/interview/java-jvm.md' },
+            { text: 'Spring 框架', link: '/notes/language/java/interview/spring.md' },
+            { text: 'MySQL', link: '/notes/language/java/interview/mysql.md' },
+            { text: 'Redis', link: '/notes/language/java/interview/redis.md' },
           ]
         }],
 
@@ -288,7 +309,10 @@ export default withMermaid(
           items: [
             { text: '导览', link: '/notes/language/database/index.md' },
             { text: 'MySQL基础', link: '/notes/language/database/mysql-basics.md' },
+            { text: 'MySQL面试题', link: '/notes/language/database/mysql-interview.md' },
+            { text: 'MySQL进阶面试题', link: '/notes/language/database/mysql-interview-advanced.md' },
             { text: 'PostgreSQL基础', link: '/notes/language/database/postgresql-basics.md' },
+            { text: 'PostgreSQL面试题', link: '/notes/language/database/postgresql-interview.md' },
           ]
         },
         {
@@ -296,8 +320,27 @@ export default withMermaid(
           collapsible: true,
           items: [
             { text: 'Redis基础', link: '/notes/language/database/redis-basics.md' },
+            { text: 'Redis面试题', link: '/notes/language/database/redis-interview.md' },
+            { text: 'Redis进阶面试题', link: '/notes/language/database/redis-interview-advanced.md' },
             { text: 'Kafka基础', link: '/notes/language/database/kafka-basics.md' },
+            { text: 'Kafka面试题', link: '/notes/language/database/kafka-interview.md' },
+            { text: 'Kafka进阶面试题', link: '/notes/language/database/kafka-interview-advanced.md' },
             { text: 'RabbitMQ基础', link: '/notes/language/database/rabbitmq-basics.md' },
+            { text: 'RabbitMQ面试题', link: '/notes/language/database/rabbitmq-interview.md' },
+          ]
+        },
+        {
+          text: '计算机网络',
+          collapsible: true,
+          items: [
+            { text: '计算机网络面试题', link: '/notes/language/database/network-interview.md' },
+          ]
+        },
+        {
+          text: '计算机组成原理',
+          collapsible: true,
+          items: [
+            { text: '计算机组成原理面试题', link: '/notes/language/database/computer-organization-interview.md' },
           ]
         },
       ],
