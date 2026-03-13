@@ -21,6 +21,7 @@
     "katex": "^0.16.28",
     "khroma": "^2.1.0",
     "markdown-it-katex": "^2.0.3",
+    "mermaid": "^11.4.0",
     "vitepress-plugin-mermaid": "^2.0.17"
   }
 }
