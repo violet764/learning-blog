@@ -54,6 +54,19 @@ export default withMermaid(
         'khroma',
         'dompurify'
       ]
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // 将大型依赖分离成独立 chunk
+            'vendor-vue': ['vue'],
+            'vendor-mermaid': ['mermaid', 'd3'],
+            'vendor-cytoscape': ['cytoscape', 'cytoscape-cose-bilkent'],
+          }
+        }
+      },
+      chunkSizeWarningLimit: 1000
     }
   },
   themeConfig: {
@@ -109,6 +122,7 @@ export default withMermaid(
           { text: '视觉模型', link: '/notes/ai-model/cv/index.md' },
           { text: '多模态', link: '/notes/ai-model/multimodal/index.md' },
           { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
+          { text: '常用库', link: '/notes/framework' },
         ]
       },
 
@@ -690,8 +704,82 @@ export default withMermaid(
       '/notes/starred': [
         { text: '经典论文', link: '/notes/starred/awesome_paper.md' },
         { text: '优质博客', link: '/notes/starred/awesome_blog.md' },
+      ],
 
-
+      // 开发框架侧边栏
+      '/notes/framework/': [
+        { text: '导览', link: '/notes/framework/index.md' },
+        {
+          text: 'Gradio',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/framework/gradio/index.md' },
+            { text: '基础组件与布局', link: '/notes/framework/gradio/gradio-basics.md' },
+            { text: 'Interface快速构建', link: '/notes/framework/gradio/gradio-interface.md' },
+            { text: 'Blocks灵活布局', link: '/notes/framework/gradio/gradio-blocks.md' },
+            { text: '高级特性与部署', link: '/notes/framework/gradio/gradio-advanced.md' },
+          ]
+        },
+        {
+          text: 'LangChain',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/framework/langchain/index.md' },
+            { text: '基础概念', link: '/notes/framework/langchain/langchain-basics.md' },
+            { text: '链与LCEL', link: '/notes/framework/langchain/langchain-chains.md' },
+            { text: '智能体开发', link: '/notes/framework/langchain/langchain-agents.md' },
+            { text: '工具调用', link: '/notes/framework/langchain/langchain-tools.md' },
+            { text: '记忆系统', link: '/notes/framework/langchain/langchain-memory.md' },
+          ]
+        },
+        {
+          text: 'LlamaIndex',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/framework/llamaindex/index.md' },
+            { text: '基础概念与快速开始', link: '/notes/framework/llamaindex/llamaindex-basics.md' },
+            { text: '索引类型与选择', link: '/notes/framework/llamaindex/llamaindex-index.md' },
+            { text: '检索策略', link: '/notes/framework/llamaindex/llamaindex-retrieval.md' },
+            { text: 'RAG应用构建', link: '/notes/framework/llamaindex/llamaindex-rag.md' },
+            { text: '高级用法与优化', link: '/notes/framework/llamaindex/llamaindex-advanced.md' },
+          ]
+        },
+        {
+          text: 'Transformers',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/framework/transformers/index.md' },
+            { text: '基础用法', link: '/notes/framework/transformers/transformers-basics.md' },
+            { text: 'Pipeline快速使用', link: '/notes/framework/transformers/transformers-pipelines.md' },
+            { text: '模型训练与微调', link: '/notes/framework/transformers/transformers-training.md' },
+            { text: '推理与部署', link: '/notes/framework/transformers/transformers-inference.md' },
+            { text: '自定义模型与组件', link: '/notes/framework/transformers/transformers-custom.md' },
+          ]
+        },
+        {
+          text: 'OpenAI SDK',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/framework/openai/index.md' },
+            { text: '基础API调用', link: '/notes/framework/openai/openai-basics.md' },
+            { text: 'Chat Completions', link: '/notes/framework/openai/openai-chat.md' },
+            { text: 'Embeddings API', link: '/notes/framework/openai/openai-embeddings.md' },
+            { text: 'Function Calling', link: '/notes/framework/openai/openai-functions.md' },
+            { text: 'Assistants API', link: '/notes/framework/openai/openai-assistants.md' },
+            { text: '流式响应处理', link: '/notes/framework/openai/openai-streaming.md' },
+          ]
+        },
+        {
+          text: 'vLLM',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/framework/vllm/index.md' },
+            { text: '基础概念与安装', link: '/notes/framework/vllm/vllm-basics.md' },
+            { text: '离线推理', link: '/notes/framework/vllm/vllm-inference.md' },
+            { text: 'API服务器部署', link: '/notes/framework/vllm/vllm-server.md' },
+            { text: '性能优化技巧', link: '/notes/framework/vllm/vllm-optimization.md' },
+          ]
+        },
       ],
 
     },
