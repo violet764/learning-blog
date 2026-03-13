@@ -56,16 +56,7 @@ export default withMermaid(
       ]
     },
     build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            // 将大型依赖分离成独立 chunk
-            'vendor-mermaid': ['mermaid', 'd3'],
-            'vendor-cytoscape': ['cytoscape', 'cytoscape-cose-bilkent'],
-          }
-        }
-      },
-      chunkSizeWarningLimit: 1000
+      chunkSizeWarningLimit: 1500
     }
   },
   themeConfig: {
