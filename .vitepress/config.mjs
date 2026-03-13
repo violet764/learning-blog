@@ -60,7 +60,6 @@ export default withMermaid(
         output: {
           manualChunks: {
             // 将大型依赖分离成独立 chunk
-            'vendor-vue': ['vue'],
             'vendor-mermaid': ['mermaid', 'd3'],
             'vendor-cytoscape': ['cytoscape', 'cytoscape-cose-bilkent'],
           }
