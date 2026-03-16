@@ -583,6 +583,250 @@ class MultiObjectiveAlignment:
         return pareto_front
 ```
 
+### Reward Hacking（奖励投机）
+
+Reward Hacking 是 RLHF 训练中的一个关键问题，指模型学会"欺骗"奖励模型而非真正提升能力。
+
+**问题本质**：
+
+```
+RLHF 目标：最大化奖励模型给出的分数
+真实目标：生成对人类真正有帮助的内容
+
+问题：模型可能找到"作弊"方式来获得高奖励
+```
+
+**Reward Hacking 的典型表现**：
+
+| 表现类型 | 示例 | 原因 |
+|----------|------|------|
+| **风格投机** | 使用华丽的辞藻、冗长的回答 | 奖励模型偏好"看起来专业"的回答 |
+| **迎合偏好** | 总是同意用户，即使答案是错的 | 用户偏好"肯定"而非"纠正" |
+| **格式投机** | 过度使用列表、标题等格式 | 奖励模型给格式化的回答更高分 |
+| **安全过度** | 拒绝回答边缘问题 | 安全分类器误判 |
+
+**代码示例：检测 Reward Hacking**：
+
+```python
+class RewardHackingDetector:
+    """Reward Hacking 检测器"""
+    
+    def __init__(self, reward_model, reference_model):
+        self.reward_model = reward_model
+        self.reference_model = reference_model
+    
+    def detect_style_gaming(self, responses):
+        """检测风格投机"""
+        features = []
+        
+        for response in responses:
+            feature = {
+                'length': len(response),
+                'exclamation_count': response.count('!'),
+                'list_count': response.count('\n-') + response.count('\n1.'),
+                'redundancy': self.compute_redundancy(response),
+            }
+            features.append(feature)
+        
+        # 如果高分回答的某些特征异常突出，可能存在投机
+        return self.analyze_patterns(features)
+    
+    def compute_redundancy(self, text):
+        """计算文本冗余度"""
+        words = text.split()
+        if len(words) == 0:
+            return 0
+        unique_ratio = len(set(words)) / len(words)
+        return 1 - unique_ratio  # 冗余度 = 1 - 唯一词比例
+```
+
+**缓解策略**：
+
+```python
+# 1. 使用 KL 散度约束
+def ppo_loss_with_kl(policy_logits, ref_logits, advantages, kl_coef=0.1):
+    """PPO 损失 + KL 约束"""
+    # 标准 PPO 损失
+    ppo_loss = -advantages * log_prob
+    
+    # KL 散度惩罚
+    kl_div = kl_divergence(policy_logits, ref_logits)
+    
+    total_loss = ppo_loss + kl_coef * kl_div
+    return total_loss
+
+# 2. 迭代更新奖励模型
+def iterative_alignment(model, reward_model, data, n_iterations=3):
+    """迭代式对齐"""
+    for i in range(n_iterations):
+        # 训练策略
+        model = train_with_ppo(model, reward_model, data)
+        
+        # 收集新数据
+        new_data = sample_from_model(model, data)
+        
+        # 用人类标注更新奖励模型
+        reward_model = update_reward_model(reward_model, new_data, human_labels)
+    
+    return model
+```
+
+### Distribution Shift（分布偏移）
+
+在 RLHF 训练中，策略模型会逐渐偏离初始模型，导致分布偏移问题。
+
+**问题链条**：
+
+```
+策略 π 学习后行为改变
+    ↓
+访问奖励模型未见过的样本
+    ↓
+奖励模型在这些样本上预测不准
+    ↓
+策略可能获得"虚假高奖励"
+    ↓
+进一步偏离，恶性循环
+```
+
+**数学分析**：
+
+设初始策略为 $\pi_{\text{ref}}$，训练后的策略为 $\pi_\theta$。奖励模型 $r_\phi$ 在 $\pi_{\text{ref}}$ 产生的数据上训练。
+
+问题在于：$r_\phi$ 在 $\pi_\theta$ 产生的样本上可能不准确。
+
+**缓解方法**：
+
+```python
+class DistributionShiftHandler:
+    """分布偏移处理器"""
+    
+    def __init__(self, kl_threshold=0.1):
+        self.kl_threshold = kl_threshold
+    
+    def compute_kl_divergence(self, policy_logits, ref_logits):
+        """计算 KL 散度"""
+        p = F.softmax(policy_logits, dim=-1)
+        q = F.softmax(ref_logits, dim=-1)
+        
+        kl = (p * (p.log() - q.log())).sum(dim=-1)
+        return kl.mean()
+    
+    def adaptive_kl_penalty(self, kl_div, target_kl=0.02):
+        """自适应 KL 惩罚系数"""
+        if kl_div > 2 * target_kl:
+            return 2.0  # 增加惩罚
+        elif kl_div < target_kl / 2:
+            return 0.5  # 减少惩罚
+        else:
+            return 1.0  # 保持不变
+```
+
+### 过程监督 vs 结果监督
+
+这是大模型推理能力对齐的重要研究方向。
+
+**两种监督方式对比**：
+
+| 维度 | 过程监督 (PRM) | 结果监督 (ORM) |
+|------|----------------|----------------|
+| **监督对象** | 推理的每一步 | 最终答案 |
+| **数据需求** | 需要步骤级标注 | 只需答案标注 |
+| **训练信号** | 更密集、更细粒度 | 稀疏信号 |
+| **适合任务** | 数学推理、代码生成 | 分类、选择题 |
+| **计算成本** | 较高 | 较低 |
+
+**过程奖励模型 (PRM)**：
+
+```python
+class ProcessRewardModel(nn.Module):
+    """过程奖励模型"""
+    
+    def __init__(self, base_model, hidden_size):
+        super().__init__()
+        self.base_model = base_model
+        self.score_head = nn.Linear(hidden_size, 1)
+    
+    def forward(self, input_ids, step_positions):
+        """
+        Args:
+            input_ids: 完整的推理序列
+            step_positions: 每个推理步骤的结束位置
+        """
+        hidden_states = self.base_model(input_ids).last_hidden_state
+        
+        # 提取每个步骤结束位置的隐藏状态
+        step_scores = []
+        for pos in step_positions:
+            step_hidden = hidden_states[:, pos, :]
+            score = self.score_head(step_hidden)
+            step_scores.append(score)
+        
+        return torch.stack(step_scores, dim=1)  # [batch, num_steps, 1]
+    
+    def compute_loss(self, step_scores, step_labels):
+        """计算 PRM 损失"""
+        # step_labels: 每个步骤是否正确 (0/1)
+        loss = F.binary_cross_entropy_with_logits(
+            step_scores.squeeze(-1),
+            step_labels.float()
+        )
+        return loss
+```
+
+**结果奖励模型 (ORM)**：
+
+```python
+class OutcomeRewardModel(nn.Module):
+    """结果奖励模型"""
+    
+    def __init__(self, base_model, hidden_size):
+        super().__init__()
+        self.base_model = base_model
+        self.score_head = nn.Linear(hidden_size, 1)
+    
+    def forward(self, input_ids):
+        """评估最终答案的质量"""
+        hidden_states = self.base_model(input_ids).last_hidden_state
+        
+        # 使用最后一个 token 的隐藏状态
+        final_hidden = hidden_states[:, -1, :]
+        score = self.score_head(final_hidden)
+        
+        return score  # [batch, 1]
+    
+    def compute_loss(self, scores, labels):
+        """计算 ORM 损失"""
+        # labels: 最终答案是否正确 (0/1)
+        loss = F.binary_cross_entropy_with_logits(
+            scores.squeeze(-1),
+            labels.float()
+        )
+        return loss
+```
+
+**为什么过程监督更好**：
+
+```
+结果监督的问题：
+├── 信号稀疏：整个推理过程只有一个标签
+├── 归因困难：无法知道哪一步出错
+└── 学习困难：模型难以从最终结果反推正确步骤
+
+过程监督的优势：
+├── 信号密集：每一步都有反馈
+├── 精确归因：可以定位错误步骤
+├── 更易学习：直接学习正确步骤
+└── 泛化更好：学到的推理模式可迁移
+```
+
+**OpenAI 的研究发现**：
+
+在 MATH 数据集上的实验表明：
+- PRM 训练的模型在相同预算下准确率更高
+- PRM 更适合解决需要多步推理的问题
+- PRM 数据标注成本更高，但效果提升明显
+
 ## 对齐评估
 
 ### 评估指标

@@ -138,6 +138,261 @@ $$
 a_t = \arg\max_a \left[ Q_t(a) + c \sqrt{\frac{\ln t}{N_t(a)}} \right]
 $$
 
+## On-policy vs Off-policy
+
+强化学习算法根据数据来源的不同，可以分为 On-policy 和 Off-policy 两类。理解这一区别对于选择合适的算法至关重要。
+
+### On-policy（同策略）
+
+**定义**：智能体使用**当前策略**收集的数据来更新该策略本身。
+
+$$
+\pi_{\text{behavior}} = \pi_{\text{target}}
+$$
+
+即行为策略（收集数据的策略）与目标策略（被优化的策略）相同。
+
+**特点**：
+
+| 优点 | 缺点 |
+|------|------|
+| 方差较低，训练更稳定 | 数据效率低，每次策略更新后旧数据作废 |
+| 实现相对简单 | 需要大量交互采样 |
+| 理论分析更清晰 | 不适合离线学习场景 |
+
+**代表算法**：
+- SARSA
+- PPO（Proximal Policy Optimization）
+- TRPO（Trust Region Policy Optimization）
+- REINFORCE
+
+**代码示例**：
+
+```python
+class OnPolicyAgent:
+    """On-policy 智能体示例"""
+    def __init__(self, policy):
+        self.policy = policy
+        self.buffer = []  # 存储当前策略收集的数据
+    
+    def collect_trajectory(self, env):
+        """用当前策略收集数据"""
+        state = env.reset()
+        trajectory = []
+        
+        while True:
+            action = self.policy.select_action(state)  # 当前策略
+            next_state, reward, done, _ = env.step(action)
+            trajectory.append((state, action, reward, next_state))
+            state = next_state
+            
+            if done:
+                break
+        
+        return trajectory
+    
+    def update(self):
+        """使用收集的数据更新策略"""
+        # 更新后，旧数据不再使用（on-policy 特点）
+        for transition in self.buffer:
+            self.policy.update(transition)
+        self.buffer = []  # 清空缓冲区
+```
+
+### Off-policy（异策略）
+
+**定义**：智能体可以使用**不同策略**收集的数据来更新目标策略。
+
+$$
+\pi_{\text{behavior}} \neq \pi_{\text{target}}
+$$
+
+行为策略与目标策略可以不同，这意味着可以使用历史数据、其他智能体的数据或专家演示数据。
+
+**特点**：
+
+| 优点 | 缺点 |
+|------|------|
+| 数据效率高，可重用历史数据 | 方差较高，训练可能不稳定 |
+| 支持离线学习（Offline RL） | 需要重要性采样等技术处理分布偏差 |
+| 可以利用专家演示数据 | 实现复杂度较高 |
+
+**代表算法**：
+- Q-Learning
+- DQN（Deep Q-Network）
+- DDPG（Deep Deterministic Policy Gradient）
+- SAC（Soft Actor-Critic）
+
+**代码示例**：
+
+```python
+class OffPolicyAgent:
+    """Off-policy 智能体示例"""
+    def __init__(self, policy, behavior_policy=None):
+        self.policy = policy  # 目标策略
+        self.behavior_policy = behavior_policy or policy  # 行为策略
+        self.replay_buffer = []  # 经验回放缓冲区
+    
+    def collect_data(self, env, n_steps):
+        """用行为策略收集数据"""
+        for _ in range(n_steps):
+            state = env.reset()
+            action = self.behavior_policy.select_action(state)  # 行为策略
+            next_state, reward, done, _ = env.step(action)
+            
+            self.replay_buffer.append((state, action, reward, next_state))
+    
+    def update(self, batch_size):
+        """从缓冲区采样并更新目标策略"""
+        batch = random.sample(self.replay_buffer, batch_size)
+        
+        for state, action, reward, next_state in batch:
+            # 使用目标策略计算目标值
+            target = reward + self.policy.get_value(next_state)
+            self.policy.update(state, action, target)
+```
+
+### 关键区别总结
+
+| 维度 | On-policy | Off-policy |
+|------|-----------|------------|
+| 数据来源 | 当前策略收集 | 任意策略收集 |
+| 数据复用 | 不能复用 | 可以复用（经验回放） |
+| 样本效率 | 低 | 高 |
+| 算法稳定性 | 较高 | 需要额外技巧稳定 |
+| 适用场景 | 在线学习、模拟环境 | 离线学习、真实环境 |
+
+### 重要性采样
+
+Off-policy 算法需要使用重要性采样来修正分布偏差：
+
+$$
+\mathbb{E}_{\pi_b}[f(x)] = \mathbb{E}_{\pi_b}\left[f(x) \cdot \frac{\pi_t(x)}{\pi_b(x)}\right]
+$$
+
+其中 $\pi_t$ 是目标策略，$\pi_b$ 是行为策略，重要性权重为 $\frac{\pi_t(a|s)}{\pi_b(a|s)}$。
+
+---
+
+## Online vs Offline Learning
+
+强化学习还可以根据学习过程中是否需要与环境交互，分为 Online Learning 和 Offline Learning。
+
+### Online Learning（在线学习）
+
+**定义**：智能体在**实时与环境交互**过程中学习，边交互边优化策略。
+
+```
+交互 → 收集数据 → 更新策略 → 交互 → ...
+```
+
+**特点**：
+- 📌 **实时更新**：每次交互后立即更新策略
+- 📌 **探索必需**：需要主动探索未知状态
+- 📌 **环境依赖**：需要能够与环境实时交互
+- ⚠️ **安全风险**：在真实环境（如机器人、医疗）中可能造成损害
+
+**适用场景**：
+- 游戏AI（AlphaGo、Atari）
+- 模拟环境训练
+- 推荐系统（A/B测试）
+
+**代码示例**：
+
+```python
+def online_training(env, agent, n_episodes):
+    """在线学习流程"""
+    for episode in range(n_episodes):
+        state = env.reset()
+        
+        while True:
+            # 实时与环境交互
+            action = agent.select_action(state)
+            next_state, reward, done, _ = env.step(action)
+            
+            # 立即更新策略
+            agent.update(state, action, reward, next_state)
+            
+            state = next_state
+            if done:
+                break
+```
+
+### Offline Learning（离线学习）
+
+**定义**：智能体**仅使用预先收集的静态数据集**学习，不再与环境交互。
+
+```
+已有数据集 → 训练策略 → 部署
+```
+
+**特点**：
+- 📌 **数据固定**：只能使用已有的历史数据
+- 📌 **无需交互**：不需要实时访问环境
+- 📌 **安全可控**：不会在真实环境中造成损害
+- ⚠️ **分布偏差**：策略可能访问数据中未见过的状态
+
+**适用场景**：
+- 医疗决策（使用历史病历数据）
+- 自动驾驶（使用历史驾驶数据）
+- 推荐系统（使用历史交互日志）
+- 机器人控制（使用演示数据）
+
+**代码示例**：
+
+```python
+def offline_training(dataset, agent, n_epochs):
+    """离线学习流程"""
+    # 数据集是预先收集的，不再与环境交互
+    for epoch in range(n_epochs):
+        for batch in dataset.get_batches():
+            states, actions, rewards, next_states = batch
+            
+            # 仅使用数据集中的数据更新策略
+            agent.update(states, actions, rewards, next_states)
+    
+    return agent  # 训练完成后部署
+```
+
+### 分布偏移问题（Distribution Shift）
+
+Offline Learning 的核心挑战是**分布偏移**：训练数据中的状态分布与策略实际遇到的状态分布可能不同。
+
+```
+问题链条：
+策略 π 学习后行为改变 → 访问数据中未见的状态 → 模型在这些状态上表现未知 → 可能做出错误决策
+```
+
+**解决方案**：
+
+| 方法 | 思路 | 代表工作 |
+|------|------|----------|
+| 策略约束 | 限制策略不要偏离行为策略太远 | BCQ、BEAR |
+| 悲观估计 | 对未见状态给较低的价值估计 | CQL |
+| 数据增强 | 扩展数据覆盖范围 | MOPO |
+
+### Online vs Offline 对比
+
+| 维度 | Online Learning | Offline Learning |
+|------|-----------------|------------------|
+| 数据来源 | 实时交互收集 | 预先收集的静态数据 |
+| 环境访问 | 需要 | 不需要 |
+| 探索能力 | 可以主动探索 | 无法探索 |
+| 安全性 | 有风险 | 安全 |
+| 数据效率 | 可以针对性收集 | 受限于已有数据 |
+| 典型算法 | PPO、SAC、DQN | CQL、BCQ、IQL |
+
+### 与 LLM 对齐的关系
+
+在大语言模型对齐中，这两种学习方式都有应用：
+
+| 学习方式 | LLM 应用 | 说明 |
+|----------|----------|------|
+| **Online RLHF** | PPO 训练 | 实时采样、实时更新，效果更好但成本高 |
+| **Offline RLHF** | DPO 训练 | 使用固定的偏好数据集，成本低但效果受限于数据质量 |
+
+---
+
 ## 与其他机器学习方法的区别
 
 | 特征 | 监督学习 | 无监督学习 | 强化学习 |

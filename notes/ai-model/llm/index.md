@@ -75,6 +75,13 @@
 | [BERT模型与变体](./bert-models.md) | BERT架构、MLM/NSP预训练、RoBERTa/ALBERT/DistilBERT/ELECTRA/DeBERTa变体、中文BERT | ⭐⭐⭐ | ✅ 已完成 |
 | [主流大语言模型](./llm-models.md) | GPT系列架构演进、LLaMA系列设计、ChatGLM/Qwen/Baichuan/DeepSeek国产大模型 | ⭐⭐⭐⭐ | ✅ 已完成 |
 
+### 应用与评测章节
+
+| 章节 | 内容概要 | 难度 | 状态 |
+|------|----------|------|------|
+| [幻觉问题](./hallucination.md) | 幻觉定义与分类、来源分析、检测方法、缓解技术（RAG、自我验证） | ⭐⭐⭐ | ✅ 已完成 |
+| [模型评测](./evaluation.md) | 评测方法论、MMLU/HellaSwag/ARC基准、代码评测、数学评测、安全性评测、3H原则 | ⭐⭐⭐ | ✅ 已完成 |
+
 ### 进阶技术章节
 
 以下章节位于 AI 模型总目录，涵盖 LLM 训练与部署的关键技术：

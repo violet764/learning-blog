@@ -557,9 +557,829 @@ class FlashAttention(nn.Module):
         return output
 ```
 
-### 5. 批处理与流水线优化
+### 5. vLLM推理框架
 
-#### 5.1 动态批处理
+vLLM 是一个高性能的大语言模型推理和服务框架，通过创新的 PagedAttention 技术实现了高效的显存管理和推理加速。
+
+#### 5.1 PagedAttention核心原理
+
+##### 传统KV Cache的痛点
+
+在传统LLM推理中，KV Cache存在以下问题：
+
+1. **显存碎片化**：预分配固定大小的连续内存块，导致内存碎片
+2. **显存浪费**：不同请求的序列长度差异大，预分配导致浪费
+3. **内存限制**：最大序列长度受限于预分配的显存大小
+
+**传统KV Cache显存占用计算：**
+$$
+\text{Memory} = 2 \times L \times n_{\text{layers}} \times n_{\text{heads}} \times d_{\text{head}} \times \text{max\_seq\_len} \times \text{batch\_size}
+$$
+
+##### PagedAttention核心思想
+
+PagedAttention 将 KV Cache 划分为固定大小的**内存块（Block）**，类似于操作系统的虚拟内存分页机制：
+
+- **Block**：固定大小的内存单元，存储若干个 token 的 KV 数据
+- **逻辑块**：序列的逻辑存储单元
+- **物理块**：GPU 显存中的实际存储位置
+- **块表（Block Table）**：维护逻辑块到物理块的映射关系
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  Block Manager                       │
+├─────────────────────────────────────────────────────┤
+│  逻辑块     物理块         Block Table             │
+│  ┌───┐      ┌───┐        ┌───────────┐            │
+│  │ 0 │ ───→ │ 3 │        │ Seq 0: [3,7,2]        │
+│  ├───┤      ├───┤        │ Seq 1: [1,5]          │
+│  │ 1 │ ───→ │ 7 │        │ Seq 2: [4,8,6,0]      │
+│  ├───┤      ├───┤        └───────────┘            │
+│  │ 2 │ ───→ │ 2 │                                  │
+│  └───┘      ├───┤                                  │
+│             │ 1 │ ...（空闲块池）                   │
+│             └───┘                                  │
+└─────────────────────────────────────────────────────┘
+```
+
+##### KV Cache分页管理
+
+**数学表示：**
+
+对于序列 $s$ 的第 $i$ 个逻辑块，其对应的物理块索引为 $B_s[i]$：
+
+$$
+K_s[i] = \text{PhysicalBlock}[B_s[i]].K
+$$
+$$
+V_s[i] = \text{PhysicalBlock}[B_s[i]].V
+$$
+
+注意力计算时，需要遍历所有相关物理块：
+
+$$
+\text{Attention}(Q_t, K_s, V_s) = \text{softmax}\left(\frac{Q_t \cdot K_s^T}{\sqrt{d_k}}\right) \cdot V_s
+$$
+
+##### Block Manager架构
+
+```python
+class Block:
+    """物理内存块"""
+    def __init__(self, block_id: int, block_size: int, num_heads: int, head_dim: int):
+        self.block_id = block_id
+        self.block_size = block_size  # 每个块存储的token数量
+        self.num_tokens = 0  # 当前已使用的token数量
+        
+        # K/V缓存张量
+        self.k_cache = torch.zeros(block_size, num_heads, head_dim)
+        self.v_cache = torch.zeros(block_size, num_heads, head_dim)
+        
+        self.ref_count = 0  # 引用计数（用于共享）
+
+class BlockTable:
+    """块表：维护逻辑块到物理块的映射"""
+    def __init__(self):
+        self.tables: Dict[int, List[int]] = {}  # seq_id -> 物理块列表
+    
+    def allocate(self, seq_id: int, num_blocks: int, free_blocks: List[int]) -> List[int]:
+        """为序列分配物理块"""
+        allocated = free_blocks[:num_blocks]
+        self.tables[seq_id] = allocated
+        return allocated
+    
+    def get_physical_blocks(self, seq_id: int) -> List[int]:
+        """获取序列的物理块列表"""
+        return self.tables.get(seq_id, [])
+
+class BlockManager:
+    """块管理器：核心内存管理组件"""
+    
+    def __init__(self, num_blocks: int, block_size: int, num_heads: int, head_dim: int):
+        self.num_blocks = num_blocks
+        self.block_size = block_size
+        
+        # 预分配所有物理块
+        self.blocks = [
+            Block(i, block_size, num_heads, head_dim) 
+            for i in range(num_blocks)
+        ]
+        
+        # 空闲块池
+        self.free_blocks = list(range(num_blocks))
+        
+        # 块表
+        self.block_table = BlockTable()
+        
+        # 序列信息
+        self.seq_info: Dict[int, dict] = {}
+    
+    def allocate_sequence(self, seq_id: int, initial_len: int = 0):
+        """为序列分配内存"""
+        # 计算需要的块数量
+        num_blocks = (initial_len + self.block_size - 1) // self.block_size
+        num_blocks = max(1, num_blocks)  # 至少分配一个块
+        
+        if num_blocks > len(self.free_blocks):
+            raise MemoryError(f"显存不足：需要 {num_blocks} 个块，剩余 {len(self.free_blocks)} 个")
+        
+        # 从空闲池分配
+        allocated = []
+        for _ in range(num_blocks):
+            block_id = self.free_blocks.pop(0)
+            allocated.append(block_id)
+            self.blocks[block_id].ref_count = 1
+        
+        # 更新块表
+        self.block_table.tables[seq_id] = allocated
+        self.seq_info[seq_id] = {
+            'num_tokens': initial_len,
+            'blocks': allocated
+        }
+    
+    def append_token(self, seq_id: int):
+        """为序列添加新token"""
+        if seq_id not in self.seq_info:
+            raise ValueError(f"序列 {seq_id} 未分配")
+        
+        info = self.seq_info[seq_id]
+        info['num_tokens'] += 1
+        
+        # 检查是否需要新块
+        last_block = self.blocks[info['blocks'][-1]]
+        if last_block.num_tokens >= self.block_size:
+            # 分配新块
+            if not self.free_blocks:
+                raise MemoryError("显存不足，无法分配新块")
+            new_block_id = self.free_blocks.pop(0)
+            self.blocks[new_block_id].ref_count = 1
+            info['blocks'].append(new_block_id)
+        else:
+            last_block.num_tokens += 1
+    
+    def free_sequence(self, seq_id: int):
+        """释放序列占用的内存"""
+        if seq_id not in self.seq_info:
+            return
+        
+        blocks = self.seq_info[seq_id]['blocks']
+        for block_id in blocks:
+            self.blocks[block_id].ref_count -= 1
+            if self.blocks[block_id].ref_count == 0:
+                # 引用计数为0，归还空闲池
+                self.blocks[block_id].num_tokens = 0
+                self.free_blocks.append(block_id)
+        
+        del self.block_table.tables[seq_id]
+        del self.seq_info[seq_id]
+    
+    def get_memory_usage(self) -> dict:
+        """获取显存使用情况"""
+        used_blocks = self.num_blocks - len(self.free_blocks)
+        return {
+            'total_blocks': self.num_blocks,
+            'used_blocks': used_blocks,
+            'free_blocks': len(self.free_blocks),
+            'utilization': used_blocks / self.num_blocks
+        }
+```
+
+##### 与传统KV Cache对比
+
+| 特性 | 传统KV Cache | PagedAttention |
+|------|-------------|----------------|
+| **内存分配** | 预分配连续大块 | 按需分块分配 |
+| **内存碎片** | 严重碎片化 | 几乎无碎片 |
+| **内存利用率** | 20-40% | 接近100% |
+| **最大序列长度** | 固定限制 | 动态扩展 |
+| **共享内存** | 难以实现 | 原生支持 |
+| **内存开销** | O(max_seq_len × batch) | O(actual_seq_len) |
+
+#### 5.2 vLLM核心特性
+
+##### 连续批处理（Continuous Batching）
+
+传统批处理需要等待所有请求完成才能处理下一批，而连续批处理允许：
+
+- 新请求随时加入正在处理的批次
+- 已完成的请求立即释放资源
+- 不同请求可以有不同长度
+
+```
+传统批处理：
+时间 ──────────────────────────────────────────→
+批次1: [Req1━━━━━━━━━━━━━━━━━━━━━━━━━━━━]
+       [Req2━━━━━━━━━━━━━]                    
+       [Req3━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━]
+       等待所有请求完成后才能开始新批次
+
+连续批处理：
+时间 ──────────────────────────────────────────→
+GPU:  [Req1━━━━━━━━━━━━━━━━━━━━━━]
+      [Req2━━━━━━━━━━] ✓释放
+      [Req3━━━━━━━━━━━━━━━━━━━━━━━━━━]
+                        [Req4━━━━━━━━] ✓新请求加入
+                        [Req5━━━━━━━━━━━━━━]
+```
+
+```python
+class ContinuousBatcher:
+    """连续批处理器"""
+    
+    def __init__(self, model, max_num_seqs: int = 256, max_num_batched_tokens: int = 8192):
+        self.model = model
+        self.max_num_seqs = max_num_seqs
+        self.max_num_batched_tokens = max_num_batched_tokens
+        
+        # 请求队列
+        self.waiting_queue = []
+        self.running_seqs = {}  # seq_id -> SequenceInfo
+        
+        # 块管理器
+        self.block_manager = None  # 初始化时设置
+    
+    def add_request(self, prompt_tokens: List[int], sampling_params: dict):
+        """添加新请求到等待队列"""
+        seq_id = self._generate_seq_id()
+        self.waiting_queue.append({
+            'seq_id': seq_id,
+            'prompt_tokens': prompt_tokens,
+            'generated_tokens': [],
+            'sampling_params': sampling_params,
+            'is_finished': False
+        })
+        return seq_id
+    
+    def schedule(self) -> dict:
+        """调度策略：决定哪些序列参与当前迭代"""
+        scheduled = []
+        
+        # 1. 处理正在运行的序列
+        for seq_id, seq_info in list(self.running_seqs.items()):
+            if seq_info['is_finished']:
+                # 释放已完成的序列
+                self.block_manager.free_sequence(seq_id)
+                del self.running_seqs[seq_id]
+            else:
+                scheduled.append(seq_info)
+        
+        # 2. 从等待队列中添加新请求
+        current_tokens = sum(len(s['prompt_tokens']) + len(s['generated_tokens']) 
+                           for s in scheduled)
+        
+        while (self.waiting_queue and 
+               len(scheduled) < self.max_num_seqs and
+               current_tokens < self.max_num_batched_tokens):
+            
+            new_seq = self.waiting_queue.pop(0)
+            
+            # 尝试分配内存
+            try:
+                self.block_manager.allocate_sequence(
+                    new_seq['seq_id'], 
+                    len(new_seq['prompt_tokens'])
+                )
+                self.running_seqs[new_seq['seq_id']] = new_seq
+                scheduled.append(new_seq)
+                current_tokens += len(new_seq['prompt_tokens'])
+            except MemoryError:
+                # 显存不足，放回队列
+                self.waiting_queue.insert(0, new_seq)
+                break
+        
+        return self._prepare_batch(scheduled)
+    
+    def _prepare_batch(self, scheduled: List[dict]) -> dict:
+        """准备批次数据"""
+        if not scheduled:
+            return None
+        
+        # 收集所有token
+        input_ids = []
+        slot_mapping = []  # token到物理位置的映射
+        
+        for seq_info in scheduled:
+            tokens = seq_info['prompt_tokens'] + seq_info['generated_tokens']
+            input_ids.extend(tokens)
+            
+            # 计算slot mapping
+            blocks = self.block_manager.block_table.get_physical_blocks(seq_info['seq_id'])
+            for i, token in enumerate(tokens):
+                block_idx = i // self.block_manager.block_size
+                block_offset = i % self.block_manager.block_size
+                physical_block = blocks[block_idx]
+                slot_mapping.append(physical_block * self.block_manager.block_size + block_offset)
+        
+        return {
+            'input_ids': torch.tensor(input_ids),
+            'slot_mapping': torch.tensor(slot_mapping),
+            'sequences': scheduled
+        }
+    
+    def step(self):
+        """执行一次推理步骤"""
+        batch = self.schedule()
+        if batch is None:
+            return
+        
+        # 执行模型推理
+        logits = self.model.forward(batch['input_ids'], batch['slot_mapping'])
+        
+        # 为每个序列采样下一个token
+        for seq_info in batch['sequences']:
+            # 获取当前序列的logits
+            seq_len = len(seq_info['prompt_tokens']) + len(seq_info['generated_tokens'])
+            next_token_logits = logits[seq_len - 1]
+            
+            # 采样
+            next_token = self._sample(next_token_logits, seq_info['sampling_params'])
+            seq_info['generated_tokens'].append(next_token)
+            
+            # 更新块管理器
+            self.block_manager.append_token(seq_info['seq_id'])
+            
+            # 检查是否完成
+            if self._is_finished(seq_info):
+                seq_info['is_finished'] = True
+```
+
+##### 请求调度策略
+
+vLLM 实现了多种调度策略来优化吞吐量：
+
+```python
+class Scheduler:
+    """vLLM风格的调度器"""
+    
+    def __init__(self, block_manager, config):
+        self.block_manager = block_manager
+        self.config = config
+        
+        # 调度策略选项
+        self.policy = config.get('policy', 'fcfs')  # fcfs, priority, preempt
+    
+    def schedule(self, waiting: List, running: List) -> tuple:
+        """
+        调度决策
+        
+        Returns:
+            (scheduled_seqs, preempted_seqs, num_preempted_tokens)
+        """
+        scheduled = []
+        preempted = []
+        
+        # 策略1: FCFS (First Come First Serve)
+        if self.policy == 'fcfs':
+            scheduled, preempted = self._fcfs_schedule(waiting, running)
+        
+        # 策略2: 优先级调度
+        elif self.policy == 'priority':
+            scheduled, preempted = self._priority_schedule(waiting, running)
+        
+        # 策略3: 抢占式调度
+        elif self.policy == 'preempt':
+            scheduled, preempted = self._preemptive_schedule(waiting, running)
+        
+        return scheduled, preempted
+    
+    def _fcfs_schedule(self, waiting: List, running: List) -> tuple:
+        """先来先服务调度"""
+        # 先处理正在运行的序列
+        scheduled = running.copy()
+        
+        # 尝试添加等待序列
+        for seq in waiting:
+            if self._can_allocate(seq):
+                scheduled.append(seq)
+            else:
+                break
+        
+        return scheduled, []
+    
+    def _preemptive_schedule(self, waiting: List, running: List) -> tuple:
+        """抢占式调度：必要时暂停低优先级序列"""
+        scheduled = running.copy()
+        preempted = []
+        
+        for seq in waiting:
+            if not self._can_allocate(seq):
+                # 需要抢占
+                victim = self._select_victim(running)
+                if victim:
+                    self.block_manager.free_sequence(victim['seq_id'])
+                    running.remove(victim)
+                    preempted.append(victim)
+            
+            if self._can_allocate(seq):
+                self.block_manager.allocate_sequence(seq['seq_id'], len(seq['prompt_tokens']))
+                scheduled.append(seq)
+        
+        return scheduled, preempted
+```
+
+##### 显存优化效果
+
+```
+传统预分配方式显存使用：
+┌────────────────────────────────────────────────────────┐
+│ ████████████████████████████████████████████████░░░░░░░│
+│ ↑ 实际使用（约30%）                  ↑ 浪费（约70%）   │
+└────────────────────────────────────────────────────────┘
+
+PagedAttention显存使用：
+┌────────────────────────────────────────────────────────┐
+│ ████████████████████████████████████████████████████░░│
+│ ↑ 实际使用（约95%）                          ↑ 少量碎片 │
+└────────────────────────────────────────────────────────┘
+```
+
+##### 吞吐量提升分析
+
+**测试条件：LLaMA-7B, A100 GPU**
+
+| 场景 | HuggingFace | vLLM | 提升倍数 |
+|------|-------------|------|---------|
+| 单请求延迟 | 45ms/token | 42ms/token | 1.07x |
+| 批量推理（batch=32） | 120 req/s | 580 req/s | **4.8x** |
+| 长序列（2048 tokens） | 25 req/s | 95 req/s | **3.8x** |
+| 多请求并发 | 85 req/s | 420 req/s | **4.9x** |
+
+#### 5.3 vLLM使用示例
+
+##### 安装与配置
+
+```bash
+# 安装vLLM
+pip install vllm
+
+# 安装额外依赖（可选）
+pip install vllm[all]  # 包含所有可选依赖
+
+# 验证安装
+python -c "import vllm; print(vllm.__version__)"
+```
+
+##### 离线推理示例
+
+```python
+from vllm import LLM, SamplingParams
+
+# 初始化模型
+llm = LLM(
+    model="meta-llama/Llama-2-7b-hf",
+    tensor_parallel_size=1,  # 单GPU
+    gpu_memory_utilization=0.9,  # GPU显存利用率
+    max_model_len=4096,  # 最大序列长度
+    trust_remote_code=True,
+)
+
+# 设置采样参数
+sampling_params = SamplingParams(
+    temperature=0.8,
+    top_p=0.95,
+    max_tokens=256,
+    stop=["</s>", "\n\n"],  # 停止词
+)
+
+# 单个提示推理
+prompt = "请解释什么是深度学习："
+outputs = llm.generate([prompt], sampling_params)
+for output in outputs:
+    print(f"Prompt: {output.prompt}")
+    print(f"Generated: {output.outputs[0].text}")
+
+# 批量推理
+prompts = [
+    "什么是机器学习？",
+    "深度学习的优势是什么？",
+    "如何优化神经网络？",
+]
+outputs = llm.generate(prompts, sampling_params)
+
+for output in outputs:
+    print(f"\n问题: {output.prompt}")
+    print(f"回答: {output.outputs[0].text}")
+```
+
+##### 在线服务部署
+
+```python
+# 方式1: 使用vLLM内置API服务器
+# 启动命令（终端执行）：
+# python -m vllm.entrypoints.api_server \
+#     --model meta-llama/Llama-2-7b-hf \
+#     --host 0.0.0.0 \
+#     --port 8000 \
+#     --tensor-parallel-size 1
+
+# 客户端调用
+import requests
+
+response = requests.post(
+    "http://localhost:8000/generate",
+    json={
+        "prompt": "什么是人工智能？",
+        "max_tokens": 128,
+        "temperature": 0.7,
+    }
+)
+print(response.json())
+```
+
+```python
+# 方式2: OpenAI兼容API
+# 启动命令：
+# python -m vllm.entrypoints.openai.api_server \
+#     --model meta-llama/Llama-2-7b-hf \
+#     --host 0.0.0.0 \
+#     --port 8000
+
+# 使用OpenAI客户端
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="dummy",  # vLLM不需要真实API key
+)
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-2-7b-hf",
+    messages=[
+        {"role": "system", "content": "你是一个有帮助的AI助手。"},
+        {"role": "user", "content": "请解释Transformer架构的核心思想。"},
+    ],
+    max_tokens=512,
+    temperature=0.7,
+)
+print(response.choices[0].message.content)
+
+# 流式输出
+stream = client.chat.completions.create(
+    model="meta-llama/Llama-2-7b-hf",
+    messages=[{"role": "user", "content": "写一首关于AI的诗"}],
+    max_tokens=256,
+    stream=True,
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+```
+
+##### 关键参数配置
+
+```python
+from vllm import LLM, SamplingParams
+from vllm.engine.arg_utils import EngineArgs
+from vllm.engine.llm_engine import LLMEngine
+
+# 引擎参数详解
+engine_args = EngineArgs(
+    # 模型配置
+    model="meta-llama/Llama-2-7b-hf",
+    tokenizer="meta-llama/Llama-2-7b-hf",  # 可单独指定tokenizer
+    tokenizer_mode="auto",  # tokenizer加载模式
+    
+    # 并行配置
+    tensor_parallel_size=1,  # 张量并行度
+    pipeline_parallel_size=1,  # 流水线并行度
+    
+    # 内存配置
+    gpu_memory_utilization=0.9,  # GPU显存利用率上限
+    max_model_len=4096,  # 最大序列长度
+    block_size=16,  # 每个block的token数量
+    
+    # 批处理配置
+    max_num_seqs=256,  # 最大并发序列数
+    max_num_batched_tokens=8192,  # 每批次最大token数
+    
+    # 量化配置
+    quantization=None,  # 可选: "awq", "gptq", "fp8"
+    load_format="auto",  # 权重加载格式
+    
+    # 其他配置
+    dtype="auto",  # 数据类型: "auto", "float16", "bfloat16"
+    trust_remote_code=True,
+    enforce_eager=False,  # 是否强制使用eager模式
+)
+
+# 创建引擎
+engine = LLMEngine.from_engine_args(engine_args)
+
+# 采样参数详解
+sampling_params = SamplingParams(
+    # 基本参数
+    n=1,  # 每个提示生成的序列数
+    best_of=1,  # best-of采样数量
+    
+    # 长度控制
+    max_tokens=256,  # 最大生成token数
+    min_tokens=0,  # 最小生成token数
+    
+    # 采样策略
+    temperature=1.0,  # 温度参数（0表示贪婪）
+    top_p=1.0,  # nucleus采样
+    top_k=-1,  # top-k采样（-1表示禁用）
+    
+    # 惩罚参数
+    repetition_penalty=1.0,  # 重复惩罚
+    presence_penalty=0.0,  # 存在惩罚
+    frequency_penalty=0.0,  # 频率惩罚
+    
+    # 停止条件
+    stop=[],  # 停止词列表
+    stop_token_ids=[],  # 停止token ID列表
+    ignore_eos=False,  # 是否忽略EOS token
+    
+    # 其他
+    logprobs=None,  # 是否返回log概率
+    use_beam_search=False,  # 是否使用束搜索
+)
+```
+
+##### 高级功能示例
+
+```python
+from vllm import LLM, SamplingParams
+import asyncio
+from vllm.engine.async_llm_engine import AsyncLLMEngine
+from vllm.engine.arg_utils import AsyncEngineArgs
+
+# 异步引擎（适用于高并发服务）
+async def async_inference():
+    engine_args = AsyncEngineArgs(
+        model="meta-llama/Llama-2-7b-hf",
+        tensor_parallel_size=1,
+    )
+    engine = AsyncLLMEngine.from_engine_args(engine_args)
+    
+    results = []
+    
+    async def generate_one(prompt, request_id):
+        sampling_params = SamplingParams(max_tokens=100)
+        async for output in engine.generate(prompt, sampling_params, request_id):
+            pass
+        return output
+    
+    # 并发生成多个请求
+    tasks = [
+        generate_one(f"问题{i}: ", f"req_{i}")
+        for i in range(10)
+    ]
+    results = await asyncio.gather(*tasks)
+    
+    return results
+
+# 前缀缓存（Prefix Caching）
+llm = LLM(
+    model="meta-llama/Llama-2-7b-hf",
+    enable_prefix_caching=True,  # 启用前缀缓存
+)
+
+# 共享前缀的多个请求会复用KV Cache
+system_prompt = "你是一个专业的技术顾问，请详细回答以下问题："
+prompts = [
+    system_prompt + "什么是微服务架构？",
+    system_prompt + "什么是容器化技术？",
+    system_prompt + "什么是DevOps？",
+]
+# 后续请求会复用system_prompt的KV Cache
+
+# 指定输出格式（JSON模式）
+from vllm import RequestOutput
+
+sampling_params = SamplingParams(
+    max_tokens=256,
+    temperature=0.0,  # 确定性输出
+)
+
+prompt = """请以JSON格式返回以下信息：
+姓名：张三
+年龄：25
+职业：工程师
+
+JSON输出："""
+
+output = llm.generate([prompt], sampling_params)[0]
+print(output.outputs[0].text)
+```
+
+#### 5.4 推理框架对比
+
+##### vLLM vs TensorRT-LLM
+
+| 维度 | vLLM | TensorRT-LLM |
+|------|------|--------------|
+| **开发方** | UC Berkeley | NVIDIA |
+| **核心优势** | PagedAttention显存优化 | GPU底层深度优化 |
+| **易用性** | ⭐⭐⭐⭐⭐ 简单易用 | ⭐⭐⭐ 配置复杂 |
+| **性能** | 吞吐量优异 | 单请求延迟最优 |
+| **模型支持** | 广泛（HuggingFace生态） | 主流模型优化版 |
+| **硬件要求** | 通用GPU | NVIDIA GPU专属 |
+| **量化支持** | AWQ, GPTQ, FP8 | INT8, INT4, FP8 |
+| **适用场景** | 通用推理服务 | 追求极致性能 |
+
+```python
+# TensorRT-LLM使用示例（对比）
+import tensorrt_llm
+from tensorrt_llm.runtime import ModelRunner
+
+# TensorRT-LLM需要预先编译引擎
+runner = ModelRunner.from_dir(
+    engine_dir="./llama_trt_engine",
+    lora_dir=None,
+)
+
+# 推理
+output = runner.generate(
+    input_ids,
+    max_new_tokens=256,
+    top_k=1,
+)
+```
+
+##### vLLM vs llama.cpp
+
+| 维度 | vLLM | llama.cpp |
+|------|------|-----------|
+| **定位** | 生产级服务框架 | 轻量级本地推理 |
+| **语言** | Python | C++ |
+| **GPU支持** | CUDA（必需GPU） | CPU/CUDA/Metal |
+| **内存需求** | 较高 | 极低 |
+| **量化格式** | AWQ, GPTQ | GGUF（自研） |
+| **批处理** | 连续批处理 | 简单批处理 |
+| **部署难度** | 中等 | 低 |
+| **适用场景** | 云端服务 | 边缘设备、本地 |
+
+```python
+# llama.cpp Python绑定使用示例
+from llama_cpp import Llama
+
+# 加载GGUF量化模型
+llm = Llama(
+    model_path="./llama-2-7b.Q4_K_M.gguf",
+    n_ctx=4096,
+    n_gpu_layers=32,  # GPU加速层数
+)
+
+output = llm(
+    "什么是深度学习？",
+    max_tokens=256,
+    temperature=0.7,
+)
+print(output['choices'][0]['text'])
+```
+
+##### vLLM vs TGI (Text Generation Inference)
+
+| 维度 | vLLM | TGI |
+|------|------|-----|
+| **开发方** | 社区开源 | Hugging Face |
+| **架构** | 自研推理引擎 | 基于Rust + Python |
+| **API** | OpenAI兼容 | 自定义API |
+| **批处理** | Continuous Batching | Continuous Batching |
+| **量化** | 多种支持 | 仅bitsandbytes |
+| **部署** | 灵活（Docker/源码） | Docker为主 |
+| **监控** | 基础监控 | 集成Prometheus |
+| **文档** | 完善的API文档 | 企业级支持 |
+
+```bash
+# TGI Docker部署示例
+docker run --gpus all --shm-size 1g -p 8080:80 \
+  ghcr.io/huggingface/text-generation-inference:latest \
+  --model-id meta-llama/Llama-2-7b-hf \
+  --port 80
+```
+
+##### 框架选择建议
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    推理框架选择决策树                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  需要最高吞吐量？                                            │
+│  ├─ 是 → vLLM                                               │
+│  └─ 否 → 需要最低延迟？                                      │
+│           ├─ 是 → TensorRT-LLM                              │
+│           └─ 否 → 部署环境？                                 │
+│                    ├─ 边缘/本地 → llama.cpp                  │
+│                    └─ 云端服务 → vLLM 或 TGI                 │
+│                                                             │
+│  需要CPU推理？                                               │
+│  ├─ 是 → llama.cpp                                          │
+│  └─ 否 → vLLM / TensorRT-LLM                                │
+│                                                             │
+│  使用HuggingFace生态？                                       │
+│  ├─ 是 → TGI 或 vLLM                                        │
+│  └─ 否 → TensorRT-LLM                                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 6. 批处理与流水线优化
+
+#### 6.1 动态批处理
 ```python
 class DynamicBatcher:
     """动态批处理器"""

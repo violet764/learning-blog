@@ -14,3 +14,5 @@ a.py
 .iflow
 a.java
 a.class
+*.vscode
+*small_case

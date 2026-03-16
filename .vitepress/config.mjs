@@ -493,6 +493,7 @@ export default withMermaid(
 
       '/notes/ai-model/': [
         { text: '导览', link: '/notes/ai-model/index.md' },
+        { text: '知识点索引', link: '/notes/ai-model/knowledge-index.md' },
         {
           text: '大语言模型',
           collapsible: true,
@@ -502,11 +503,15 @@ export default withMermaid(
             { text: '嵌入层', link: '/notes/ai-model/llm/embedding.md' },
             { text: '注意力机制', link: '/notes/ai-model/llm/attention-mechanisms.md' },
             { text: '模型架构', link: '/notes/ai-model/llm/model-architecture.md' },
+            { text: '模型规模估算', link: '/notes/ai-model/llm/model-scaling.md' },
             { text: '预训练技术', link: '/notes/ai-model/llm/pretraining.md' },
+            { text: '增量预训练', link: '/notes/ai-model/llm/continued-pretraining.md' },
             { text: 'Bert', link: '/notes/ai-model/llm/bert-models.md' },
             { text: '微调与对齐', link: '/notes/ai-model/llm/finetuning-alignment.md' },
             { text: '经典模型', link: '/notes/ai-model/llm/llm-models.md' },
             { text: '推理优化', link: '/notes/ai-model/llm/inference-optimization.md' },
+            { text: '幻觉问题', link: '/notes/ai-model/llm/hallucination.md' },
+            { text: '模型评测', link: '/notes/ai-model/llm/evaluation.md' },
           ]
         },
         {
@@ -536,6 +541,31 @@ export default withMermaid(
             { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
 
             { text: '未来趋势', link: '/notes/ai-model/applications/future-trends.md' },
+          ]
+        },
+        {
+          text: '分布式训练',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/distributed-training/index.md' },
+            { text: '基本概念', link: '/notes/ai-model/distributed-training/basics.md' },
+            { text: '数据并行', link: '/notes/ai-model/distributed-training/data-parallel.md' },
+            { text: '张量并行', link: '/notes/ai-model/distributed-training/tensor-parallel.md' },
+            { text: '流水线并行', link: '/notes/ai-model/distributed-training/pipeline-parallel.md' },
+            { text: 'ZeRO优化', link: '/notes/ai-model/distributed-training/zero-optimization.md' },
+            { text: 'DeepSpeed实践', link: '/notes/ai-model/distributed-training/deepspeed.md' },
+          ]
+        },
+        {
+          text: 'RAG 检索增强',
+          collapsible: true,
+          items: [
+            { text: '导览', link: '/notes/ai-model/rag/index.md' },
+            { text: 'RAG解决的问题', link: '/notes/ai-model/rag/rag-basics.md' },
+            { text: '检索器模块', link: '/notes/ai-model/rag/retriever.md' },
+            { text: '生成器模块', link: '/notes/ai-model/rag/generator.md' },
+            { text: '高级RAG技术', link: '/notes/ai-model/rag/advanced-rag.md' },
+            { text: 'RAG vs SFT对比', link: '/notes/ai-model/rag/rag-vs-sft.md' },
           ]
         },
         {

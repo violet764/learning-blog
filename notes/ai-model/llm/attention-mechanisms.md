@@ -180,6 +180,100 @@ if __name__ == "__main__":
     demo_scaled_dot_product()
 ```
 
+### 2.5 因果注意力（Causal Attention）
+
+因果注意力（Causal Attention），又称单向注意力或掩码自注意力，是 Decoder-only 架构（如 GPT 系列）的核心组件。它确保每个位置只能关注到其之前的位置，实现自回归生成。
+
+#### 为什么需要因果掩码？
+
+在自回归语言模型中，生成第 $t$ 个 token 时，模型不应该"看到"未来的 token：
+
+```
+输入序列: [A, B, C, D, E]
+位置 t=2 只能看到: [A, B]
+位置 t=3 只能看到: [A, B, C]
+位置 t=4 只能看到: [A, B, C, D]
+```
+
+如果没有因果掩码，模型在训练时会"作弊"——通过看到未来的 token 来预测当前 token。
+
+#### 因果掩码的实现
+
+因果掩码是一个下三角矩阵，上三角部分被设为负无穷（softmax 后变为 0）：
+
+$$
+M_{causal} = \begin{bmatrix}
+0 & -\infty & -\infty & -\infty \\
+0 & 0 & -\infty & -\infty \\
+0 & 0 & 0 & -\infty \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+**PyTorch 实现：**
+
+```python
+def create_causal_mask(seq_len):
+    """创建因果掩码（下三角矩阵）"""
+    # torch.tril 生成下三角矩阵
+    mask = torch.tril(torch.ones(seq_len, seq_len))
+    # 将 0 替换为负无穷，1 保持为 0
+    mask = mask.masked_fill(mask == 0, float('-inf'))
+    return mask
+
+# 示例
+seq_len = 5
+causal_mask = create_causal_mask(seq_len)
+print(causal_mask)
+# tensor([[0., -inf, -inf, -inf, -inf],
+#         [0., 0., -inf, -inf, -inf],
+#         [0., 0., 0., -inf, -inf],
+#         [0., 0., 0., 0., -inf],
+#         [0., 0., 0., 0., 0.]])
+```
+
+#### 带因果掩码的注意力计算
+
+```python
+def causal_attention(query, key, value):
+    """因果注意力计算"""
+    d_k = query.size(-1)
+    seq_len = query.size(-2)
+    
+    # 计算注意力分数
+    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
+    
+    # 应用因果掩码
+    causal_mask = create_causal_mask(seq_len)
+    scores = scores + causal_mask  # 加上掩码（-inf 位置会变成 -inf）
+    
+    # Softmax（-inf 会变成 0）
+    attn_weights = F.softmax(scores, dim=-1)
+    
+    # 加权求和
+    output = torch.matmul(attn_weights, value)
+    
+    return output, attn_weights
+```
+
+#### 因果注意力的特点
+
+| 特性 | 描述 |
+|------|------|
+| **单向性** | 每个位置只能看到历史信息 |
+| **自回归** | 支持逐 token 生成 |
+| **训练并行** | 虽然生成是串行的，但训练可以并行 |
+| **位置敏感** | 位置信息尤为重要（无法看到未来） |
+
+#### 与双向注意力的对比
+
+| 特性 | 因果注意力（Decoder） | 双向注意力（Encoder） |
+|------|----------------------|----------------------|
+| 可见范围 | 只能看到之前的位置 | 可以看到所有位置 |
+| 适用任务 | 文本生成、对话 | 文本理解、分类 |
+| 代表模型 | GPT、LLaMA | BERT、RoBERTa |
+| 训练目标 | 预测下一个 token | MLM、句子分类 |
+
 ---
 
 ## 三、多头注意力（MHA）
