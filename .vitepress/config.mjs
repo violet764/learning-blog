@@ -367,6 +367,14 @@ export default withMermaid(
               { text: '学习理论', link: '/notes/machine-learning/model-evaluation/learning-theory.md' },
               { text: '统计检验', link: '/notes/machine-learning/model-evaluation/statistical-tests.md' }
             ]
+          },
+          {
+            text: '其他内容',
+            collapsible: true,
+            items: [
+              { text: 'TF-IDF详解', link: '/notes/machine-learning/other/tf-idf.md' },
+              { text: '条件随机场(CRF)', link: '/notes/machine-learning/other/crf.md' }
+            ]
           }
         ],
 
