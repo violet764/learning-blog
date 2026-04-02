@@ -4,6 +4,7 @@ dist
 dist-ssr
 cache
 .cache
+*.omx
 .temp
 prompt.txt
 *.local

@@ -109,6 +109,7 @@ export default withMermaid(
             { text: 'LLM', link: '/notes/ai-model/llm/index.md' },
             { text: '视觉模型', link: '/notes/ai-model/cv/index.md' },
             { text: '多模态', link: '/notes/ai-model/multimodal/index.md' },
+            { text: '世界模型', link: '/notes/ai-model/world-model/index.md' },
             { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
             { text: '常用库', link: '/notes/framework' }
           ]
@@ -530,6 +531,18 @@ export default withMermaid(
             ]
           },
           {
+            text: '世界模型',
+            collapsible: true,
+            items: [
+              { text: '导览', link: '/notes/ai-model/world-model/index.md' },
+              { text: '基础概念', link: '/notes/ai-model/world-model/basics.md' },
+              { text: '架构设计', link: '/notes/ai-model/world-model/architectures.md' },
+              { text: 'Dreamer系列', link: '/notes/ai-model/world-model/dreamer.md' },
+              { text: '应用场景', link: '/notes/ai-model/world-model/applications.md' },
+              { text: '经典论文', link: '/notes/ai-model/world-model/papers.md' }
+            ]
+          },
+          {
             text: '分布式训练',
             collapsible: true,
             items: [
@@ -549,6 +562,8 @@ export default withMermaid(
               { text: '导览', link: '/notes/ai-model/rag/index.md' },
               { text: 'RAG解决的问题', link: '/notes/ai-model/rag/rag-basics.md' },
               { text: '检索器模块', link: '/notes/ai-model/rag/retriever.md' },
+              { text: 'TF-IDF与BM25', link: '/notes/ai-model/rag/tfidf-bm25.md' },
+              { text: '重排序技术', link: '/notes/ai-model/rag/reranking.md' },
               { text: '生成器模块', link: '/notes/ai-model/rag/generator.md' },
               { text: '高级RAG技术', link: '/notes/ai-model/rag/advanced-rag.md' },
               { text: 'RAG vs SFT对比', link: '/notes/ai-model/rag/rag-vs-sft.md' }
