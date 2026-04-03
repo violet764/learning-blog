@@ -1,31 +1,38 @@
 // https://vitepress.dev/guide/custom-theme
-import { h } from 'vue'
+import { h, defineAsyncComponent } from 'vue'
 
 import DefaultTheme from 'vitepress/theme'
+
+// 全局使用的组件（同步加载）
 import PageProgressBar from './components/PageProgressBar.vue'
 import BackToTop from './components/BackToTop.vue'
-import ReadingProgress from './components/ReadingProgress.vue'
-import DocMeta from './components/DocMeta.vue'
-import ArticleMeta from './components/ArticleMeta.vue' // 自定义元信息组件
-import TagCloud from './components/TagCloud.vue'     // 自定义标签云组件
 import ImageZoom from './components/ImageZoom.vue'
-import RssReader from './components/RssReader.vue'
 import HeroBackground from './components/HeroBackground.vue'
 import CursorEffect from './components/CursorEffect.vue'
-import BFSAnimation from './components/BFSAnimation.vue'
-import BidirectionalSearch from './components/BidirectionalSearch.vue'
-import AStarSearch from './components/AStarSearch.vue'
-import KMPSearch from './components/KMPSearch.vue'
-import DFSAnimation from './components/DFSAnimation.vue'
-import DijkstraAnimation from './components/DijkstraAnimation.vue'
-import TrieAnimation from './components/TrieAnimation.vue'
-import BITAnimation from './components/BITAnimation.vue'
-import SegmentTreeAnimation from './components/SegmentTreeAnimation.vue'
-import UnionFindAnimation from './components/UnionFindAnimation.vue'
-import FloydAnimation from './components/FloydAnimation.vue'
-import SelfAttentionAnimation from './components/SelfAttentionAnimation.vue'
-import MultiHeadAttentionAnimation from './components/MultiHeadAttentionAnimation.vue'
-import PositionalEncodingAnimation from './components/PositionalEncodingAnimation.vue'
+
+// 按需加载的组件（异步加载，减少初始包体积）
+const ArticleMeta = defineAsyncComponent(() => import('./components/ArticleMeta.vue'))
+const TagCloud = defineAsyncComponent(() => import('./components/TagCloud.vue'))
+const RssReader = defineAsyncComponent(() => import('./components/RssReader.vue'))
+
+// 算法动画组件（仅在特定页面使用，异步加载）
+const BFSAnimation = defineAsyncComponent(() => import('./components/BFSAnimation.vue'))
+const BidirectionalSearch = defineAsyncComponent(() => import('./components/BidirectionalSearch.vue'))
+const AStarSearch = defineAsyncComponent(() => import('./components/AStarSearch.vue'))
+const KMPSearch = defineAsyncComponent(() => import('./components/KMPSearch.vue'))
+const DFSAnimation = defineAsyncComponent(() => import('./components/DFSAnimation.vue'))
+const DijkstraAnimation = defineAsyncComponent(() => import('./components/DijkstraAnimation.vue'))
+const TrieAnimation = defineAsyncComponent(() => import('./components/TrieAnimation.vue'))
+const BITAnimation = defineAsyncComponent(() => import('./components/BITAnimation.vue'))
+const SegmentTreeAnimation = defineAsyncComponent(() => import('./components/SegmentTreeAnimation.vue'))
+const UnionFindAnimation = defineAsyncComponent(() => import('./components/UnionFindAnimation.vue'))
+const FloydAnimation = defineAsyncComponent(() => import('./components/FloydAnimation.vue'))
+
+// Transformer 动画组件（仅在特定页面使用，异步加载）
+const SelfAttentionAnimation = defineAsyncComponent(() => import('./components/SelfAttentionAnimation.vue'))
+const MultiHeadAttentionAnimation = defineAsyncComponent(() => import('./components/MultiHeadAttentionAnimation.vue'))
+const PositionalEncodingAnimation = defineAsyncComponent(() => import('./components/PositionalEncodingAnimation.vue'))
+
 import './style.css'
 
 /** @type {import('vitepress').Theme} */
@@ -35,11 +42,8 @@ export default {
     return h(DefaultTheme.Layout, null, {
       'layout-top': () => [
         h(PageProgressBar),
-        h(HeroBackground),
-        // h(ReadingProgress)
+        h(HeroBackground)
       ],
-      // 'doc-before': () => h(DocMeta),
-      // 使用布局插槽添加全局组件
       'layout-bottom': () => [
         h(BackToTop), 
         h(ImageZoom),
@@ -50,11 +54,15 @@ export default {
   enhanceApp(ctx) {
     DefaultTheme.enhanceApp?.(ctx)
 
+    // 全局注册基础组件
     ctx.app.component('PageProgressBar', PageProgressBar)
 
+    // 异步注册其他组件
     ctx.app.component('ArticleMeta', ArticleMeta)
     ctx.app.component('TagCloud', TagCloud)
     ctx.app.component('RssReader', RssReader)
+    
+    // 算法动画组件
     ctx.app.component('BFSAnimation', BFSAnimation)
     ctx.app.component('BidirectionalSearch', BidirectionalSearch)
     ctx.app.component('AStarSearch', AStarSearch)
@@ -66,26 +74,10 @@ export default {
     ctx.app.component('SegmentTreeAnimation', SegmentTreeAnimation)
     ctx.app.component('UnionFindAnimation', UnionFindAnimation)
     ctx.app.component('FloydAnimation', FloydAnimation)
+    
+    // Transformer 动画组件
     ctx.app.component('SelfAttentionAnimation', SelfAttentionAnimation)
     ctx.app.component('MultiHeadAttentionAnimation', MultiHeadAttentionAnimation)
     ctx.app.component('PositionalEncodingAnimation', PositionalEncodingAnimation)
-    // 可以在所有页面中添加点击效果
-    if (typeof window !== 'undefined') {
-      window.addEventListener('DOMContentLoaded', () => {
-        const cards = document.querySelectorAll('.card.clickable')
-        cards.forEach(card => {
-          card.addEventListener('click', function() {
-            // 添加点击动画
-            this.style.transform = 'scale(0.98)'
-            setTimeout(() => {
-              this.style.transform = ''
-            }, 150)
-          })
-        })
-      })
-    }
   }
 }
-
-
-

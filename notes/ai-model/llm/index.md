@@ -88,9 +88,9 @@
 
 | 章节 | 内容概要 | 难度 |
 |------|----------|------|
-| [预训练原理](../pretraining-principles.md) | 预训练目标、数据准备、训练策略 | ⭐⭐⭐ |
-| [微调与对齐](../finetuning-alignment.md) | 指令微调、RLHF、DPO、安全对齐 | ⭐⭐⭐⭐ |
-| [推理优化](../inference-optimization.md) | 量化、KV Cache、推测解码、并行推理 | ⭐⭐⭐ |
+| [预训练原理](/notes/ai-model/pretraining-principles.md) | 预训练目标、数据准备、训练策略 | ⭐⭐⭐ |
+| [微调与对齐](/notes/ai-model/finetuning-alignment.md) | 指令微调、RLHF、DPO、安全对齐 | ⭐⭐⭐⭐ |
+| [推理优化](/notes/ai-model/inference-optimization.md) | 量化、KV Cache、推测解码、并行推理 | ⭐⭐⭐ |
 
 ---
 
@@ -149,9 +149,9 @@ Week 5-6: 预训练原理
 
 | 知识领域 | 具体要求 | 推荐资源 |
 |----------|----------|----------|
-| **Python 编程** | 熟练使用 Python，了解 NumPy、PyTorch | [PyTorch 基础教程](../deep-learning/pytorch/index.md) |
-| **深度学习基础** | 神经网络、反向传播、优化器、正则化 | [深度学习基础](../deep-learning/01-neural-network-basics.md) |
-| **Transformer 架构** | Encoder-Decoder 结构、位置编码 | [Transformer 详解](../deep-learning/05-transformer.md) |
+| **Python 编程** | 熟练使用 Python，了解 NumPy、PyTorch | [PyTorch 基础教程](/notes/deep-learning/pytorch/index.md) |
+| **深度学习基础** | 神经网络、反向传播、优化器、正则化 | [深度学习基础](/notes/deep-learning/01-neural-network-basics.md) |
+| **Transformer 架构** | Encoder-Decoder 结构、位置编码 | [Transformer 详解](/notes/deep-learning/07-transformer.md) |
 | **线性代数** | 矩阵运算、向量空间、特征值分解 | 大学课程或 3Blue1Brown 视频 |
 | **概率统计** | 概率分布、期望、方差、最大似然估计 | 大学课程或相关教材 |
 
@@ -267,9 +267,9 @@ pip install flash-attn --no-build-isolation
 
 ## 🔗 相关章节
 
-- [AI 模型基础](../ai-model-basics.md) - AI 模型的发展历程与基本概念
-- [深度学习](../deep-learning/index.md) - 神经网络、优化器、CNN、RNN、Transformer
-- [强化学习](../reinforcement-learning/index.md) - RLHF 所需的强化学习基础
+- [AI 模型基础](/notes/ai-model/ai-model-basics.md) - AI 模型的发展历程与基本概念
+- [深度学习](/notes/deep-learning/index.md) - 神经网络、优化器、CNN、RNN、Transformer
+- [强化学习](/notes/reinforcement-learning/index.md) - RLHF 所需的强化学习基础
 
 ---
 

@@ -89,7 +89,6 @@ mindmap
 | **背包问题** | 01背包、完全背包、多重背包 | ⭐⭐⭐ | [dp-knapsack.md](./dp-knapsack.md) |
 | **高级DP** | 区间DP、树形DP、状态压缩 | ⭐⭐⭐⭐ | [dp-advanced.md](./dp-advanced.md) |
 | **贪心算法** | 贪心策略、正确性证明 | ⭐⭐ | [greedy.md](./greedy.md) |
-| **分治算法** | 分治思想、归并排序应用 | ⭐⭐ | [divide-conquer.md](./divide-conquer.md) |
 
 ### 阶段五：字符串算法
 

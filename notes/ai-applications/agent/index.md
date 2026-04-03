@@ -97,7 +97,7 @@ Agent = LLM + 工具 + 循环
 ### 开源项目
 - [LangChain](https://github.com/langchain-ai/langchain) - Agent 开发框架
 - [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT) - 自主 Agent 实现
-- [OpenClaw](./../tools/openclaw-intro.md) - 自托管 AI Agent 框架
+- [OpenClaw](/notes/ai-applications/applications/openclaw-intro.md) - 自托管 AI Agent 框架
 
 ### 文档
 - [Anthropic: Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)

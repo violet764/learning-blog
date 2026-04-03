@@ -1844,8 +1844,8 @@ recommended_models = {
 
 | 章节 | 关系 | 延伸阅读 |
 |------|------|----------|
-| **CNN 基础** | 视觉模型的基石 | [深度学习-CNN](../deep-learning/03-cnn.md) |
-| **Transformer** | ViT 的核心机制 | [深度学习-Transformer](../deep-learning/05-transformer.md) |
+| **CNN 基础** | 视觉模型的基石 | [深度学习-CNN](/notes/deep-learning/05-cnn.md) |
+| **Transformer** | ViT 的核心机制 | [深度学习-Transformer](/notes/deep-learning/07-transformer.md) |
 | **目标检测** | 骨干网络应用 | [目标检测](./object-detection.md) |
 | **多模态模型** | 视觉编码器 | [多模态模型](../multimodal/index.md) |
 | **模型微调** | 预训练模型应用 | [微调与对齐](../finetuning-alignment.md) |

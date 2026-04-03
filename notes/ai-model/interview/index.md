@@ -220,10 +220,10 @@ Attention 机制是一种让模型关注输入序列中重要部分的技术。
 
 | 资源 | 说明 |
 |------|------|
-| [深度学习基础](../deep-learning/index.md) | 系统学习深度学习原理 |
-| [LLM 核心技术](../llm/index.md) | 深入理解大语言模型 |
-| [微调与对齐](../finetuning-alignment.md) | 学习微调和对齐技术 |
-| [推理优化](../inference-optimization.md) | 掌握模型部署优化 |
+| [深度学习基础](/notes/deep-learning/index.md) | 系统学习深度学习原理 |
+| [LLM 核心技术](/notes/ai-model/llm/index.md) | 深入理解大语言模型 |
+| [微调与对齐](/notes/ai-model/finetuning-alignment.md) | 学习微调和对齐技术 |
+| [推理优化](/notes/ai-model/inference-optimization.md) | 掌握模型部署优化 |
 
 ### 参考项目
 

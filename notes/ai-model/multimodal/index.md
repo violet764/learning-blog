@@ -171,9 +171,9 @@
 
 ### 推荐前置学习
 
-- [深度学习基础](../deep-learning/index.md)：神经网络、CNN、Transformer
-- [LLM 基础](../llm/index.md)：语言模型架构、注意力机制
-- [CV 模型](../cv/index.md)：视觉编码器、图像分类
+- [深度学习基础](/notes/deep-learning/index.md)：神经网络、CNN、Transformer
+- [LLM 基础](/notes/ai-model/llm/index.md)：语言模型架构、注意力机制
+- [CV 模型](/notes/ai-model/cv/index.md)：视觉编码器、图像分类
 
 ---
 

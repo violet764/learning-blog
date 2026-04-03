@@ -125,9 +125,9 @@ Week 5-6: 目标检测入门
 
 | 知识领域 | 具体要求 | 推荐资源 |
 |----------|----------|----------|
-| **Python 编程** | 熟练使用 Python，了解 NumPy | [Python 基础](../language/python/index.md) |
-| **深度学习基础** | 神经网络、反向传播、优化器 | [深度学习基础](../deep-learning/01-neural-network-basics.md) |
-| **CNN 原理** | 卷积层、池化层、特征图 | [CNN 详解](../deep-learning/03-cnn.md) |
+| **Python 编程** | 熟练使用 Python，了解 NumPy | [Python 基础](/notes/language/python/index.md) |
+| **深度学习基础** | 神经网络、反向传播、优化器 | [深度学习基础](/notes/deep-learning/01-neural-network-basics.md) |
+| **CNN 原理** | 卷积层、池化层、特征图 | [CNN 详解](/notes/deep-learning/05-cnn.md) |
 | **线性代数** | 矩阵运算、向量空间 | 大学课程或 3Blue1Brown 视频 |
 | **概率统计** | 概率分布、期望、方差 | 大学课程或相关教材 |
 
@@ -249,8 +249,8 @@ pip install diffusers transformers accelerate
 
 ## 🔗 相关章节
 
-- [深度学习 - CNN](../deep-learning/03-cnn.md) - CNN 基础原理
-- [深度学习 - Transformer](../deep-learning/05-transformer.md) - Transformer 架构详解
+- [深度学习 - CNN](/notes/deep-learning/05-cnn.md) - CNN 基础原理
+- [深度学习 - Transformer](/notes/deep-learning/07-transformer.md) - Transformer 架构详解
 - [AI 模型基础](../ai-model-basics.md) - AI 模型的发展历程
 - [多模态模型](../multimodal/index.md) - 视觉-语言多模态模型
 

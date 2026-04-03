@@ -1224,11 +1224,11 @@ print(f"模型参数数量: {sum(p.numel() for p in model.parameters()):,}")
 
 | 本章概念 | 关联章节 | 关联说明 |
 |:---|:---|:---|
-| 激活函数 | [激活函数详解](02-activations.md) | 激活函数的选择影响初始化策略 |
-| 优化算法 | [优化算法详解](01-optimizers.md) | 梯度下降是参数更新的基础 |
+| 激活函数 | [激活函数详解](03-activations.md) | 激活函数的选择影响初始化策略 |
+| 优化算法 | [优化算法详解](02-optimizers.md) | 梯度下降是参数更新的基础 |
 | 正则化 | [正则化技术](04-regularization.md) | 初始化与正则化共同影响泛化能力 |
-| CNN | [卷积神经网络](03-cnn.md) | CNN 是 MLP 的推广，共享权重 |
-| RNN | [循环神经网络](04-rnn-family.md) | RNN 的反向传播需要处理时间维度 |
+| CNN | [卷积神经网络](05-cnn.md) | CNN 是 MLP 的推广，共享权重 |
+| RNN | [循环神经网络](06-rnn-family.md) | RNN 的反向传播需要处理时间维度 |
 
 ---
 

@@ -231,8 +231,8 @@ Week 3-4: 项目实战
 
 | 知识领域 | 具体要求 | 推荐资源 |
 |----------|----------|----------|
-| **Python 编程** | 熟练使用 Python | [Python 基础](../language/python/index.md) |
-| **LLM 基础** | 了解 Transformer、Embedding | [LLM 导览](../llm/index.md) |
+| **Python 编程** | 熟练使用 Python | [Python 基础](/notes/language/python/index.md) |
+| **LLM 基础** | 了解 Transformer、Embedding | [LLM 导览](/notes/ai-model/llm/index.md) |
 | **向量运算** | 理解向量、相似度计算 | 线性代数基础 |
 
 ### 推荐先学内容

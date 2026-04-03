@@ -236,8 +236,8 @@
 ## 🔗 相关章节
 
 - [强化学习](/notes/reinforcement-learning/index.md) - 世界模型的主要应用场景
-- [多模态模型](../multimodal/index.md) - 视频生成与世界模型的交叉
-- [AI智能体](../agent/index.md) - 世界模型驱动的智能体
+- [多模态模型](/notes/ai-model/multimodal/index.md) - 视频生成与世界模型的交叉
+- [AI智能体](/notes/ai-applications/agent/index.md) - 世界模型驱动的智能体
 
 ---
 

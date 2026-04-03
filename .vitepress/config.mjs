@@ -52,7 +52,49 @@ export default withMermaid(
         ]
       },
       build: {
-        chunkSizeWarningLimit: 1500
+        chunkSizeWarningLimit: 1500,
+        // 优化构建性能
+        rollupOptions: {
+          output: {
+            manualChunks(id) {
+              // 将大型库分离到单独的chunk
+              if (id.includes('node_modules/mermaid')) {
+                return 'mermaid-vendor'
+              }
+              if (id.includes('node_modules/d3')) {
+                return 'd3-vendor'
+              }
+              if (id.includes('node_modules/cytoscape')) {
+                return 'cytoscape-vendor'
+              }
+              if (id.includes('node_modules/katex')) {
+                return 'katex-vendor'
+              }
+            }
+          }
+        },
+        // 启用压缩
+        minify: 'terser',
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true
+          }
+        }
+      },
+      // 开发服务器优化
+      server: {
+        // 启用文件系统缓存
+        fs: {
+          cachedChecks: true
+        },
+        // 预热常用文件
+        warmup: {
+          clientFiles: [
+            './.vitepress/theme/index.js',
+            './index.md'
+          ]
+        }
       }
     },
 
@@ -110,8 +152,18 @@ export default withMermaid(
             { text: '视觉模型', link: '/notes/ai-model/cv/index.md' },
             { text: '多模态', link: '/notes/ai-model/multimodal/index.md' },
             { text: '世界模型', link: '/notes/ai-model/world-model/index.md' },
-            { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
-            { text: '常用库', link: '/notes/framework' }
+            { text: '分布式训练', link: '/notes/ai-model/distributed-training/index.md' },
+            { text: '面试指南', link: '/notes/ai-model/interview/index.md' }
+          ]
+        },
+        {
+          text: 'AI应用',
+          items: [
+            { text: '导览', link: '/notes/ai-applications/index.md' },
+            { text: 'RAG检索增强', link: '/notes/ai-applications/rag/index.md' },
+            { text: 'AI智能体', link: '/notes/ai-applications/agent/index.md' },
+            { text: '应用案例', link: '/notes/ai-applications/applications/index.md' },
+            { text: '常用框架', link: '/notes/framework' }
           ]
         },
         {
@@ -522,15 +574,6 @@ export default withMermaid(
             ]
           },
           {
-            text: '应用与前沿',
-            collapsible: true,
-            items: [
-              { text: '导览', link: '/notes/ai-model/applications/index.md' },
-              { text: 'AI智能体', link: '/notes/ai-model/applications/agentic-ai.md' },
-              { text: '未来趋势', link: '/notes/ai-model/applications/future-trends.md' }
-            ]
-          },
-          {
             text: '世界模型',
             collapsible: true,
             items: [
@@ -556,32 +599,6 @@ export default withMermaid(
             ]
           },
           {
-            text: 'RAG 检索增强',
-            collapsible: true,
-            items: [
-              { text: '导览', link: '/notes/ai-model/rag/index.md' },
-              { text: 'RAG解决的问题', link: '/notes/ai-model/rag/rag-basics.md' },
-              { text: '检索器模块', link: '/notes/ai-model/rag/retriever.md' },
-              { text: 'TF-IDF与BM25', link: '/notes/ai-model/rag/tfidf-bm25.md' },
-              { text: '重排序技术', link: '/notes/ai-model/rag/reranking.md' },
-              { text: '生成器模块', link: '/notes/ai-model/rag/generator.md' },
-              { text: '高级RAG技术', link: '/notes/ai-model/rag/advanced-rag.md' },
-              { text: 'RAG vs SFT对比', link: '/notes/ai-model/rag/rag-vs-sft.md' }
-            ]
-          },
-          {
-            text: 'Agent 学习指南',
-            collapsible: true,
-            items: [
-              { text: '导览', link: '/notes/ai-model/agent/index.md' },
-              { text: 'Agent 基础概念', link: '/notes/ai-model/agent/agent-basics.md' },
-              { text: 'ReAct与工具调用', link: '/notes/ai-model/agent/agent-react-tools.md' },
-              { text: 'CLI Agent实战', link: '/notes/ai-model/agent/agent-cli-tutorial.md' },
-              { text: '多Agent编排模式', link: '/notes/ai-model/agent/agent-orchestration.md' },
-              { text: 'OpenClaw', link: '/notes/ai-model/applications/openclaw-intro.md' }
-            ]
-          },
-          {
             text: '面试指南',
             collapsible: true,
             items: [
@@ -596,6 +613,46 @@ export default withMermaid(
               { text: '模型部署与工程化', link: '/notes/ai-model/interview/deployment-engineering.md' },
               { text: '安全与伦理', link: '/notes/ai-model/interview/safety-ethics.md' },
               { text: '实战场景', link: '/notes/ai-model/interview/practical-scenarios.md' }
+            ]
+          }
+        ],
+
+        // ==================== AI应用开发 ====================
+        '/notes/ai-applications/': [
+          { text: '导览', link: '/notes/ai-applications/index.md' },
+          {
+            text: 'RAG检索增强',
+            collapsible: true,
+            items: [
+              { text: '导览', link: '/notes/ai-applications/rag/index.md' },
+              { text: 'RAG解决的问题', link: '/notes/ai-applications/rag/rag-basics.md' },
+              { text: '检索器模块', link: '/notes/ai-applications/rag/retriever.md' },
+              { text: 'TF-IDF与BM25', link: '/notes/ai-applications/rag/tfidf-bm25.md' },
+              { text: '重排序技术', link: '/notes/ai-applications/rag/reranking.md' },
+              { text: '生成器模块', link: '/notes/ai-applications/rag/generator.md' },
+              { text: '高级RAG技术', link: '/notes/ai-applications/rag/advanced-rag.md' },
+              { text: 'RAG vs SFT对比', link: '/notes/ai-applications/rag/rag-vs-sft.md' }
+            ]
+          },
+          {
+            text: 'AI智能体',
+            collapsible: true,
+            items: [
+              { text: '导览', link: '/notes/ai-applications/agent/index.md' },
+              { text: 'Agent基础概念', link: '/notes/ai-applications/agent/agent-basics.md' },
+              { text: 'ReAct与工具调用', link: '/notes/ai-applications/agent/agent-react-tools.md' },
+              { text: 'CLI Agent实战', link: '/notes/ai-applications/agent/agent-cli-tutorial.md' },
+              { text: '多Agent编排模式', link: '/notes/ai-applications/agent/agent-orchestration.md' }
+            ]
+          },
+          {
+            text: '应用案例',
+            collapsible: true,
+            items: [
+              { text: '导览', link: '/notes/ai-applications/applications/index.md' },
+              { text: 'AI智能体应用', link: '/notes/ai-applications/applications/agentic-ai.md' },
+              { text: '未来趋势', link: '/notes/ai-applications/applications/future-trends.md' },
+              { text: 'OpenClaw', link: '/notes/ai-applications/applications/openclaw-intro.md' }
             ]
           }
         ],
@@ -850,7 +907,7 @@ export default withMermaid(
       }
     },
 
-    // 忽略死链接
+    // 检查死链接
     ignoreDeadLinks: true,
 
     // Sitemap配置

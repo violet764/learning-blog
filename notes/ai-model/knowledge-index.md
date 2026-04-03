@@ -163,7 +163,7 @@
 | 4.3.2 数学推理 | [微调与对齐-领域增强](/notes/ai-model/llm/finetuning-alignment#领域增强) | 数学能力提升 |
 | 4.3.3 代码能力 | [微调与对齐-领域增强](/notes/ai-model/llm/finetuning-alignment#领域增强) | 代码生成能力 |
 | 4.3.4 多语言理解 | [微调与对齐-领域增强](/notes/ai-model/llm/finetuning-alignment#领域增强) | 多语言支持 |
-| 4.3.5 工具使用 | [ReAct与工具调用](/notes/ai-model/agent/agent-react-tools) | 工具调用能力 |
+| 4.3.5 工具使用 | [ReAct与工具调用](/notes/ai-applications/agent/agent-react-tools) | 工具调用能力 |
 
 ### 4.4 合成数据的利用
 
@@ -295,36 +295,36 @@
 
 | 知识点 | 链接 | 说明 |
 |--------|------|------|
-| 8.1.1 长尾知识 | [RAG基础-长尾知识](/notes/ai-model/rag/rag-basics#问题一长尾知识缺失) | 低频知识覆盖 |
-| 8.1.2 私有数据 | [RAG基础-私有数据](/notes/ai-model/rag/rag-basics#问题二私有数据处理) | 企业数据整合 |
-| 8.1.3 数据时效性 | [RAG基础-时效性](/notes/ai-model/rag/rag-basics#问题三数据时效性) | 知识更新问题 |
-| 8.1.4 来源验证和可解释性 | [RAG基础-可解释性](/notes/ai-model/rag/rag-basics#问题四可解释性) | 引用溯源 |
+| 8.1.1 长尾知识 | [RAG基础-长尾知识](/notes/ai-applications/rag/rag-basics#问题一长尾知识缺失) | 低频知识覆盖 |
+| 8.1.2 私有数据 | [RAG基础-私有数据](/notes/ai-applications/rag/rag-basics#问题二私有数据处理) | 企业数据整合 |
+| 8.1.3 数据时效性 | [RAG基础-时效性](/notes/ai-applications/rag/rag-basics#问题三数据时效性) | 知识更新问题 |
+| 8.1.4 来源验证和可解释性 | [RAG基础-可解释性](/notes/ai-applications/rag/rag-basics#问题四可解释性) | 引用溯源 |
 
 ### 8.2 RAG的关键模块
 
 | 知识点 | 链接 | 说明 |
 |--------|------|------|
-| 8.2.1 数据和索引模块 | [检索器模块](/notes/ai-model/rag/retriever) | 向量数据库、文档索引 |
-| 8.2.2 查询和检索模块 | [检索器模块](/notes/ai-model/rag/retriever) | Embedding、检索策略 |
-| 8.2.3 回复生成模块 | [生成器模块](/notes/ai-model/rag/generator) | Prompt设计、上下文融合 |
+| 8.2.1 数据和索引模块 | [检索器模块](/notes/ai-applications/rag/retriever) | 向量数据库、文档索引 |
+| 8.2.2 查询和检索模块 | [检索器模块](/notes/ai-applications/rag/retriever) | Embedding、检索策略 |
+| 8.2.3 回复生成模块 | [生成器模块](/notes/ai-applications/rag/generator) | Prompt设计、上下文融合 |
 
 ### 8.3 RAG vs SFT
 
 | 知识点 | 链接 | 说明 |
 |--------|------|------|
-| 8.3.1 数据层面 | [RAG vs SFT](/notes/ai-model/rag/rag-vs-sft) | 数据需求对比 |
-| 8.3.2 外部知识库 | [RAG vs SFT](/notes/ai-model/rag/rag-vs-sft) | 知识管理方式 |
-| 8.3.3 模型定制 | [RAG vs SFT](/notes/ai-model/rag/rag-vs-sft) | 定制化程度 |
-| 8.3.4 缓解幻觉 | [RAG vs SFT](/notes/ai-model/rag/rag-vs-sft) | 幻觉问题处理 |
+| 8.3.1 数据层面 | [RAG vs SFT](/notes/ai-applications/rag/rag-vs-sft) | 数据需求对比 |
+| 8.3.2 外部知识库 | [RAG vs SFT](/notes/ai-applications/rag/rag-vs-sft) | 知识管理方式 |
+| 8.3.3 模型定制 | [RAG vs SFT](/notes/ai-applications/rag/rag-vs-sft) | 定制化程度 |
+| 8.3.4 缓解幻觉 | [RAG vs SFT](/notes/ai-applications/rag/rag-vs-sft) | 幻觉问题处理 |
 
 ### 8.4 Agents技术
 
 | 知识点 | 链接 | 说明 |
 |--------|------|------|
-| 8.4.1 LLM Agents综述 | [Agent基础概念](/notes/ai-model/agent/agent-basics) | Agent概念与架构 |
-| 8.4.2 通用智能核心原则 | [Agent基础概念](/notes/ai-model/agent/agent-basics) | 自主决策能力 |
-| 8.4.3 目标导向的系统架构 | [多Agent编排](/notes/ai-model/agent/agent-orchestration) | 多Agent协作 |
-| 8.4.4 前瞻性分析 | [Agent导览](/notes/ai-model/agent/) | 发展趋势 |
+| 8.4.1 LLM Agents综述 | [Agent基础概念](/notes/ai-applications/agent/agent-basics) | Agent概念与架构 |
+| 8.4.2 通用智能核心原则 | [Agent基础概念](/notes/ai-applications/agent/agent-basics) | 自主决策能力 |
+| 8.4.3 目标导向的系统架构 | [多Agent编排](/notes/ai-applications/agent/agent-orchestration) | 多Agent协作 |
+| 8.4.4 前瞻性分析 | [Agent导览](/notes/ai-applications/agent/) | 发展趋势 |
 
 ---
 
@@ -334,4 +334,4 @@
 
 2. **进阶路径**：[预训练技术](/notes/ai-model/llm/pretraining) → [微调与对齐](/notes/ai-model/llm/finetuning-alignment) → [RLHF](/notes/reinforcement-learning/llm-rl) → [分布式训练](/notes/ai-model/distributed-training/)
 
-3. **实践路径**：[推理优化](/notes/ai-model/llm/inference-optimization) → [RAG](/notes/ai-model/rag/) → [Agent开发](/notes/ai-model/agent/)
+3. **实践路径**：[推理优化](/notes/ai-model/llm/inference-optimization) → [RAG](/notes/ai-applications/rag/) → [Agent开发](/notes/ai-applications/agent/)
