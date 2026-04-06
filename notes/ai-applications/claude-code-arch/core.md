@@ -1196,3 +1196,305 @@ async function enforceToolResultBudget(
 │    - 替换决策稳定，不破坏 prompt cache                       │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## 迁移系统
+
+`main.tsx` 包含一个版本化的迁移系统，确保升级时配置正确转换。
+
+### 版本化迁移
+
+```typescript
+const CURRENT_MIGRATION_VERSION = 11;
+
+function runMigrations(): void {
+  if (getGlobalConfig().migrationVersion !== CURRENT_MIGRATION_VERSION) {
+    migrateAutoUpdatesToSettings();
+    migrateSonnet45ToSonnet46();  // 模型名升级
+    migrateOpusToOpus1m();         // Opus → Opus 1M
+    migrateBypassPermissionsAcceptedToSettings();  // 权限状态迁移
+    // ... 更多迁移
+    
+    saveGlobalConfig(prev => ({
+      ...prev,
+      migrationVersion: CURRENT_MIGRATION_VERSION
+    }));
+  }
+}
+```
+
+### 迁移流程
+
+```mermaid
+flowchart TB
+    Start[应用启动] --> Check{版本匹配?}
+    
+    Check -->|匹配| Skip[跳过迁移]
+    Check -->|不匹配| Run[运行迁移函数]
+    
+    Run --> M1[migrateSonnet45ToSonnet46]
+    M1 --> M2[migrateOpusToOpus1m]
+    M2 --> M3[migrateBypassPermissions...]
+    M3 --> More[...更多迁移]
+    
+    More --> Save[保存新版本号]
+    Save --> Done[迁移完成]
+    
+    Skip --> Done
+    
+    style Check fill:#fff3e0
+    style Run fill:#e3f2fd
+```
+
+**迁移特点**：
+
+| 特性 | 说明 |
+|------|------|
+| 幂等性 | 已迁移的会 early return |
+| 顺序执行 | 按版本号顺序依次执行 |
+| 自动触发 | 每次启动时检查 |
+| 不可逆 | 升级后无法回退 |
+
+## 会话历史：JSONL + 反向读取
+
+会话历史采用 JSONL 格式存储，支持高效的反向读取（Up 键历史）。
+
+### 存储格式
+
+```typescript
+type LogEntry = {
+  display: string        // 显示文本
+  pastedContents: Record<number, StoredPastedContent>  // 粘贴内容引用
+  timestamp: number
+  project: string        // 项目路径
+  sessionId?: string
+}
+
+// 粘贴内容分流
+type StoredPastedContent = {
+  id: number
+  type: 'text' | 'image'
+  content?: string       // 小于 1024 字符 → 内联
+  contentHash?: string   // 大于 1024 字符 → hash 引用，异步写入磁盘
+}
+```
+
+### 反向读取实现
+
+```mermaid
+flowchart LR
+    subgraph 内存
+        Pending[待刷盘条目]
+    end
+    
+    subgraph 磁盘
+        JSONL[history.jsonl]
+    end
+    
+    Up[用户按 Up] --> Check{Pending 有数据?}
+    Check -->|是| Yield1[Yield Pending 条目]
+    Check -->|否| Read[反向读取 JSONL]
+    
+    Read --> Parse[解析 JSON 行]
+    Parse --> Filter[过滤已删除]
+    Filter --> Yield2[Yield 历史条目]
+    
+    Yield1 --> Display[显示历史]
+    Yield2 --> Display
+    
+    style Pending fill:#c8e6c9
+    style JSONL fill:#fff3e0
+```
+
+```typescript
+async function* makeLogEntryReader(): AsyncGenerator<LogEntry> {
+  // 1. 先 yield 未刷盘的 pending 条目
+  for (let i = pendingEntries.length - 1; i >= 0; i--) {
+    yield pendingEntries[i]!
+  }
+  
+  // 2. 从磁盘反向读取 JSONL
+  for await (const line of readLinesReverse(historyPath)) {
+    const entry = deserializeLogEntry(line)
+    // 跳过已删除的条目
+    if (skippedTimestamps.has(entry.timestamp)) continue
+    yield entry
+  }
+}
+```
+
+### 刷盘与文件锁
+
+```typescript
+async function immediateFlushHistory() {
+  const historyPath = join(getClaudeConfigHomeDir(), 'history.jsonl')
+  
+  // 文件锁（10s stale, 3 次重试）
+  release = await lock(historyPath, {
+    stale: 10000,
+    retries: { retries: 3, minTimeout: 50 },
+  })
+  
+  // 批量追加
+  const jsonLines = pendingEntries.map(entry => jsonStringify(entry) + '\n')
+  pendingEntries = []
+  
+  await appendFile(historyPath, jsonLines.join(''), { mode: 0o600 })
+}
+```
+
+## 成本追踪
+
+精确的成本追踪系统，支持每模型粒度的会话管理。
+
+### 成本状态结构
+
+```typescript
+type StoredCostState = {
+  totalCostUSD: number
+  totalAPIDuration: number
+  totalAPIDurationWithoutRetries: number
+  totalToolDuration: number
+  totalLinesAdded: number
+  totalLinesRemoved: number
+  modelUsage: {
+    [modelName: string]: ModelUsage
+  }
+}
+```
+
+### 会话恢复机制
+
+```mermaid
+flowchart TB
+    Start[会话开始] --> Check{sessionId 匹配?}
+    
+    Check -->|匹配| Restore[恢复成本数据]
+    Check -->|不匹配| Reset[重置为 0]
+    
+    Restore --> Track[继续追踪]
+    Reset --> Track
+    
+    Track --> API[API 调用]
+    API --> Update[更新累计成本]
+    Update --> More{更多调用?}
+    
+    More -->|是| API
+    More -->|否| Save[保存到配置]
+    
+    style Check fill:#fff3e0
+    style Restore fill:#c8e6c9
+```
+
+```typescript
+export function getStoredSessionCosts(sessionId: string): StoredCostState | undefined {
+  const projectConfig = getCurrentProjectConfig()
+  
+  // 只有 sessionId 匹配才恢复
+  if (projectConfig.lastSessionId !== sessionId) {
+    return undefined
+  }
+  
+  return {
+    totalCostUSD: projectConfig.lastCost ?? 0,
+    // ...
+  }
+}
+```
+
+### Advisor 递归成本追踪
+
+```typescript
+export function addToTotalSessionCost(cost, usage, model) {
+  // 递归追踪 advisor 用量
+  for (const advisorUsage of getAdvisorUsage(usage)) {
+    const advisorCost = calculateUSDCost(advisorUsage.model, advisorUsage)
+    
+    logEvent('tengu_advisor_tool_token_usage', {
+      advisor_model: advisorUsage.model,
+      cost_usd_micros: Math.round(advisorCost * 1_000_000),
+    })
+    
+    totalCost += addToTotalSessionCost(advisorCost, advisorUsage, advisorUsage.model)
+  }
+}
+```
+
+## Ink 终端 UI：深度定制
+
+Claude Code 不是简单使用 Ink 库，而是 **fork 并深度定制** 了整个终端渲染引擎（50+ 文件）。
+
+### 定制内容
+
+```
+ink/
+├── root.ts              # 渲染引擎（入口）
+├── render-to-screen.ts  # ANSI 序列生成 + diff 优化
+├── layout/engine.ts     # Yoga 布局引擎包装
+├── dom.ts               # 虚拟 DOM
+├── frame.ts             # 帧管理（FlickerReason 追踪）
+├── focus.ts             # 焦点管理
+├── hit-test.ts          # 鼠标点击测试
+├── selection.ts         # 文本选择
+├── bidi.ts              # 双向文本（RTL 支持）
+├── wrap-text.ts         # 文本换行
+├── Ansi.tsx             # ANSI 转义序列组件
+├── events/              # 事件系统
+│   ├── click-event.ts
+│   ├── input-event.ts
+│   └── emitter.ts
+├── hooks/               # 自定义 hooks
+│   ├── use-input.ts
+│   ├── use-animation-frame.ts
+│   └── use-terminal-viewport.ts
+└── components/          # 组件
+    ├── Box.tsx, Text.tsx
+    ├── Button.tsx
+    ├── Link.tsx
+    └── AlternateScreen.tsx
+```
+
+### 虚拟滚动优化
+
+```typescript
+// hooks/useVirtualScroll.ts (35KB)
+const DEFAULT_ESTIMATE = 3     // 未测量项的预估高度（故意偏低）
+const OVERSCAN_ROWS = 80       // 视口外额外渲染行数
+const SCROLL_QUANTUM = 40      // 重渲染阈值（半个 overscan）
+const MAX_MOUNTED_ITEMS = 300  // 最大挂载项数
+const SLIDE_STEP = 25          // 每次提交的最大新增项（防止 290ms 同步阻塞）
+```
+
+### 主题注入
+
+```typescript
+// ink.ts — 全局主题注入
+function withTheme(node: ReactNode): ReactNode {
+  return createElement(ThemeProvider, null, node)
+}
+
+export async function createRoot(options?: RenderOptions): Promise<Root> {
+  const root = await inkCreateRoot(options)
+  return {
+    ...root,
+    render: node => root.render(withTheme(node)),  // 包装每次渲染
+  }
+}
+```
+
+## 反调试机制
+
+外部构建包含反调试检查，检测到调试器时直接退出。
+
+```typescript
+// 外部构建检测调试器
+if ("external" !== 'ant' && isBeingDebugged()) {
+  process.exit(1);  // 静默退出，无错误信息
+}
+```
+
+**工作原理**：
+
+- `"external"` 是编译时替换的字符串
+- Anthropic 内部构建替换为 `'ant'`
+- 外部构建保持 `'external'`
+- 只有外部用户会被拦截，内部开发者不受影响

@@ -819,3 +819,128 @@ graph TB
 │    - Member: 执行、报告                                      │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## Bridge 远程执行
+
+Bridge 让 claude.ai 网页端可以远程执行本地代码，支持三种 Spawn 模式。
+
+### 架构概览
+
+```mermaid
+flowchart LR
+    Web[claude.ai 网页] <-.-> HTTP[Anthropic API]
+    HTTP <-.-> Poll[轮询]
+    Poll --> Bridge[Bridge 进程]
+    Bridge --> Spawn[spawn]
+    Spawn --> Local[本地 Claude Code]
+    
+    style Web fill:#e3f2fd
+    style Bridge fill:#c8e6c9
+    style Local fill:#fff3e0
+```
+
+### 三种 Spawn 模式
+
+| 模式 | 说明 | 适用场景 |
+|------|------|----------|
+| `single-session` | 一个目录一个会话，完成即销毁 | 一次性任务 |
+| `worktree` | 持久服务器，每个会话用 git worktree 隔离 | 多人协作 |
+| `same-dir` | 持久服务器，共享目录 | 简单场景（有干扰风险） |
+
+```typescript
+type SpawnMode = 'single-session' | 'worktree' | 'same-dir'
+
+// 根据场景选择模式
+function selectSpawnMode(config: BridgeConfig): SpawnMode {
+  // 一次性任务
+  if (config.taskType === 'one-off') {
+    return 'single-session'
+  }
+  
+  // 需要隔离的多人协作
+  if (config.collaborators > 1) {
+    return 'worktree'
+  }
+  
+  // 简单场景
+  return 'same-dir'
+}
+```
+
+### WorkSecret 协议
+
+```typescript
+type WorkSecret = {
+  version: number
+  session_ingress_token: string    // JWT token
+  api_base_url: string
+  sources: Array<{
+    type: string
+    git_info?: {
+      repo: string
+      ref?: string
+      token?: string
+    }
+  }>
+  auth: Array<{
+    type: string
+    token: string
+  }>
+  claude_code_args?: Record<string, string>
+  mcp_config?: unknown              // MCP 服务器配置
+  environment_variables?: Record<string, string>
+}
+```
+
+### 退避策略
+
+```typescript
+const DEFAULT_BACKOFF = {
+  connInitialMs: 2_000,      // 初始连接重试
+  connCapMs: 120_000,        // 最大连接重试（2分钟）
+  connGiveUpMs: 600_000,     // 放弃连接（10分钟）
+  generalInitialMs: 500,
+  generalCapMs: 30_000,
+  generalGiveUpMs: 600_000,
+}
+
+// 指数退避实现
+async function withBackoff<T>(
+  fn: () => Promise<T>,
+  config: BackoffConfig
+): Promise<T> {
+  let delay = config.connInitialMs
+  
+  while (true) {
+    try {
+      return await fn()
+    } catch (error) {
+      if (delay >= config.connGiveUpMs) {
+        throw error
+      }
+      
+      await sleep(delay)
+      delay = Math.min(delay * 2, config.connCapMs)
+    }
+  }
+}
+```
+
+### 连接状态机
+
+```mermaid
+stateDiagram-v2
+    [*] --> Connecting
+    
+    Connecting --> Connected: 认证成功
+    Connecting --> Reconnecting: 连接失败
+    Connecting --> Disconnected: 放弃连接
+    
+    Reconnecting --> Connected: 重连成功
+    Reconnecting --> Disconnected: 超过重试次数
+    
+    Connected --> Reconnecting: 连接断开
+    Connected --> Disconnected: 用户断开
+    
+    Disconnected --> [*]
+```

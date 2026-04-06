@@ -2,9 +2,36 @@
 
 Claude Code 是 Anthropic 开发的 AI 编程助手 CLI 工具，其架构设计堪称 AI Agent 开发的最佳实践教材。本文档深入分析其核心架构设计与实现原理。
 
-## 概述
+> **为什么学习 Claude Code 架构？**
+> 
+> 如果你正在开发 AI Agent、Chatbot 或任何与 LLM 交互的应用，Claude Code 的设计模式值得深入学习：
+> - 如何实现流式响应，让用户感知延迟更低
+> - 如何设计权限系统，保证 AI 操作安全可控
+> - 如何管理有限的上下文窗口，避免 token 超限
+> - 如何支持多 Agent 协作，实现复杂任务分解
 
-Claude Code 使用 TypeScript 编写，运行在 Node.js/Bun 上，终端 UI 使用 React + Ink 框架。其核心架构可以用一句话概括：**一个带权限系统的流式工具执行循环**。
+## 项目概览
+
+Claude Code 源码是一个庞大的 TypeScript 项目，其规模和复杂度令人印象深刻。从这些数据可以看出，一个成熟的 AI 编程工具需要多少工程量。
+
+| 指标 | 数值 | 说明 |
+|------|------|------|
+| 文件总数 | 1,884 个 (.ts/.tsx) | TypeScript 源码文件数量 |
+| 代码体积 | 33 MB | 不含 node_modules |
+| 核心入口文件 | main.tsx (4,683 行) | 启动初始化逻辑 |
+| 查询引擎 | QueryEngine.ts (1,295 行) + query.ts (1,729 行) | 对话循环核心 |
+| 内置工具 | 43 个独立模块 | Bash、Read、Edit 等 |
+| 斜杠命令 | 100+ 个 | 如 /commit、/review |
+| React Hooks | 85 个 | 终端 UI 状态管理 |
+| 服务模块 | 35+ 个 | API、MCP、权限等 |
+| 技术栈 | TypeScript + React + Ink + Zod + Bun | Ink 是终端 React 框架 |
+
+其核心架构可以用一句话概括：**一个带权限系统的流式工具执行循环**。
+
+这句话包含了三个关键点：
+1. **流式**：API 边返回边处理，不等完整响应
+2. **工具执行循环**：调用 API → 执行工具 → 再调用 API，循环往复
+3. **权限系统**：每次工具执行前都要检查是否允许
 
 这个设计涵盖了现代 AI Agent 的所有核心挑战：如何高效地与 LLM 交互、如何安全地执行工具、如何管理有限的上下文窗口、如何支持多 Agent 协作、如何实现可扩展性。
 
@@ -165,6 +192,13 @@ flowchart LR
 
 Agent 经常会一口气调好几个工具，系统需要决定哪些可以并行，哪些必须串行。这个信息不应该由框架去猜，而应该由工具自己声明。
 
+> **为什么需要并发控制？**
+> 
+> 假设 Agent 同时发起三个请求：读取文件 A、读取文件 B、编辑文件 C。
+> - 两个读取可以并行，互不影响
+> - 但编辑必须等读取完成，否则可能读到旧内容
+> - 如果有两个编辑操作，必须串行，否则会产生竞态条件
+
 ```typescript
 // 工具定义示例
 const toolDefinition = {
@@ -245,6 +279,14 @@ flowchart TB
 
 Agent 的 context window 就像一个固定大小的背包，你需要决定装什么、不装什么、什么时候清理。
 
+> **为什么上下文管理这么重要？**
+> 
+> - Claude 的上下文窗口虽然很大（200K tokens），但不是无限的
+> - 每次对话都会消耗 token，长对话很快就会填满
+> - 工具结果（如读取大文件）可能占用大量空间
+> - 超过限制会导致 API 报错，对话中断
+> - 好的管理策略能让 Agent 记住重要信息，忘记无关内容
+
 ```mermaid
 flowchart TB
     subgraph 上下文来源
@@ -302,6 +344,15 @@ flowchart TB
 
 工具 schema、skill 内容、MCP 指令，都不该一开始就全塞进 prompt。按需加载，用多少拿多少。
 
+> **什么是渐进式披露？**
+> 
+> 假设有 100 个工具，每个工具的 schema 平均 500 tokens：
+> - 全部发送：50,000 tokens，占用大量上下文
+> - 只发名字：100 tokens，节省 99.8%
+> - 需要时再加载完整定义：按需付费
+> 
+> 这就是渐进式披露的核心思想——先给目录，再给详情。
+
 ```mermaid
 sequenceDiagram
     participant Model as 模型
@@ -325,6 +376,15 @@ sequenceDiagram
 ### 六、多 Agent 协作不一定要多进程
 
 传统做法是为每个 Agent 启动独立的进程，但这带来大量开销。Claude Code 使用 AsyncLocalStorage 实现进程内上下文隔离。
+
+> **为什么多进程开销大？**
+> 
+> - 每个进程需要独立的内存空间（Node.js 基础开销 ~30MB）
+> - 进程间通信需要序列化/反序列化（JSON 转换）
+> - 启动新进程需要时间（~100-500ms）
+> - 进程管理复杂（崩溃重启、资源清理）
+> 
+> AsyncLocalStorage 让多个 Agent 共享进程，用"逻辑隔离"替代"物理隔离"。
 
 ```mermaid
 graph TB
@@ -382,3 +442,203 @@ agentContext.run({ sessionId: 'B', permissions: ['read', 'write'] }, () => {
   console.log(agentContext.getStore()?.sessionId); // 'B'
 });
 ```
+
+### 七、状态管理：极简主义
+
+整个应用的状态管理只有 **34 行代码**，不依赖任何第三方库：
+
+```typescript
+// state/store.ts — 完整源码
+type Listener = () => void
+type OnChange<T> = (args: { newState: T; oldState: T }) => void
+
+export type Store<T> = {
+  getState: () => T
+  setState: (updater: (prev: T) => T) => void
+  subscribe: (listener: Listener) => () => void
+}
+
+export function createStore<T>(
+  initialState: T,
+  onChange?: OnChange<T>,
+): Store<T> {
+  let state = initialState
+  const listeners = new Set<Listener>()
+  
+  return {
+    getState: () => state,
+    setState: (updater: (prev: T) => T) => {
+      const prev = state
+      const next = updater(prev)
+      if (Object.is(next, prev)) return  // 核心：引用相等检查
+      state = next
+      onChange?.({ newState: next, oldState: prev })
+      for (const listener of listeners) listener()
+    },
+    subscribe: (listener: Listener) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
+  }
+}
+```
+
+配合 React 18 的 `useSyncExternalStore` 实现最小化重渲染：
+
+```typescript
+export function useAppState<T>(selector: (state: AppState) => T): T {
+  const store = useAppStore();
+  return useSyncExternalStore(
+    store.subscribe,
+    () => selector(store.getState()),
+  );
+}
+```
+
+**为什么不用 Zustand 或 Redux？** 因为 Claude Code 的状态更新模式非常简单——没有中间件、没有 devtools、没有异步 action。一个 `Object.is()` + `Set<Listener>` 就够了。34 行代码 vs Zustand 的 1000+ 行，性能更好，依赖更少。
+
+### 八、Feature Gate：编译时优化
+
+Claude Code 使用两层特性开关，实现编译时消除和运行时控制。
+
+```mermaid
+flowchart TB
+    subgraph 编译时
+        Bun[Bun Bundle]
+        DCE[Dead Code Elimination]
+        External[外部构建]
+        Internal[内部构建]
+    end
+    
+    subgraph 运行时
+        Config[配置文件]
+        Env[环境变量]
+        Statsig[Statsig 特性开关]
+    end
+    
+    Bun --> DCE
+    DCE --> External
+    DCE --> Internal
+    
+    Config --> Check{feature 检查}
+    Env --> Check
+    Statsig --> Check
+    
+    Check -->|true| Enable[启用功能]
+    Check -->|false| Disable[禁用功能]
+    
+    style DCE fill:#c8e6c9
+    style Check fill:#fff3e0
+```
+
+**编译时消除示例**：
+
+```typescript
+import { feature } from 'bun:bundle';
+
+// 编译时完全消除 — 外部构建中这段代码不存在
+if (feature('COORDINATOR_MODE')) {
+  const module = require('./coordinatorMode.js')
+}
+```
+
+**已发现的 Feature Gate 列表**：
+
+| Flag | 说明 |
+|------|------|
+| `COORDINATOR_MODE` | 多智能体编排 |
+| `VOICE_MODE` | 语音输入 |
+| `HISTORY_SNIP` | 历史截断压缩 |
+| `TRANSCRIPT_CLASSIFIER` | ML 权限分类器 |
+| `REACTIVE_COMPACT` | 主动上下文压缩 |
+| `CONTEXT_COLLAPSE` | 语义上下文折叠 |
+| `KAIROS` | Assistant 模式 |
+| `BRIDGE_MODE` | 远程桥接 |
+| `PROACTIVE` | 主动提示 |
+| `AGENT_TRIGGERS` | Cron 触发器 |
+| `UDS_INBOX` | Unix Socket 收件箱 |
+| `DAEMON` | 守护进程模式 |
+| `WEB_BROWSER_TOOL` | 浏览器工具 |
+| `TERMINAL_PANEL` | 终端面板 |
+| `EXPERIMENTAL_SKILL_SEARCH` | 技能搜索 |
+
+## 彩蛋：Buddy 宠物系统
+
+Claude Code 内置了一个可爱的宠物系统（Buddy），为严肃的编程工作增添一丝趣味。
+
+### 物种列表
+
+```typescript
+// buddy/types.ts
+export const SPECIES = [
+  'duck', 'goose', 'blob', 'cat', 'dragon',
+  'octopus', 'owl', 'penguin', 'turtle', 'snail',
+  'ghost', 'axolotl', 'capybara', 'cactus', 'robot',
+  'rabbit', 'mushroom', 'chonk',
+] as const  // 18 种物种
+
+export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const
+```
+
+### 宠物属性
+
+```typescript
+export type CompanionBones = {
+  rarity: Rarity
+  species: Species
+  eye: Eye
+  hat: Hat
+  shiny: boolean          // 闪光版
+  stats: Record<StatName, number>  // Debugging, Patience, Chaos, Wisdom, Snark
+}
+
+export type CompanionSoul = {
+  name: string           // AI 生成的名字
+  personality: string    // AI 生成的性格
+}
+```
+
+### 生成机制
+
+用 `hash(userId)` 确定性生成，保证同一用户在所有会话中看到同一只宠物。首次 "孵化" 时由 Claude 生成名字和性格。
+
+```mermaid
+flowchart TB
+    User[用户 ID] --> Hash[hash 函数]
+    Hash --> Seed[随机种子]
+    
+    Seed --> Species[物种选择]
+    Seed --> Rarity[稀有度]
+    Seed --> Stats[属性值]
+    Seed --> Shiny{闪光?}
+    
+    Species --> Bones[CompanionBones]
+    Rarity --> Bones
+    Stats --> Bones
+    Shiny --> Bones
+    
+    Bones --> First{首次孵化?}
+    
+    First -->|是| Claude[Claude 生成]
+    Claude --> Name[名字]
+    Claude --> Personality[性格]
+    
+    First -->|否| Load[加载已有]
+    
+    Name --> Soul[CompanionSoul]
+    Personality --> Soul
+    Load --> Soul
+    
+    Bones --> Display[显示宠物]
+    Soul --> Display
+    
+    style Hash fill:#e3f2fd
+    style Claude fill:#c8e6c9
+    style Shiny fill:#fff3e0
+```
+
+**技术实现**：
+
+- `CompanionSprite.tsx` (45KB) 实现了帧动画
+- 支持多种表情和动作
+- 宠物会随着用户操作做出反应
