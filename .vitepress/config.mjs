@@ -646,6 +646,16 @@ export default withMermaid(
             ]
           },
           {
+            text: 'Claude Code架构',
+            collapsible: true,
+            items: [
+              { text: '架构解析', link: '/notes/ai-applications/claude-code-arch/index.md' },
+              { text: '核心机制', link: '/notes/ai-applications/claude-code-arch/core.md' },
+              { text: '安全与扩展', link: '/notes/ai-applications/claude-code-arch/security.md' },
+              { text: '多Agent协作', link: '/notes/ai-applications/claude-code-arch/swarm.md' }
+            ]
+          },
+          {
             text: '应用案例',
             collapsible: true,
             items: [

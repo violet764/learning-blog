@@ -17,3 +17,5 @@ a.java
 a.class
 *.vscode
 *small_case
+*claude-code-cli
+

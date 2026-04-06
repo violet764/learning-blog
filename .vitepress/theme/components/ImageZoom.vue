@@ -73,6 +73,7 @@
           ref="containerRef"
         >
           <img 
+            v-if="!isSvg"
             class="vp-image-zoom__img" 
             :src="src" 
             :alt="alt" 
@@ -80,6 +81,19 @@
             @load="onImageLoad"
             ref="imageRef"
           />
+          <div 
+            v-else 
+            class="vp-image-zoom__svg-container"
+            @click.stop
+            ref="imageRef"
+          >
+            <img 
+              class="vp-image-zoom__img vp-image-zoom__svg-img" 
+              :src="src" 
+              :alt="alt"
+              @load="onImageLoad"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -332,17 +346,58 @@ const isDocImage = (el) => {
   return true
 }
 
+// 检查是否为 Mermaid SVG 图表
+const isMermaidSvg = (el) => {
+  if (!(el instanceof SVGElement)) return false
+  // Mermaid 图表通常在 .mermaid 或 pre.mermaid 内
+  const parent = el.closest('.mermaid, pre.mermaid, .vp-doc svg')
+  if (!parent) return false
+  // 确保是文档内的 SVG
+  if (!el.closest('.vp-doc')) return false
+  return true
+}
+
+// SVG 数据 URL 缓存
+const svgDataUrl = ref('')
+const isSvg = ref(false)
+
 const onClick = (event) => {
   if (typeof window === 'undefined') return
   const target = event.target
-  if (!isDocImage(target)) return
   
-  const img = target
-  src.value = img.currentSrc || img.src || ''
-  alt.value = img.alt || ''
+  // 处理普通图片
+  if (isDocImage(target)) {
+    const img = target
+    src.value = img.currentSrc || img.src || ''
+    alt.value = img.alt || ''
+    isSvg.value = false
+    
+    if (src.value) {
+      open.value = true
+    }
+    return
+  }
   
-  if (src.value) {
-    open.value = true
+  // 处理 Mermaid SVG 图表
+  if (isMermaidSvg(target)) {
+    const svg = target.closest('svg')
+    if (svg) {
+      // 克隆 SVG 并设置样式
+      const clonedSvg = svg.cloneNode(true)
+      clonedSvg.setAttribute('width', '100%')
+      clonedSvg.setAttribute('height', '100%')
+      clonedSvg.style.maxWidth = '100%'
+      clonedSvg.style.maxHeight = '80vh'
+      
+      // 转换为 data URL
+      const svgString = new XMLSerializer().serializeToString(clonedSvg)
+      svgDataUrl.value = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString)
+      src.value = svgDataUrl.value
+      alt.value = '流程图'
+      isSvg.value = true
+      
+      open.value = true
+    }
   }
 }
 
@@ -422,6 +477,23 @@ onUnmounted(() => {
   display: block;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.vp-image-zoom__svg-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 400px;
+  min-height: 300px;
+}
+
+.vp-image-zoom__svg-img {
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 80vh;
+  min-width: 300px;
+  min-height: 200px;
 }
 
 .vp-image-zoom__controls {

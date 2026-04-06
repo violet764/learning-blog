@@ -100,7 +100,7 @@ $$
 
 ### 1.4 感知机收敛定理
 
-::: theorem 感知机收敛性
+::: tip 感知机收敛性
 若训练数据集线性可分，则感知机算法在有限次迭代后收敛。
 :::
 
@@ -261,7 +261,7 @@ $$
 
 ### 2.4 通用近似定理
 
-::: theorem Universal Approximation Theorem
+::: tip Universal Approximation Theorem
 对于任意连续函数 $f: [0,1]^n \to \mathbb{R}$ 和任意 $\epsilon > 0$，存在一个具有单隐藏层的神经网络，使得对于所有 $x \in [0,1]^n$：
 
 $$

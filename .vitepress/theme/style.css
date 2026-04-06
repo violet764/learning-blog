@@ -1152,3 +1152,53 @@ html.dark .VPHero::before {
     animation: none;
   }
 }
+
+/**
+ * Mermaid 图表样式
+ * -------------------------------------------------------------------------- */
+
+/* Mermaid 图表容器 */
+.vp-doc .mermaid {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+/* Mermaid SVG 可点击样式 */
+.vp-doc .mermaid svg {
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--vp-c-bg-soft);
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Hover 效果 */
+.vp-doc .mermaid svg:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  opacity: 0.95;
+}
+
+/* 暗色模式 */
+html.dark .vp-doc .mermaid svg {
+  background: var(--vp-c-bg-soft);
+}
+
+html.dark .vp-doc .mermaid svg:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .vp-doc .mermaid svg {
+    padding: 0.5rem;
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .vp-doc .mermaid svg:hover {
+    transform: none;
+  }
+}
