@@ -46,7 +46,7 @@
 
 ## 如何关闭某个功能
 
-在 `.vitepress/theme/index.js` 中移除对应组件的导入与插槽注入即可，例如：
+在 `.vitepress/theme/index.js` 中移除对应组件的导入与插槽注入即可，如：
 
 - 移除阅读进度：删除 `ReadingProgress` 的 import 和 `layout-top` 插槽
 - 移除图片放大：删除 `ImageZoom` 的 import 和 `layout-bottom` 中的挂载
